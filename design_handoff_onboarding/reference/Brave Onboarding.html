@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brave — Kartlegging</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --color-ink: #f5efe3;
+    --color-midnight: #efe7d6;
+    --color-navy: #fffdf8;
+    --color-steel: #ddd0ba;
+    --color-line: #e6dcc8;
+    --color-cloud: #16243d;
+    --color-mist: #5d574b;
+    --color-muted: #8a8273;
+    --color-brand: #142a4b;
+    --color-brand-deep: #0c2345;
+    --color-onbrand: #f6f1e6;
+    --color-accent: #0c8ba0;
+    --color-marker: #2bcfe2;
+    --color-coral: #bf4d27;
+    --radius-card: 1.25rem;
+    --radius-xl: 0.75rem;
+    --shadow-card: 0 18px 40px -18px rgba(20,35,60,0.30), 0 2px 8px -4px rgba(20,35,60,0.16);
+    --shadow-soft: 0 16px 40px -20px rgba(20,35,60,0.28);
+    --font-body: "Satoshi", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-display: "Fraunces", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-ink);
+    color: var(--color-cloud);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  #root { position: relative; z-index: 1; }
+
+  ::selection { background: var(--color-marker); color: var(--color-brand); }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect } = React;
+
+/* ─────────────────────────────────────────────
+   Questionnaire content (Norwegian)
+   ───────────────────────────────────────────── */
+const QUESTIONS = [
+  {
+    id: "revenue",
+    category: "Økonomi",
+    label: "Hva er bedriftens nåværende årsomsetning?",
+    help: "Et omtrentlig tall holder. Dette blir nullpunktet vi måler vekst mot.",
+    placeholder: "f.eks. 12 000 000 kr",
+    prefix: "kr",
+    type: "number",
+  },
+  {
+    id: "leads",
+    category: "Pipeline",
+    label: "Hvor mange leads genererer dere i en typisk måned?",
+    help: "Tell alle reelle henvendelser — innkommende og oppsøkende.",
+    placeholder: "f.eks. 45",
+    suffix: "leads / mnd",
+    type: "number",
+  },
+  {
+    id: "closeRate",
+    category: "Pipeline",
+    label: "Hva er deres nåværende close rate?",
+    help: "Andelen kvalifiserte leads som ender som signerte kunder.",
+    placeholder: "f.eks. 22",
+    suffix: "%",
+    type: "number",
+  },
+  {
+    id: "dealSize",
+    category: "Økonomi",
+    label: "Hva er gjennomsnittlig avtalestørrelse?",
+    help: "Snittverdien på en signert kontrakt eller et salg.",
+    placeholder: "f.eks. 85 000 kr",
+    prefix: "kr",
+    type: "number",
+  },
+  {
+    id: "marketingSpend",
+    category: "Økonomi",
+    label: "Hvor mye bruker dere på markedsføring i dag?",
+    help: "Samlet månedlig budsjett — annonser, byrå, verktøy og innhold.",
+    placeholder: "f.eks. 60 000 kr / mnd",
+    prefix: "kr",
+    type: "number",
+  },
+  {
+    id: "teamSize",
+    category: "Team",
+    label: "Hvor mange jobber i salgsteamet?",
+    help: "Inkluder alle som aktivt selger, også deltid.",
+    placeholder: "f.eks. 4",
+    suffix: "personer",
+    type: "number",
+  },
+  {
+    id: "bottleneck",
+    category: "Strategi",
+    label: "Hva er den største flaskehalsen for vekst akkurat nå?",
+    help: "Beskriv med egne ord — det er ofte her vi finner de raske gevinstene.",
+    placeholder: "Skriv fritt — f.eks. «For få kvalifiserte møter»",
+    type: "text",
+  },
+  {
+    id: "tools",
+    category: "Verktøy",
+    label: "Hvilke CRM- og salgsverktøy bruker dere i dag?",
+    help: "List opp det dere bruker, eller skriv hvis dere ikke bruker noe ennå.",
+    placeholder: "f.eks. HubSpot, Pipedrive, regneark …",
+    type: "text",
+  },
+  {
+    id: "prospecting",
+    category: "Team",
+    label: "Hvor mye tid bruker teamet på prospektering per uke?",
+    help: "Samlet antall timer på å finne og kontakte nye potensielle kunder.",
+    placeholder: "f.eks. 10",
+    suffix: "timer / uke",
+    type: "number",
+  },
+  {
+    id: "channel",
+    category: "Strategi",
+    label: "Hva er deres viktigste salgskanal i dag?",
+    help: "Der mesteparten av nye kunder faktisk kommer fra.",
+    placeholder: "f.eks. Anbefalinger, LinkedIn, kald e-post …",
+    type: "text",
+  },
+];
+
+const SKIP_LABEL = "Vet ikke / Har ikke tall på det";
+const SKIPPED = "__SKIPPED__";
+
+/* ─────────────────────────────────────────────
+   Small presentational pieces
+   ───────────────────────────────────────────── */
+
+const progressStyles = {
+  wrap: { width: "100%" },
+  track: {
+    position: "relative",
+    height: 5,
+    borderRadius: 999,
+    background: "var(--color-steel)",
+    overflow: "hidden",
+  },
+  fill: {
+    position: "absolute",
+    insetBlock: 0,
+    left: 0,
+    borderRadius: 999,
+    background: "var(--color-accent)",
+    transition: "width 560ms cubic-bezier(0.22, 1, 0.36, 1)",
+  },
+  meta: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    marginBottom: 12,
+    fontSize: 13,
+    letterSpacing: "0.04em",
+    color: "var(--color-mist)",
+    textTransform: "uppercase",
+    fontWeight: 500,
+  },
+};
+
+function ProgressBar({ current, total }) {
+  const pct = Math.round((current / total) * 100);
+  return (
+    <div style={progressStyles.wrap}>
+      <div style={progressStyles.meta}>
+        <span>Spørsmål {Math.min(current + 1, total)} av {total}</span>
+        <span style={{ color: "var(--color-accent)", fontVariantNumeric: "tabular-nums" }}>{pct}%</span>
+      </div>
+      <div style={progressStyles.track}>
+        <div style={{ ...progressStyles.fill, width: `${pct}%` }}></div>
+      </div>
+    </div>
+  );
+}
+
+const brandStyles = {
+  bar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  logo: {
+    fontFamily: "var(--font-display)",
+    fontWeight: 600,
+    fontSize: 26,
+    letterSpacing: "-0.01em",
+    color: "var(--color-brand)",
+    display: "flex",
+    alignItems: "center",
+    gap: 9,
+  },
+  dot: {
+    width: 9, height: 9, borderRadius: 999,
+    background: "var(--color-coral)",
+    display: "inline-block",
+    marginBottom: 3,
+  },
+  tag: {
+    fontSize: 12,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "var(--color-muted)",
+    fontWeight: 600,
+  },
+};
+
+function BrandBar() {
+  return (
+    <div style={brandStyles.bar}>
+      <div style={brandStyles.logo}>
+        Brave<span style={brandStyles.dot}></span>
+      </div>
+      <div style={brandStyles.tag}>Kartlegging</div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Question card
+   ───────────────────────────────────────────── */
+
+const qStyles = {
+  category: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 12.5,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    fontWeight: 700,
+    color: "var(--color-accent)",
+    marginBottom: 20,
+  },
+  catLine: { width: 22, height: 2, background: "var(--color-marker)", borderRadius: 2 },
+  label: {
+    fontFamily: "var(--font-display)",
+    fontWeight: 500,
+    fontSize: "clamp(28px, 4.6vw, 42px)",
+    lineHeight: 1.1,
+    letterSpacing: "-0.015em",
+    color: "var(--color-cloud)",
+    textWrap: "pretty",
+  },
+  help: {
+    marginTop: 16,
+    fontSize: 16.5,
+    lineHeight: 1.55,
+    color: "var(--color-mist)",
+    maxWidth: "46ch",
+    textWrap: "pretty",
+  },
+  inputRow: {
+    marginTop: 34,
+    display: "flex",
+    alignItems: "stretch",
+    background: "var(--color-navy)",
+    border: "1.5px solid var(--color-steel)",
+    borderRadius: "var(--radius-xl)",
+    overflow: "hidden",
+    transition: "border-color 200ms ease, box-shadow 200ms ease",
+  },
+  affix: {
+    display: "flex",
+    alignItems: "center",
+    padding: "0 18px",
+    fontSize: 17,
+    fontWeight: 500,
+    color: "var(--color-muted)",
+    background: "transparent",
+    whiteSpace: "nowrap",
+  },
+  input: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    padding: "20px 20px",
+    fontFamily: "var(--font-body)",
+    fontSize: 19,
+    fontWeight: 500,
+    color: "var(--color-cloud)",
+    width: "100%",
+    minWidth: 0,
+  },
+  textarea: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    padding: "18px 20px",
+    fontFamily: "var(--font-body)",
+    fontSize: 18,
+    fontWeight: 500,
+    lineHeight: 1.5,
+    color: "var(--color-cloud)",
+    width: "100%",
+    minWidth: 0,
+    resize: "none",
+    minHeight: 92,
+  },
+  actions: {
+    marginTop: 28,
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    flexWrap: "wrap",
+  },
+};
+
+function QuestionCard({ q, value, onChange, onNext, onSkip, onBack, isFirst, autoFocusKey }) {
+  const inputRef = useRef(null);
+  const isText = q.type === "text";
+  const stored = value === SKIPPED ? "" : (value || "");
+
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current && inputRef.current.focus(), 360);
+    return () => clearTimeout(t);
+  }, [autoFocusKey]);
+
+  const [focused, setFocused] = useState(false);
+
+  const handleKey = (e) => {
+    if (e.key === "Enter" && !isText) {
+      e.preventDefault();
+      onNext();
+    }
+    if (e.key === "Enter" && isText && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      onNext();
+    }
+  };
+
+  const rowStyle = {
+    ...qStyles.inputRow,
+    borderColor: focused ? "var(--color-accent)" : "var(--color-steel)",
+    boxShadow: focused ? "0 0 0 4px rgba(12,139,160,0.14)" : "none",
+  };
+
+  return (
+    <div>
+      <div style={qStyles.category}>
+        <span style={qStyles.catLine}></span>
+        {q.category}
+      </div>
+      <h1 style={qStyles.label}>{q.label}</h1>
+      <p style={qStyles.help}>{q.help}</p>
+
+      <div style={rowStyle}>
+        {q.prefix && <span style={qStyles.affix}>{q.prefix}</span>}
+        {isText ? (
+          <textarea
+            ref={inputRef}
+            style={qStyles.textarea}
+            placeholder={q.placeholder}
+            value={stored}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKey}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+        ) : (
+          <input
+            ref={inputRef}
+            style={qStyles.input}
+            inputMode={q.type === "number" ? "decimal" : "text"}
+            placeholder={q.placeholder}
+            value={stored}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKey}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+        )}
+        {q.suffix && <span style={qStyles.affix}>{q.suffix}</span>}
+      </div>
+
+      <div style={qStyles.actions}>
+        <PrimaryButton onClick={onNext}>
+          {isFirst ? "Start" : "Neste"}
+          <Arrow />
+        </PrimaryButton>
+        <GhostButton onClick={onSkip}>{SKIP_LABEL}</GhostButton>
+        <button onClick={onBack} style={backBtnStyle}>{isFirst ? "← Avslutt" : "← Tilbake"}</button>
+      </div>
+    </div>
+  );
+}
+
+const backBtnStyle = {
+  marginLeft: "auto",
+  background: "none",
+  border: "none",
+  color: "var(--color-muted)",
+  fontFamily: "var(--font-body)",
+  fontSize: 15,
+  fontWeight: 500,
+  cursor: "pointer",
+  padding: "10px 6px",
+};
+
+function Arrow() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none" style={{ marginLeft: 2 }}>
+      <path d="M3 8.5h10M9 4.5l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PrimaryButton({ children, onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 9,
+        background: hover ? "var(--color-brand-deep)" : "var(--color-brand)",
+        color: "var(--color-onbrand)",
+        border: "none",
+        borderRadius: "var(--radius-xl)",
+        padding: "16px 26px",
+        fontFamily: "var(--font-body)",
+        fontSize: 16.5,
+        fontWeight: 600,
+        cursor: "pointer",
+        boxShadow: hover ? "0 14px 30px -14px rgba(12,35,69,0.6)" : "0 8px 22px -14px rgba(12,35,69,0.5)",
+        transform: hover ? "translateY(-1px)" : "translateY(0)",
+        transition: "all 180ms ease",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({ children, onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: hover ? "rgba(221,208,186,0.28)" : "transparent",
+        color: "var(--color-mist)",
+        border: "1.5px solid var(--color-steel)",
+        borderRadius: "var(--radius-xl)",
+        padding: "15px 22px",
+        fontFamily: "var(--font-body)",
+        fontSize: 15.5,
+        fontWeight: 500,
+        cursor: "pointer",
+        transition: "all 180ms ease",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Intro & Summary
+   ───────────────────────────────────────────── */
+
+const introStyles = {
+  eyebrow: {
+    display: "inline-flex", alignItems: "center", gap: 9,
+    fontSize: 13, letterSpacing: "0.14em", textTransform: "uppercase",
+    fontWeight: 700, color: "var(--color-accent)", marginBottom: 24,
+  },
+  title: {
+    fontFamily: "var(--font-display)", fontWeight: 500,
+    fontSize: "clamp(34px, 5.4vw, 56px)", lineHeight: 1.04,
+    letterSpacing: "-0.02em", color: "var(--color-cloud)", textWrap: "balance",
+  },
+  body: {
+    marginTop: 22, fontSize: 18.5, lineHeight: 1.6,
+    color: "var(--color-mist)", maxWidth: "52ch", textWrap: "pretty",
+  },
+  meta: {
+    marginTop: 34, display: "flex", gap: 28, flexWrap: "wrap",
+    paddingTop: 26, borderTop: "1px solid var(--color-line)",
+  },
+  metaItem: { display: "flex", flexDirection: "column", gap: 4 },
+  metaNum: { fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 600, color: "var(--color-brand)" },
+  metaLabel: { fontSize: 13.5, color: "var(--color-muted)", fontWeight: 500 },
+};
+
+function Intro({ onStart, total }) {
+  return (
+    <div>
+      <div style={introStyles.eyebrow}>
+        <span style={qStyles.catLine}></span> Nullpunkt
+      </div>
+      <h1 style={introStyles.title}>La oss kartlegge der dere står i dag.</h1>
+      <p style={introStyles.body}>
+        Vi stiller {total} korte spørsmål om salg og marked. Svarene danner et
+        utgangspunkt vi kommer tilbake til senere — slik at vi sammen kan se nøyaktig
+        hvor mye dere har vokst. Har dere ikke tallet? Hopp videre.
+      </p>
+      <div style={introStyles.meta}>
+        <div style={introStyles.metaItem}>
+          <span style={introStyles.metaNum}>{total}</span>
+          <span style={introStyles.metaLabel}>spørsmål</span>
+        </div>
+        <div style={introStyles.metaItem}>
+          <span style={introStyles.metaNum}>~4</span>
+          <span style={introStyles.metaLabel}>minutter</span>
+        </div>
+        <div style={introStyles.metaItem}>
+          <span style={introStyles.metaNum}>0</span>
+          <span style={introStyles.metaLabel}>krav om tall</span>
+        </div>
+      </div>
+      <div style={{ marginTop: 38 }}>
+        <PrimaryButton onClick={onStart}>Sett i gang <Arrow /></PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+const sumStyles = {
+  eyebrow: {
+    display: "inline-flex", alignItems: "center", gap: 9,
+    fontSize: 13, letterSpacing: "0.14em", textTransform: "uppercase",
+    fontWeight: 700, color: "var(--color-accent)", marginBottom: 18,
+  },
+  title: {
+    fontFamily: "var(--font-display)", fontWeight: 500,
+    fontSize: "clamp(30px, 4.8vw, 46px)", lineHeight: 1.06,
+    letterSpacing: "-0.02em", color: "var(--color-cloud)", textWrap: "balance",
+  },
+  sub: { marginTop: 16, fontSize: 17, lineHeight: 1.55, color: "var(--color-mist)", maxWidth: "50ch" },
+  list: { marginTop: 30, display: "flex", flexDirection: "column", gap: 2 },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0,1fr) auto",
+    gap: 20,
+    alignItems: "baseline",
+    padding: "18px 4px",
+    borderBottom: "1px solid var(--color-line)",
+  },
+  qText: { display: "flex", flexDirection: "column", gap: 4 },
+  qCat: { fontSize: 11.5, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color: "var(--color-muted)" },
+  qLabel: { fontSize: 16, fontWeight: 500, color: "var(--color-cloud)", lineHeight: 1.4 },
+  ans: {
+    fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 500,
+    color: "var(--color-brand)", textAlign: "right", fontVariantNumeric: "tabular-nums",
+    maxWidth: "16ch", overflowWrap: "anywhere",
+  },
+  ansSkip: {
+    fontSize: 14.5, fontWeight: 600, color: "var(--color-coral)",
+    textAlign: "right", letterSpacing: "0.02em",
+    background: "rgba(191,77,39,0.10)", padding: "5px 12px", borderRadius: 999,
+    fontFamily: "var(--font-body)", whiteSpace: "nowrap",
+  },
+};
+
+function formatAnswer(q, val) {
+  if (val === SKIPPED || val === undefined || val === "" ) return null;
+  let out = String(val).trim();
+  if (q.prefix === "kr") {
+    const num = Number(out.replace(/\s|kr/gi, "").replace(",", "."));
+    if (!isNaN(num) && out.match(/^[\d\s.,]+(kr)?$/i)) {
+      out = new Intl.NumberFormat("nb-NO").format(num) + " kr";
+    }
+  } else if (q.suffix === "%") {
+    out = out.replace(/%/g, "").trim() + " %";
+  } else if (q.suffix) {
+    out = out + " " + q.suffix.replace(/^leads.*/, "leads").replace(/^timer.*/, "t/uke").replace(/^personer/, "pers.");
+  }
+  return out;
+}
+
+function Summary({ answers, onEdit, onRestart }) {
+  const filled = QUESTIONS.filter((q) => answers[q.id] && answers[q.id] !== SKIPPED).length;
+  return (
+    <div>
+      <div style={sumStyles.eyebrow}><span style={qStyles.catLine}></span> Ferdig</div>
+      <h1 style={sumStyles.title}>Dette er nullpunktet deres.</h1>
+      <p style={sumStyles.sub}>
+        {filled} av {QUESTIONS.length} besvart. Vi lagrer kartleggingen og bruker den
+        som referanse når vi måler vekst fremover. Klikk på et svar for å justere.
+      </p>
+
+      <div style={sumStyles.list}>
+        {QUESTIONS.map((q, i) => {
+          const raw = answers[q.id];
+          const formatted = formatAnswer(q, raw);
+          return (
+            <div
+              key={q.id}
+              style={{ ...sumStyles.row, cursor: "pointer" }}
+              onClick={() => onEdit(i)}
+            >
+              <div style={sumStyles.qText}>
+                <span style={sumStyles.qCat}>{q.category}</span>
+                <span style={sumStyles.qLabel}>{q.label}</span>
+              </div>
+              {formatted
+                ? <span style={sumStyles.ans}>{formatted}</span>
+                : <span style={sumStyles.ansSkip}>Ikke oppgitt</span>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ marginTop: 36, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+        <PrimaryButton onClick={onRestart}>Send inn kartlegging <Arrow /></PrimaryButton>
+        <GhostButton onClick={() => onEdit(0)}>Gå gjennom på nytt</GhostButton>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   App — orchestration + slide transitions
+   ───────────────────────────────────────────── */
+
+const STAGE_INTRO = -1;
+const STAGE_SUMMARY = QUESTIONS.length;
+
+const appStyles = {
+  shell: {
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    padding: "clamp(20px, 4vw, 40px)",
+  },
+  card: {
+    width: "100%",
+    maxWidth: 720,
+    margin: "0 auto",
+    background: "var(--color-midnight)",
+    border: "1px solid var(--color-line)",
+    borderRadius: "var(--radius-card)",
+    boxShadow: "var(--shadow-card)",
+    padding: "clamp(28px, 4.4vw, 52px)",
+    display: "flex",
+    flexDirection: "column",
+    flex: "0 0 auto",
+  },
+  center: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  header: { marginBottom: 30 },
+  stage: { position: "relative", overflow: "hidden" },
+};
+
+function App() {
+  const [stage, setStage] = useState(STAGE_INTRO);
+  const [answers, setAnswers] = useState({});
+  const [draft, setDraft] = useState("");
+  const [anim, setAnim] = useState("rest"); // direction class
+  const [autoFocusKey, setAutoFocusKey] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+
+  const isQuestion = stage >= 0 && stage < QUESTIONS.length;
+  const q = isQuestion ? QUESTIONS[stage] : null;
+
+  // load draft when entering a question
+  useEffect(() => {
+    if (isQuestion) {
+      const existing = answers[q.id];
+      setDraft(existing === SKIPPED ? "" : (existing || ""));
+    }
+  }, [stage]);
+
+  const go = (next, dir) => {
+    setAnim(dir === "back" ? "out-back" : "out-fwd");
+    setTimeout(() => {
+      setStage(next);
+      setAnim(dir === "back" ? "in-back" : "in-fwd");
+      setAutoFocusKey((k) => k + 1);
+    }, 240);
+  };
+
+  const commit = (val) => {
+    if (q) setAnswers((a) => ({ ...a, [q.id]: val }));
+  };
+
+  const handleNext = () => {
+    const trimmed = (draft || "").trim();
+    commit(trimmed === "" ? SKIPPED : trimmed);
+    go(stage + 1, "fwd");
+  };
+
+  const handleSkip = () => {
+    commit(SKIPPED);
+    go(stage + 1, "fwd");
+  };
+
+  const handleBack = () => {
+    const trimmed = (draft || "").trim();
+    if (trimmed !== "") commit(trimmed);
+    go(stage - 1, "back");
+  };
+
+  const startStyle = {
+    transition: "opacity 240ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1)",
+    opacity: anim.startsWith("out") ? 0 : 1,
+    transform:
+      anim === "out-fwd" ? "translateX(-26px)" :
+      anim === "out-back" ? "translateX(26px)" :
+      anim === "in-back" ? "translateX(0)" : "translateX(0)",
+  };
+
+  // entering animation: start offset then settle
+  const [entered, setEntered] = useState(true);
+  useEffect(() => {
+    if (anim === "in-fwd" || anim === "in-back") {
+      setEntered(false);
+      let raf2;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setEntered(true));
+      });
+      return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+    } else {
+      setEntered(true);
+    }
+  }, [anim, stage]);
+
+  const enterStyle = {
+    transition: "opacity 320ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+    opacity: anim.startsWith("out") ? 0 : (entered ? 1 : 0),
+    transform: anim.startsWith("out")
+      ? (anim === "out-fwd" ? "translateX(-24px)" : "translateX(24px)")
+      : (entered ? "translateX(0)" : (anim === "in-back" ? "translateX(-24px)" : "translateX(24px)")),
+  };
+
+  let content;
+  if (stage === STAGE_INTRO) {
+    content = <Intro total={QUESTIONS.length} onStart={() => go(0, "fwd")} />;
+  } else if (stage === STAGE_SUMMARY) {
+    content = (
+      <Summary
+        answers={answers}
+        onEdit={(i) => go(i, "back")}
+        onRestart={() => setSubmitted(true)}
+      />
+    );
+  } else {
+    content = (
+      <QuestionCard
+        q={q}
+        value={answers[q.id]}
+        autoFocusKey={autoFocusKey}
+        onChange={setDraft}
+        onNext={handleNext}
+        onSkip={handleSkip}
+        onBack={handleBack}
+        isFirst={stage === 0}
+      />
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div style={appStyles.shell}>
+        <div style={appStyles.center}>
+          <div style={{ ...appStyles.card, alignItems: "flex-start", textAlign: "left" }}>
+            <BrandBar />
+            <div style={{ marginTop: 40 }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 999,
+                background: "var(--color-accent)", display: "flex",
+                alignItems: "center", justifyContent: "center", marginBottom: 24,
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12.5l4.5 4.5L19 7" stroke="var(--color-onbrand)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h1 style={introStyles.title}>Takk! Kartleggingen er sendt.</h1>
+              <p style={{ ...introStyles.body, marginTop: 18 }}>
+                Vi har lagret nullpunktet deres. Rådgiveren deres i Brave tar kontakt for
+                neste steg — og vi måler vekst mot akkurat disse tallene fremover.
+              </p>
+              <div style={{ marginTop: 34 }}>
+                <GhostButton onClick={() => { setSubmitted(false); setStage(STAGE_INTRO); setAnswers({}); }}>
+                  Start på nytt
+                </GhostButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={appStyles.shell}>
+      <div style={appStyles.center}>
+        <div style={appStyles.card}>
+          <div style={appStyles.header}>
+            <BrandBar />
+          </div>
+          {isQuestion && (
+            <div style={{ marginBottom: 36 }}>
+              <ProgressBar current={stage} total={QUESTIONS.length} />
+            </div>
+          )}
+          <div style={appStyles.stage}>
+            <div style={enterStyle}>
+              {content}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

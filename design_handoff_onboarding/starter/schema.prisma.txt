@@ -1,0 +1,46 @@
+// FUTURE — not wired up yet. A starting point for when you add Prisma + SQL.
+// Rename to schema.prisma and adapt. Models the link-based, no-auth intake flow.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "mysql" / "sqlite" for local dev
+  url      = env("DATABASE_URL")
+}
+
+// One questionnaire link sent to one customer. Created by Brave when generating
+// the link; `token` is the unguessable slug used in the URL: /k/[token]
+model Submission {
+  id          String    @id @default(cuid())
+  token       String    @unique // e.g. nanoid() — goes in the link
+  customerName String?              // optional label for Brave's internal view
+  companyName String?
+  status      String    @default("pending") // "pending" | "submitted"
+  answers     Answer[]
+  createdAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  @@index([status])
+}
+
+// One answer per question. Storing the raw string keeps it lossless and flexible;
+// parse/format at read time (see formatAnswer.ts). `skipped` captures the
+// "Vet ikke / Har ikke tall på det" case distinctly from an empty string.
+model Answer {
+  id           String     @id @default(cuid())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String
+  questionId   String     // matches Question.id from questions.ts
+  value        String     @default("")
+  skipped      Boolean    @default(false)
+
+  @@unique([submissionId, questionId])
+  @@index([questionId])
+}
+
+// NOTE: Questions themselves are NOT modelled here — they live in questions.ts
+// (static). If you later want them editable without a deploy, add a Question
+// model with the same fields (id, category, label, help, placeholder, type,
+// prefix, suffix, order) and fetch them server-side.
