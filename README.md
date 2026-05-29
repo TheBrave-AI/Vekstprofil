@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Brave — Customer Onboarding Questionnaire
+
+A standalone web app that lets Brave send personalised questionnaire links to clients. Clients answer questions about their current sales and marketing situation ("nullpunkt" / baseline). Brave uses the results internally to track and demonstrate growth over time.
+
+---
+
+## What It Does
+
+**For clients:**
+- Receive a unique link (no login required)
+- Click through ~10 questions about revenue, leads, close rate, tools, etc.
+- Skip any question they don't have data for
+- Review and submit their answers
+
+**For Brave admins:**
+- Generate unique questionnaire links per client
+- Manage the question catalog (add, remove, reorder questions)
+- View submitted responses with visual summaries (charts for numeric data)
+- Export responses as CSV until the visual dashboard is built
+
+---
+
+## Architecture
+
+Single Next.js app with:
+
+- **Client-facing route:** `/k/[token]` — the questionnaire, publicly accessible via link
+- **Admin routes:** `/admin/*` — internal Brave use only, protected
+- **Database:** PostgreSQL via Prisma — stores submissions, answers, and the question catalog
+- **No auth for clients** — access is via an unguessable token in the URL
+
+---
+
+## Deployment
+
+Hosted separately on Vercel. When stable, can be moved to a subdomain like `onboarding.thebrave.no` or integrated into the main Brave repository.
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Animation | Framer Motion |
+| Database ORM | Prisma |
+| Database | PostgreSQL |
+| Deployment | Vercel |
+
+---
+
+## Project Structure
+
+```
+app/
+  k/[token]/page.tsx      — client questionnaire route
+  admin/                  — internal admin pages (future)
+  actions.ts              — server actions (submit, generate links)
+  globals.css             — design tokens + base styles
+  layout.tsx              — root layout with fonts + grain overlay
+components/
+  questionnaire/          — questionnaire UI components
+  ui/                     — shared UI primitives (buttons, etc.)
+lib/
+  types.ts                — shared TypeScript types
+  questions.ts            — question catalog (static for now → DB later)
+  formatAnswer.ts         — answer formatting for summary view
+design_handoff_onboarding/
+  README.md               — full UI spec (screens, interactions, tokens)
+  reference/              — working HTML prototype
+  starter/                — starter files used during setup
+prisma/
+  schema.prisma           — database schema
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For backend setup (database, environment variables) see `BACKEND.md`.
