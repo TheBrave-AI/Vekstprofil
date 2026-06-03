@@ -4,10 +4,10 @@ import { updateQuestion } from "@/app/actions";
 import { useState, useTransition } from "react";
 
 interface QuestionRow {
-  q_id:        number;
-  category:    string | null;
-  question:    string;
-  answer_type: string;
+  q_id:     number;
+  category: string;
+  label:    string;
+  type:     string;
 }
 
 export function QuestionsClient({ initial }: { initial: QuestionRow[] }) {
@@ -18,7 +18,7 @@ export function QuestionsClient({ initial }: { initial: QuestionRow[] }) {
     setQuestions((prev) =>
       prev.map((q) => (q.q_id === q_id ? { ...q, category } : q))
     );
-    startTransition(() => updateQuestion(q_id, { category: category || null }));
+    startTransition(() => updateQuestion(q_id, { category: category || undefined }));
   }
 
   return (
@@ -41,15 +41,14 @@ export function QuestionsClient({ initial }: { initial: QuestionRow[] }) {
               <td className="px-5 py-3 text-muted font-mono text-xs">{q.q_id}</td>
               <td className="px-5 py-3">
                 <input
-                  defaultValue={q.category ?? ""}
+                  defaultValue={q.category}
                   onBlur={(e) => handleCategoryChange(q.q_id, e.target.value)}
                   className="w-full rounded-lg border border-line bg-navy px-2 py-1 text-xs text-cloud focus:border-accent focus:outline-none"
-                  placeholder="—"
                 />
               </td>
-              <td className="px-5 py-3 text-cloud max-w-xs truncate">{q.question}</td>
+              <td className="px-5 py-3 text-cloud max-w-xs truncate">{q.label}</td>
               <td className="px-5 py-3">
-                <span className="font-mono text-xs text-mist">{q.answer_type}</span>
+                <span className="font-mono text-xs text-mist">{q.type}</span>
               </td>
             </tr>
           ))}

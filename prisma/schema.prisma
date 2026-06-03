@@ -9,22 +9,19 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-enum AnswerType {
-  yes_no
-  open
-  numeric
-}
-
 model question {
-  q_id        Int        @id @default(autoincrement())
-  question    String
-  hint        String?
-  placeholder String?
-  suffix      String?
-  prefix      String?
-  category    String?
-  answer_type AnswerType
-  answers     answer[]
+  q_id         Int      @id @default(autoincrement())
+  id           String   @unique  // string slug e.g. "teamSize", "closeRate"
+  category     String
+  label        String
+  help         String
+  placeholder  String
+  type         String           // "number" | "text" | "boolean" | "select" | "multiselect"
+  prefix       String?
+  suffix       String?
+  options      Json?            // string[] for select/multiselect
+  slider       Json?            // { min, max, step } for slider
+  answers      answer[]
 }
 
 model template {
@@ -42,12 +39,11 @@ model customer {
   questionnaires questionnaire[]
 }
 
-// One questionnaire = one template sent to one customer
 model questionnaire {
   qu_id      Int      @id @default(autoincrement())
   t_id       Int
   c_id       Int
-  answer_ids Json?    // null = not submitted; array of a_id once submitted
+  answer_ids Json?
   link       String   @unique
   template   template @relation(fields: [t_id], references: [t_id])
   customer   customer @relation(fields: [c_id], references: [c_id])

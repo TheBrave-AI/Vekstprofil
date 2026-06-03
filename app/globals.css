@@ -46,6 +46,9 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  button {
+    cursor: pointer;
+  }
 }
 
 ::selection {

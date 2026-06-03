@@ -16,7 +16,6 @@ export async function GET(
     where:   { link: token },
     include: { customer: true, template: true },
   });
-
   if (!questionnaire) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const answerIds = questionnaire.answer_ids as number[] | null;
@@ -24,32 +23,40 @@ export async function GET(
     ? await db.answer.findMany({ where: { a_id: { in: answerIds } }, include: { question: true } })
     : [];
 
-  const answerByQid = Object.fromEntries(answers.map((a) => [a.q_id, a]));
-
   const templateQuestionIds = questionnaire.template.question_ids as number[];
   const allQuestions = await db.question.findMany({
     where: { q_id: { in: templateQuestionIds } },
   });
+
   const questions: Question[] = templateQuestionIds
-    .map((id) => allQuestions.find((q) => q.q_id === id))
+    .map((qid) => allQuestions.find((q) => q.q_id === qid))
     .filter((q): q is NonNullable<typeof q> => q !== undefined)
     .map((q) => ({
-      q_id: q.q_id, question: q.question, hint: q.hint,
-      placeholder: q.placeholder, suffix: q.suffix, prefix: q.prefix,
-      category: q.category, answer_type: q.answer_type as Question["answer_type"],
+      id:          q.id,
+      category:    q.category,
+      label:       q.label,
+      help:        q.help,
+      placeholder: q.placeholder,
+      type:        q.type as Question["type"],
+      prefix:      q.prefix  ?? undefined,
+      suffix:      q.suffix  ?? undefined,
     }));
+
+  const answerBySlug = Object.fromEntries(
+    answers.map((a) => [a.question.id, a])
+  );
 
   const rows: string[][] = [
     ["Kunde", "Mal", "Spørsmål ID", "Spørsmål", "Svar", "Tom"],
   ];
 
   for (const q of questions) {
-    const a = answerByQid[q.q_id];
+    const a = answerBySlug[q.id];
     rows.push([
       questionnaire.customer.name,
       questionnaire.template.short_title ?? questionnaire.template.title,
-      String(q.q_id),
-      q.question,
+      q.id,
+      q.label,
       a?.value ?? "",
       a?.empty ? "Ja" : "Nei",
     ]);
@@ -60,11 +67,7 @@ export async function GET(
   }
 
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
-
-  const safeName = questionnaire.customer.name
-    .replace(/[^\w\s.-]/g, "_")
-    .trim()
-    .replace(/\s+/g, "_");
+  const safeName = questionnaire.customer.name.replace(/[^\w\s.-]/g, "_").trim().replace(/\s+/g, "_");
 
   return new Response(csv, {
     headers: {

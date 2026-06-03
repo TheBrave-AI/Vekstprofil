@@ -12,7 +12,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Brave — Kartlegging",
+  title: "Brave — Vekstprofil",
   description: "Kartlegg din nåværende salgs- og markedssituasjon.",
 };
 

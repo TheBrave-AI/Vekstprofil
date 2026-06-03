@@ -20,10 +20,9 @@ export default async function SubmissionDetailPage({
 
   if (!questionnaire) notFound();
 
-  const answerIds = questionnaire.answer_ids as number[] | null;
+  const answerIds  = questionnaire.answer_ids as number[] | null;
   const isSubmitted = answerIds !== null;
 
-  // Fetch answers with their questions
   const answers = isSubmitted && answerIds!.length > 0
     ? await db.answer.findMany({
         where:   { a_id: { in: answerIds! } },
@@ -31,31 +30,40 @@ export default async function SubmissionDetailPage({
       })
     : [];
 
-  // Get ordered question list from template
   const templateQuestionIds = questionnaire.template.question_ids as number[];
   const allQuestions = await db.question.findMany({
     where: { q_id: { in: templateQuestionIds } },
   });
+
   const questions: Question[] = templateQuestionIds
-    .map((id) => allQuestions.find((q) => q.q_id === id))
+    .map((qid) => allQuestions.find((q) => q.q_id === qid))
     .filter((q): q is NonNullable<typeof q> => q !== undefined)
     .map((q) => ({
-      q_id: q.q_id, question: q.question, hint: q.hint,
-      placeholder: q.placeholder, suffix: q.suffix, prefix: q.prefix,
-      category: q.category, answer_type: q.answer_type as Question["answer_type"],
+      id:          q.id,
+      category:    q.category,
+      label:       q.label,
+      help:        q.help,
+      placeholder: q.placeholder,
+      type:        q.type as Question["type"],
+      prefix:      q.prefix  ?? undefined,
+      suffix:      q.suffix  ?? undefined,
+      options:     q.options ? (q.options as string[]) : undefined,
+      slider:      q.slider  ? (q.slider as Question["slider"]) : undefined,
     }));
 
-  const answerByQid = Object.fromEntries(answers.map((a) => [a.q_id, a]));
+  // Map answers by question string slug (id)
+  const answerBySlug = Object.fromEntries(
+    answers.map((a) => [a.question.id, a])
+  );
 
-  // Numeric data for chart
   const chartData = questions
-    .filter((q) => q.answer_type === "numeric")
+    .filter((q) => q.type === "number")
     .flatMap((q) => {
-      const a = answerByQid[q.q_id];
+      const a = answerBySlug[q.id];
       if (!a || a.empty || !a.value) return [];
       const num = parseFloat(a.value.replace(/\s|kr/gi, "").replace(",", "."));
       if (isNaN(num)) return [];
-      return [{ label: q.category ?? q.question.slice(0, 20), value: num, unit: q.suffix ?? q.prefix ?? "" }];
+      return [{ label: q.category, value: num, unit: q.suffix ?? q.prefix ?? "" }];
     });
 
   return (
@@ -88,14 +96,12 @@ export default async function SubmissionDetailPage({
             <h2 className="font-display text-lg text-cloud mb-4">Alle svar</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {questions.map((q) => {
-                const a = answerByQid[q.q_id];
-                const formatted = a && !a.empty ? formatAnswer(q, a.value) : null;
+                const a = answerBySlug[q.id];
+                const formatted = a && !a.empty ? formatAnswer(q, a.value ?? undefined) : null;
                 return (
-                  <div key={q.q_id} className="rounded-xl bg-midnight border border-line p-4 space-y-1">
-                    {q.category && (
-                      <p className="text-xs font-medium tracking-widest uppercase text-accent">{q.category}</p>
-                    )}
-                    <p className="text-sm font-medium text-cloud">{q.question}</p>
+                  <div key={q.id} className="rounded-xl bg-midnight border border-line p-4 space-y-1">
+                    <p className="text-xs font-medium tracking-widest uppercase text-accent">{q.category}</p>
+                    <p className="text-sm font-medium text-cloud">{q.label}</p>
                     {formatted ? (
                       <p className="text-sm text-cloud font-mono">{formatted}</p>
                     ) : (

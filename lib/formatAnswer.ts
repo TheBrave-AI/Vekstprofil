@@ -1,24 +1,41 @@
-import type { Question } from "./types";
+import type { Question, AnswerMap } from "./types";
+import { SKIPPED } from "./types";
 
-/** Formats a raw answer value for display. Returns null if empty/skipped. */
-export function formatAnswer(q: Question, value: string | null | undefined): string | null {
-  if (!value || value.trim() === "") return null;
+export function formatAnswer(q: Question, raw: AnswerMap[string] | undefined): string | null {
+  if (raw === SKIPPED || raw === undefined || raw === "") return null;
 
-  let out = value.trim();
+  const out = String(raw).trim();
 
+  if (q.type === "boolean") {
+    return out === "true" ? "Ja" : "Nei";
+  }
+
+  if (q.type === "multiselect") {
+    return out.split(",").map((v) => v.trim()).filter(Boolean).join(", ");
+  }
+
+  if (q.type === "select" || q.type === "text") {
+    return out;
+  }
+
+  // number
   if (q.prefix === "kr") {
     const num = Number(out.replace(/\s|kr/gi, "").replace(",", "."));
-    if (!isNaN(num) && /^[\d\s.,]+(kr)?$/i.test(out)) {
-      out = new Intl.NumberFormat("nb-NO").format(num) + " kr";
-    }
-  } else if (q.suffix === "%") {
-    out = out.replace(/%/g, "").trim() + " %";
-  } else if (q.suffix) {
+    if (!isNaN(num) && num > 0) return new Intl.NumberFormat("nb-NO").format(num) + " kr";
+    return out;
+  }
+
+  if (q.suffix === "%") {
+    return out.replace(/%/g, "").trim() + " %";
+  }
+
+  if (q.suffix) {
     const shortUnit = q.suffix
-      .replace(/^leads.*/, "leads")
-      .replace(/^timer.*/, "t/uke")
-      .replace(/^personer/, "pers.");
-    out = `${out} ${shortUnit}`;
+      .replace(/^møter.*/, "møter/mnd")
+      .replace(/^dager/, "dager")
+      .replace(/^selgere/, "selgere")
+      .replace(/^år/, "år");
+    return `${out} ${shortUnit}`;
   }
 
   return out;

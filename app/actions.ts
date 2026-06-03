@@ -2,27 +2,24 @@
 
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
-import type { AnswerPayload } from "@/lib/types";
+import { SKIPPED } from "@/lib/types";
 
 // ── Client-facing ────────────────────────────────────────────────────────────
 
 /**
  * Called by the frontend Questionnaire on submit.
- * answers: array of { q_id, value, empty } — one per question
+ * answers: Record<questionId (string slug), value | "__SKIPPED__">
  */
 export async function submitQuestionnaire(
   link: string,
-  answers: AnswerPayload[]
+  answers: Record<string, string>
 ): Promise<{ ok: boolean }> {
   const questionnaire = await db.questionnaire.findUnique({ where: { link } });
   if (!questionnaire) return { ok: false };
-
-  // Already submitted if answer_ids is not null
   if (questionnaire.answer_ids !== null) return { ok: false };
 
   try {
     await db.$transaction(async (tx) => {
-      // Atomic claim — only succeeds if still null (not submitted yet)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const claimed = await tx.questionnaire.updateMany({
         where: { qu_id: questionnaire.qu_id, answer_ids: { equals: null as any } },
@@ -30,17 +27,29 @@ export async function submitQuestionnaire(
       });
       if (claimed.count === 0) throw new Error("ALREADY_SUBMITTED");
 
-      // Create one answer row per question
+      // Look up q_id for each string slug
+      const slugs = Object.keys(answers);
+      const questions = await tx.question.findMany({
+        where: { id: { in: slugs } },
+        select: { q_id: true, id: true },
+      });
+      const slugToQid = Object.fromEntries(questions.map((q) => [q.id, q.q_id]));
+
       const created = await Promise.all(
-        answers.map(({ q_id, value, empty }) =>
-          tx.answer.create({ data: { q_id, value: value ?? null, empty } })
-        )
+        Object.entries(answers).map(([slug, rawValue]) => {
+          const q_id = slugToQid[slug];
+          if (!q_id) return null;
+          const empty = rawValue === SKIPPED || rawValue === "";
+          return tx.answer.create({
+            data: { q_id, value: empty ? null : rawValue, empty },
+          });
+        })
       );
 
-      // Store the answer IDs back on the questionnaire
+      const aIds = created.filter(Boolean).map((a) => a!.a_id);
       await tx.questionnaire.update({
         where: { qu_id: questionnaire.qu_id },
-        data:  { answer_ids: created.map((a) => a.a_id) },
+        data:  { answer_ids: aIds },
       });
     });
   } catch (e) {
@@ -59,26 +68,37 @@ export async function createQuestionnaire(
 ): Promise<{ link: string }> {
   if (!customerName.trim()) throw new Error("Customer name is required");
 
-  // Find or create the customer
-  let customer = await db.customer.findFirst({
-    where: { name: customerName.trim() },
-  });
+  let customer = await db.customer.findFirst({ where: { name: customerName.trim() } });
   if (!customer) {
     customer = await db.customer.create({ data: { name: customerName.trim() } });
   }
 
   const link = randomUUID();
-  await db.questionnaire.create({
-    data: { t_id, c_id: customer.c_id, link },
-  });
-
+  await db.questionnaire.create({ data: { t_id, c_id: customer.c_id, link } });
   return { link };
+}
+
+// ── Admin: questions ──────────────────────────────────────────────────────────
+
+export async function updateQuestion(
+  q_id: number,
+  data: Partial<{
+    category:    string;
+    label:       string;
+    help:        string;
+    placeholder: string;
+    type:        string;
+    prefix:      string | null;
+    suffix:      string | null;
+  }>
+): Promise<void> {
+  await db.question.update({ where: { q_id }, data });
 }
 
 // ── Admin: templates ──────────────────────────────────────────────────────────
 
 export async function createTemplate(data: {
-  title: string;
+  title:        string;
   short_title?: string;
   description?: string;
   question_ids: number[];
@@ -93,31 +113,4 @@ export async function createTemplate(data: {
     },
   });
   return { t_id: t.t_id };
-}
-
-export async function updateTemplateQuestions(
-  t_id: number,
-  question_ids: number[]
-): Promise<void> {
-  await db.template.update({
-    where: { t_id },
-    data:  { question_ids },
-  });
-}
-
-// ── Admin: questions ──────────────────────────────────────────────────────────
-
-export async function updateQuestion(
-  q_id: number,
-  data: Partial<{
-    question:    string;
-    hint:        string | null;
-    placeholder: string | null;
-    suffix:      string | null;
-    prefix:      string | null;
-    category:    string | null;
-    answer_type: "yes_no" | "open" | "numeric";
-  }>
-): Promise<void> {
-  await db.question.update({ where: { q_id }, data });
 }

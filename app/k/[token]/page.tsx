@@ -35,30 +35,32 @@ export default async function ClientQuestionnairePage({
     );
   }
 
-  // Load questions for this template (ordered by question_ids array)
   const questionIds = questionnaire.template.question_ids as number[];
   const rawQuestions = await db.question.findMany({
     where: { q_id: { in: questionIds } },
   });
 
-  // Preserve the order defined in template.question_ids
+  // Map DB questions → Andreas's Question type, preserving template order
   const questions: Question[] = questionIds
     .map((id) => rawQuestions.find((q) => q.q_id === id))
     .filter((q): q is NonNullable<typeof q> => q !== undefined)
     .map((q) => ({
-      q_id:        q.q_id,
-      question:    q.question,
-      hint:        q.hint,
-      placeholder: q.placeholder,
-      suffix:      q.suffix,
-      prefix:      q.prefix,
+      id:          q.id,
       category:    q.category,
-      answer_type: q.answer_type as Question["answer_type"],
+      label:       q.label,
+      help:        q.help,
+      placeholder: q.placeholder,
+      type:        q.type as Question["type"],
+      prefix:      q.prefix   ?? undefined,
+      suffix:      q.suffix   ?? undefined,
+      options:     q.options  ? (q.options as string[]) : undefined,
+      slider:      q.slider   ? (q.slider as Question["slider"]) : undefined,
     }));
 
   // TODO (Andreas): replace placeholder with:
   // <Questionnaire link={token} questions={questions} />
   // On submit call: submitQuestionnaire(link, answers) from "@/app/actions"
+  // answers: Record<questionId, value | "__SKIPPED__">
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink">
       <div className="rounded-card bg-midnight p-8 shadow-card text-center space-y-2 max-w-sm w-full mx-4">
