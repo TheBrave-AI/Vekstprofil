@@ -10,12 +10,12 @@ import GhostButton from "../ui/GhostButton";
 interface Props {
   answers: AnswerMap;
   onSubmit: () => void;
-  // Kalles når brukeren klikker på en rad — hopper tilbake til det spørsmålet
+  // Called when the user clicks a row — jumps back to that question
   onGoToQuestion: (index: number) => void;
 }
 
-export default function Oppsummering({ answers, onSubmit, onGoToQuestion }: Props) {
-  // Tell opp spørsmål som faktisk er besvart (ikke hoppet over og ikke tomme)
+export default function Summary({ answers, onSubmit, onGoToQuestion }: Props) {
+  // Count questions that are actually answered (not skipped and not empty)
   const filledCount = QUESTIONS.filter((q) => {
     const a = answers[q.id];
     return a !== undefined && a !== SKIPPED && a !== "";
@@ -25,7 +25,7 @@ export default function Oppsummering({ answers, onSubmit, onGoToQuestion }: Prop
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
       <BrandBar />
 
-      {/* Eyebrow — samme mønster som Intro og SpørsmålKort */}
+      {/* Eyebrow — same pattern as Intro and QuestionCard */}
       <div className="flex items-center gap-3 mt-8 mb-5">
         <span className="w-[22px] h-[2px] bg-marker shrink-0" />
         <span className="text-accent text-[12.5px] font-bold uppercase tracking-[0.14em]">
@@ -44,25 +44,24 @@ export default function Oppsummering({ answers, onSubmit, onGoToQuestion }: Prop
         {filledCount} av {QUESTIONS.length} besvart
       </p>
 
-      {/* Svarliste */}
+      {/* Answer list */}
       <div className="mt-8">
         {QUESTIONS.map((q, i) => {
           const raw = answers[q.id];
-          // formatAnswer returnerer null hvis svaret er tomt eller SKIPPED
+          // formatAnswer returns null if the answer is empty or SKIPPED
           const formatted = formatAnswer(q, raw);
           const isUnanswered = formatted === null;
 
           return (
-            // Hele raden er klikkbar — sender brukeren tilbake til det spørsmålet for redigering
+            // The entire row is clickable — sends the user back to that question for editing
             <button
               key={q.id}
               type="button"
               onClick={() => onGoToQuestion(i)}
-              className="w-full grid gap-5 py-[18px] border-b border-line text-left
-                transition-colors hover:bg-black/[0.03] rounded-sm"
+              className="w-full grid gap-5 py-[18px] border-b border-line text-left transition-colors hover:bg-black/[0.03] rounded-sm"
               style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}
             >
-              {/* Venstre: kategori + spørsmålstekst */}
+              {/* Left: category + question text */}
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-muted text-[11px] font-bold uppercase tracking-[0.12em]">
                   {q.category}
@@ -72,10 +71,10 @@ export default function Oppsummering({ answers, onSubmit, onGoToQuestion }: Prop
                 </span>
               </div>
 
-              {/* Høyre: formatert svar eller "Ikke oppgitt"-pill */}
+              {/* Right: formatted answer or "Ikke oppgitt" pill */}
               <div className="flex items-center justify-end pl-4 shrink-0">
                 {isUnanswered ? (
-                  // Coral-pill for ubesvarte spørsmål
+                  // Coral pill for unanswered questions
                   <span
                     className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"
                     style={{ background: "rgba(191,77,39,0.10)" }}
@@ -93,10 +92,10 @@ export default function Oppsummering({ answers, onSubmit, onGoToQuestion }: Prop
         })}
       </div>
 
-      {/* Handlingsrad */}
+      {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-8">
         <PrimaryButton label="Send inn kartlegging" onClick={onSubmit} />
-        {/* "Gå gjennom på nytt" sender brukeren til spørsmål 1 (index 0) */}
+        {/* "Gå gjennom på nytt" sends the user to question 1 (index 0) */}
         <GhostButton label="Gå gjennom på nytt" onClick={() => onGoToQuestion(0)} />
       </div>
     </div>

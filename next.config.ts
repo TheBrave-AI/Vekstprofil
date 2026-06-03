@@ -12,7 +12,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
       "font-src 'self' https://api.fontshare.com https://cdn.fontshare.com",
-      "img-src 'self' data:",
+      "img-src 'self' data: https://lh3.googleusercontent.com",
       "connect-src 'self'",
       "frame-ancestors 'none'",
     ].join("; "),
