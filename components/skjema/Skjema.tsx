@@ -1,12 +1,11 @@
 'use client';
-import BrandBar from "../ui/BrandBar";
-import PrimaryButton from "../ui/PrimaryButton";
-import {useState} from "react";
-import {QUESTIONS} from "@/lib/questions";
-import {SKIPPED} from "@/lib/types";
+import { useState } from "react";
+import { QUESTIONS } from "@/lib/questions";
+import { SKIPPED } from "@/lib/types";
 import type { AnswerMap } from "@/lib/types";
 import SpørsmålKort from "./SpørsmålKort";
 import Intro from "./Intro";
+import Oppsummering from "./Oppsummering";
 
 
 type Stage = "intro" | number | "summary" | "submitted";
@@ -38,10 +37,18 @@ export default function Skjema() {
     }
 
     function goBack() {
-      if (stage === "summary") {setStage(QUESTIONS.length - 1); return;}
-      if (typeof stage === 'number' && stage > 0) setStage(stage - 1)
-      else if (typeof stage === 'number' && stage == 0) setStage("intro");}
-    
+      if (stage === "summary") { setStage(QUESTIONS.length - 1); return; }
+      if (typeof stage === 'number' && stage > 0) setStage(stage - 1);
+      else if (typeof stage === 'number' && stage === 0) setStage("intro");
+    }
+
+    // Hopper direkte til et bestemt spørsmål (brukes fra Oppsummering)
+    // Laster eksisterende svar inn i draft-feltet så brukeren kan redigere
+    function goToQuestion(i: number) {
+      const existing = answers[QUESTIONS[i].id];
+      setDraft(existing && existing !== SKIPPED ? existing : '');
+      setStage(i);
+    }
 
     function handleSubmit() {
       // TODO: Kall server action her (George)
@@ -65,7 +72,13 @@ export default function Skjema() {
                 onBack={goBack}/>)}
                 
               
-              {stage === 'summary' && <div>TODO: &lt;Oppsummering /&gt;</div>}
+              {stage === 'summary' && (
+                <Oppsummering
+                  answers={answers}
+                  onSubmit={handleSubmit}
+                  onGoToQuestion={goToQuestion}
+                />
+              )}
               {stage === 'submitted' && <div>TODO: &lt;Innsendt /&gt;</div>}
             </main>
 

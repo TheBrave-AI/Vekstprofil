@@ -14,18 +14,27 @@ A full-stack Next.js app for Brave (Norwegian B2B sales/marketing agency). Brave
 - Future: delegate a question to a teammate
 
 **Admin section (`/admin/*`):**
-- Client management — create clients, view all clients and their history
-- Generate questionnaire links — create a new submission round for a client
-- Edit questions per round (customized from the default template before sending)
-- View responses per client/round
-- Compare rounds over time to demonstrate growth
-- Edit the default question template
+- Customer management — create customers, view all customers and their history
+- Create surveys — either from a Template or by hand-picking questions
+- Manage Templates — named form compositions (e.g. "Ny-kunde Skjema", "Evaluerings-skjema")
+- Manage the question catalog — add, edit questions (edits apply retroactively, which is intentional for typo fixes)
+- View responses per customer/survey
+- Compare surveys over time to demonstrate growth
 
-### Data Model (Approach A — Template + Round Copies)
+### Data Model
 
-When a new round is created for a client, the default question template is **copied** into that round. Editing questions for one round never affects other rounds or clients. Answers are stored per-question per-round, enabling immutable historical snapshots for growth comparison.
+Seven tables. `TemplateQuestion` and `SurveyQuestion` are junction tables that resolve many-to-many relationships.
 
-Key entities: `Client`, `SubmissionRound` (has unique token + copied questions), `Question` (round-scoped copy), `Answer` (saved incrementally as customer fills in).
+**Key principle: Questions are not copied.** A Survey references Questions directly via `SurveyQuestion`. Questions are mutable — fixing a typo updates all Surveys using that question (intentional). For substantively different questions, create a new one.
+
+Key entities:
+- `Customer` — the client company
+- `Template` — a named, reusable form composition
+- `TemplateQuestion` — junction: which questions belong to a template (with order)
+- `Question` — the question catalog; only `label` and `type` are required, all other fields optional
+- `Survey` — one form sent to one customer; status: `draft | active | submitted`
+- `SurveyQuestion` — junction: which questions belong to a survey (with order)
+- `Answer` — auto-saved per question per survey; unique on `(surveyId, questionId)`
 
 ## Architecture
 
@@ -95,7 +104,7 @@ These are the 15 canonical questions. The design mockup was built around 10 — 
 - **Next.js 16 has breaking changes** from earlier versions. Always check `node_modules/next/dist/docs/` before using routing APIs, params, or server actions.
 - **`params` is a Promise** in Next.js 16 page components — always `await params` before accessing properties.
 - **Questions are currently static** in `lib/questions.ts`. They will move to the DB to support admin editing — keep this in mind when building the admin UI.
-- **Pair programming style** — Andreas does frontend, George does backend. The frontend's integration points are: `saveAnswer(token, questionId, value)` (called on each Next/Skip) and a final `submitRound(token)` to mark the round complete.
+- **Pair programming style** — Andreas does frontend, George does backend. The frontend's integration points are: `saveAnswer(token, questionId, value)` (called on each Next/Skip) and a final `submitSurvey(token)` to mark the survey complete. On page load, `getSurvey(token)` returns questions + existing answers so the customer can resume.
 - **Auto-save, not submit-on-finish** — answers are persisted per question as the customer moves forward, not in one batch at the end.
 
 ## Component Structure (planned)
@@ -148,7 +157,7 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 ### Waiting on George (backend) 🔒
 - SCRUM-3: PostgreSQL + Prisma schema
 - SCRUM-4: Auth.js OAuth (@thebrave.no only)
-- SCRUM-18: Server actions — `saveAnswer`, `submitRound`, `getSubmission`
+- SCRUM-18: Server actions — `getSurvey`, `saveAnswer`, `submitSurvey`
 
 ## Workflow Notes
 
