@@ -6,6 +6,7 @@ import {QUESTIONS} from "@/lib/questions";
 import {SKIPPED} from "@/lib/types";
 import type { AnswerMap } from "@/lib/types";
 import SpørsmålKort from "./SpørsmålKort";
+import Intro from "./Intro";
 
 
 type Stage = "intro" | number | "summary" | "submitted";
@@ -51,7 +52,7 @@ export default function Skjema() {
     return (
         <div className="flex flex-col min-h-screen bg-ink">
             <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-            {stage === 'intro' && <div>TODO: &lt;Intro /&gt;</div>}
+            {stage === 'intro' && <Intro onStart={goNext} />}
             {typeof stage === 'number' && (
               <SpørsmålKort
                 question={QUESTIONS[stage]}
@@ -64,7 +65,6 @@ export default function Skjema() {
                 onBack={goBack}/>)}
                 
               
-              {typeof stage === 'number' && <div> Ferdig - Spørsmål {stage + 1}: {QUESTIONS[stage].label}</div>}
               {stage === 'summary' && <div>TODO: &lt;Oppsummering /&gt;</div>}
               {stage === 'submitted' && <div>TODO: &lt;Innsendt /&gt;</div>}
             </main>

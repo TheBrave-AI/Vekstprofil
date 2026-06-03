@@ -63,6 +63,7 @@ export default function SpørsmålKort({ question, index, total, draft, onDraftC
                 onBlur={() => setFocused(false)}
                 placeholder={question.placeholder}
                 rows={3}
+                maxLength={2000}
                 className="flex-1 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px]
                     resize-none outline-none min-h-[92px]"/>) : question.type === 'number' ? (
             <input
@@ -73,6 +74,7 @@ export default function SpørsmålKort({ question, index, total, draft, onDraftC
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
                 placeholder={question.placeholder}
+                maxLength={30}
                 className="flex-1 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"/>) : (
             <div className="flex-1 p-5 text-muted text-[15px]">TODO: {question.type}</div>
             )}

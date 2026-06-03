@@ -1,141 +1,371 @@
-# Backend: Brave Customer Onboarding Questionnaire
+# Backend: Vekstprofil — Brave Customer Onboarding Questionnaire
 
-Hey George! This document covers everything you need to build the backend. The frontend (Andreas) and backend (you) are being built in parallel in the same Next.js repo — your work is the data layer, routing, auth, and admin functionality underneath the UI.
+Hey George! This document covers everything you need to build the backend. The frontend (Andreas) and backend (you) are being built in parallel in the same Next.js repo — your work is the data layer, server actions, auth, and admin routes underneath the UI.
 
 ---
 
 ## What This App Does
 
-Brave sends a unique link to a client (e.g. `https://onboarding.thebrave.no/k/abc123`). The client answers ~10 questions about their sales situation and submits. Brave views the results in a protected admin dashboard. The captured data is the client's "baseline" — Brave revisits it later to demonstrate growth.
+Brave sends a unique link to a client (e.g. `https://vekstprofil.thebrave.no/k/abc123`). The client answers 15 questions about their current sales situation ("nullpunkt") with no login required. Answers are auto-saved per question as the client progresses — they may take days to complete.
 
-**Clients:** no login, access via unguessable token in URL
-**Brave admins:** authenticated via Google OAuth (Auth.js)
+Brave admins view results in a protected dashboard and compare rounds over time to demonstrate growth.
+
+**Clients:** no login, access via unguessable token in URL  
+**Brave admins:** authenticated via Google OAuth (Auth.js), `@thebrave.no` accounts only
 
 ---
 
 ## Stack
 
-- **Next.js 16** (App Router) — same repo as frontend, no separate backend service needed
+- **Next.js 16** (App Router) — same repo as frontend, no separate backend service
 - **TypeScript**
-- **Prisma** — ORM for database access
+- **Prisma** — ORM
 - **PostgreSQL** — primary database
 - **Auth.js (NextAuth v5)** — Google OAuth for admin section
 - **nanoid** — token generation for client links
 
-This is all Node.js. No Django, no separate API server — Next.js Server Actions handle everything server-side.
+All server-side logic lives in Next.js Server Actions. No separate API server needed.
 
 ---
 
-## Your Responsibilities
+## Data Model
 
-### 1. Database (Prisma + PostgreSQL)
+The hierarchy is: **Client → SubmissionRound → Question (copied) → Answer**
 
-A starter schema is at `design_handoff_onboarding/starter/schema.prisma.txt`. Copy it to `prisma/schema.prisma` and extend it.
+### Why "copied" questions?
 
-You'll need these models:
+When a new round is created for a client, the default question template is **copied** into that round. Editing questions for one round never touches other rounds or the template. This gives immutable historical snapshots needed for growth comparison over time.
 
-**`Submission`** — one row per questionnaire link Brave generates
-- `token` — unguessable URL slug (nanoid)
-- `customerName`, `companyName` — labels for Brave's admin view
-- `status` — `"pending"` | `"submitted"`
-- `submittedAt` — timestamp on completion
+---
 
-**`Answer`** — one row per question per submission
-- `questionId` — matches `id` in `lib/questions.ts` (e.g. `"revenue"`, `"leads"`)
-- `value` — raw string the client typed
-- `skipped` — `true` if client clicked "Vet ikke / Har ikke tall på det"
+### `Client`
 
-**`Question`** — the question catalog (so admins can add/edit/delete questions without a deploy)
-- `id` — stable slug, never reuse
-- `category` — eyebrow label (e.g. `"Økonomi"`)
-- `label` — the question text
-- `help` — supporting sentence
-- `placeholder`
-- `type` — `"number"` | `"text"`
-- `prefix` — optional left affix (e.g. `"kr"`)
-- `suffix` — optional right affix (e.g. `"%"`, `"leads / mnd"`)
-- `order` — display order
-- `active` — soft delete / hide without losing historical data
+Represents a Brave customer company.
 
-> **Note:** Questions are currently hardcoded in `lib/questions.ts` for the frontend MVP. Once the DB is ready, the frontend will fetch them server-side instead. The shape is identical — same fields.
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | PK |
+| `name` | String | Company name |
+| `contactName` | String | Person's name |
+| `contactEmail` | String? | Optional |
+| `createdAt` | DateTime | Auto |
 
-**`User`** (Auth.js managed — add if using Prisma adapter)
+One client can have many `SubmissionRound`s over time.
 
-### 2. Authentication (Auth.js + Google OAuth)
+---
 
-Protect all `/admin/*` routes so only Brave team members can access them.
+### `SubmissionRound`
+
+One round = one questionnaire link sent to a client.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | PK |
+| `clientId` | String | FK → Client |
+| `token` | String (unique) | URL slug — generate with nanoid(10) |
+| `status` | String | `"pending"` \| `"submitted"` |
+| `createdAt` | DateTime | Auto |
+| `submittedAt` | DateTime? | Set when client completes |
+
+> **Status flow:** `"pending"` → admin can still edit questions → client fills in → `"submitted"`.
+
+---
+
+### `Question`
+
+A round-scoped copy of one template question. Copied from `QuestionTemplate` on round creation.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | PK |
+| `roundId` | String | FK → SubmissionRound |
+| `order` | Int | Display order |
+| `category` | String | Eyebrow label, e.g. `"Team"`, `"Pipeline"` |
+| `label` | String | The question text |
+| `help` | String | Supporting sentence shown below label |
+| `placeholder` | String | Input placeholder |
+| `type` | String | `"number"` \| `"text"` \| `"boolean"` \| `"select"` \| `"multiselect"` |
+| `prefix` | String? | Left affix, e.g. `"kr"` |
+| `suffix` | String? | Right affix, e.g. `"%"`, `"selgere"` |
+| `options` | Json? | `string[]` — choices for `select` and `multiselect` types |
+| `slider` | Json? | `{ min, max, step }` — optional slider config for `number` type |
+
+---
+
+### `Answer`
+
+One row per question per round, upserted as the client progresses.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | PK |
+| `roundId` | String | FK → SubmissionRound |
+| `questionId` | String | FK → Question |
+| `value` | String? | Raw answer (null if skipped) |
+| `skipped` | Boolean | `true` if client clicked "Vet ikke / Har ikke tall på det" |
+| `updatedAt` | DateTime | Auto-updated on upsert |
+
+Unique constraint on `(roundId, questionId)` — one answer per question per round.
+
+---
+
+### `QuestionTemplate`
+
+The default question catalog. Admins edit this; new rounds copy from it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | PK |
+| `order` | Int | Display order |
+| `category` | String | |
+| `label` | String | |
+| `help` | String | |
+| `placeholder` | String | |
+| `type` | String | Same type enum as Question |
+| `prefix` | String? | |
+| `suffix` | String? | |
+| `options` | Json? | |
+| `slider` | Json? | |
+| `active` | Boolean | Soft delete — hide without losing data |
+
+> Seed this table from `lib/questions.ts` on first migration. The shape is identical.
+
+---
+
+## Prisma Schema
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id           String            @id @default(cuid())
+  name         String
+  contactName  String
+  contactEmail String?
+  createdAt    DateTime          @default(now())
+  rounds       SubmissionRound[]
+}
+
+model SubmissionRound {
+  id          String     @id @default(cuid())
+  clientId    String
+  client      Client     @relation(fields: [clientId], references: [id])
+  token       String     @unique
+  status      String     @default("pending")
+  createdAt   DateTime   @default(now())
+  submittedAt DateTime?
+  questions   Question[]
+  answers     Answer[]
+}
+
+model Question {
+  id          String          @id @default(cuid())
+  roundId     String
+  round       SubmissionRound @relation(fields: [roundId], references: [id])
+  order       Int
+  category    String
+  label       String
+  help        String
+  placeholder String
+  type        String
+  prefix      String?
+  suffix      String?
+  options     Json?
+  slider      Json?
+  answers     Answer[]
+}
+
+model Answer {
+  id         String          @id @default(cuid())
+  roundId    String
+  round      SubmissionRound @relation(fields: [roundId], references: [id])
+  questionId String
+  question   Question        @relation(fields: [questionId], references: [id])
+  value      String?
+  skipped    Boolean         @default(false)
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([roundId, questionId])
+}
+
+model QuestionTemplate {
+  id          String   @id @default(cuid())
+  order       Int
+  category    String
+  label       String
+  help        String
+  placeholder String
+  type        String
+  prefix      String?
+  suffix      String?
+  options     Json?
+  slider      Json?
+  active      Boolean  @default(true)
+}
+```
+
+---
+
+## Server Actions
+
+All actions live in `app/actions.ts`. These are the integration points the frontend calls.
+
+### Client-facing (called from `/k/[token]`)
+
+#### `getSubmission(token)`
+```ts
+'use server'
+export async function getSubmission(token: string): Promise<{
+  status: 'not_found' | 'submitted' | 'ok'
+  round?: {
+    id: string
+    questions: Question[]      // ordered by `order`
+    answers: Record<string, { value: string | null; skipped: boolean }>
+  }
+}>
+```
+Called by the server component on page load. Returns questions + any existing answers so the client can resume where they left off.
+
+---
+
+#### `saveAnswer(token, questionId, value)`
+```ts
+'use server'
+export async function saveAnswer(
+  token: string,
+  questionId: string,
+  value: string | typeof SKIPPED   // SKIPPED = "__SKIPPED__" from lib/types.ts
+): Promise<{ ok: boolean }>
+```
+Called every time the client clicks **Neste** or **Hopp over** on a question. Upserts the Answer row.
+
+- If `value === "__SKIPPED__"` → set `skipped: true`, `value: null`
+- If round is already `"submitted"` → return `{ ok: false }` (no overwrites)
+- Return `{ ok: true }` on success
+
+---
+
+#### `submitRound(token)`
+```ts
+'use server'
+export async function submitRound(
+  token: string
+): Promise<{ ok: boolean }>
+```
+Called when the client reaches the final confirmation screen. Sets `status = "submitted"` and `submittedAt = new Date()`.
+
+---
+
+### Admin-facing (called from `/admin/*` — session required)
+
+#### `createClient(data)`
+```ts
+export async function createClient(data: {
+  name: string
+  contactName: string
+  contactEmail?: string
+}): Promise<Client>
+```
+
+---
+
+#### `createRound(clientId)`
+```ts
+export async function createRound(clientId: string): Promise<{ token: string }>
+```
+1. Generate token with `nanoid(10)`
+2. Fetch all active `QuestionTemplate` rows (ordered by `order`)
+3. Create `SubmissionRound` + copy each template row as a `Question` linked to the new round
+4. Return `{ token }`
+
+---
+
+#### `listClients()`
+Returns all clients with their rounds (id, status, createdAt, submittedAt).
+
+---
+
+#### `getRound(roundId)`
+Returns full round with all questions and answers. Used in the admin detail view.
+
+---
+
+#### `updateQuestion(questionId, data)`
+```ts
+export async function updateQuestion(
+  questionId: string,
+  data: Partial<Pick<Question, 'label' | 'help' | 'placeholder' | 'order'>>
+): Promise<void>
+```
+Lets admin customize a question for a specific round before sending the link. Only edits the round-scoped copy, not the template.
+
+---
+
+#### `updateTemplateQuestion(id, data)` / `listTemplateQuestions()`
+CRUD for the default template. Changes here only affect **future** rounds.
+
+---
+
+## Client Route: `/k/[token]`
+
+`app/k/[token]/page.tsx` — Server Component:
+
+```ts
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ token: string }>   // NOTE: params is a Promise in Next.js 16
+}) {
+  const { token } = await params
+  const result = await getSubmission(token)
+
+  if (result.status === 'not_found') return <LinkNotFound />
+  if (result.status === 'submitted')  return <AlreadySubmitted />
+
+  return <Skjema token={token} questions={result.round.questions} existingAnswers={result.round.answers} />
+}
+```
+
+---
+
+## Authentication (Auth.js + Google OAuth)
+
+Protect all `/admin/*` routes. Only `@thebrave.no` accounts may sign in.
 
 ```bash
 npm install next-auth@beta @auth/prisma-adapter
 ```
 
 Setup steps:
-1. Create a Google OAuth app in Google Cloud Console — callback URL: `https://your-domain/api/auth/callback/google`
+1. Create a Google OAuth app — callback URL: `https://vekstprofil.thebrave.no/api/auth/callback/google`
 2. Add `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` to `.env.local`
-3. Create `auth.ts` at the project root
+3. Create `auth.ts` at project root — add `signIn` callback to restrict to `@thebrave.no` emails
 4. Add `app/api/auth/[...nextauth]/route.ts`
-5. Protect `/admin` routes via middleware or layout-level session check
-6. Optionally restrict to `@thebrave.no` emails in the Auth.js `signIn` callback
+5. Protect `/admin` layout with session check (redirect to `/api/auth/signin` if no session)
 
 Auth.js v5 docs: https://authjs.dev/getting-started/installation
 
-### 3. Client Route: `/k/[token]`
+---
 
-`app/k/[token]/page.tsx` — a Server Component:
+## Admin Routes `/admin/*`
 
-```ts
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ token: string }>
-}) {
-  const { token } = await params  // NOTE: params is a Promise in Next.js 16
-  // 1. Look up Submission by token
-  // 2. If not found → show "Link ikke funnet"
-  // 3. If status === "submitted" → show "Allerede besvart"
-  // 4. If status === "pending" → render <Questionnaire token={token} questions={questions} />
-}
-```
-
-### 4. Server Action: `submitBaseline`
-
-`app/actions.ts`:
-
-```ts
-'use server'
-export async function submitBaseline(
-  token: string,
-  answers: Record<string, string>  // questionId → value, or "__SKIPPED__" sentinel
-): Promise<{ ok: boolean }>
-```
-
-Steps:
-1. Find `Submission` by token — return `{ ok: false }` if missing or already submitted
-2. For each answer: upsert an `Answer` row — set `skipped: true` if value is `"__SKIPPED__"`
-3. Set `submission.status = "submitted"`, `submission.submittedAt = new Date()`
-4. Return `{ ok: true }`
-
-> The frontend calls this on submit and handles the UI response. It's mocked with `console.log` until you implement it — no coordination needed to unblock either of you.
-
-### 5. Admin Routes `/admin/*`
-
-Protected pages for Brave internal use:
-
-- `/admin` — dashboard: list of all submissions with status
-- `/admin/new` — generate a new client link (takes customerName, companyName)
-- `/admin/submissions/[id]` — view a single submission with charts/visual summary
-- `/admin/questions` — manage the question catalog (add, edit, reorder, deactivate)
-
-Visual charts for numeric answers (revenue, leads, close rate, etc.) can use **Recharts** — a React charting library that works well with Next.js.
-
-### 6. CSV Export (interim, before charts)
-
-Simple route handler that returns a CSV of all answers for a submission:
-
-```ts
-// app/api/export/[token]/route.ts
-export async function GET(req, { params }) { ... }
-```
+| Route | Purpose |
+|---|---|
+| `/admin` | Dashboard: all clients + round statuses |
+| `/admin/clients/new` | Create a new client |
+| `/admin/clients/[id]` | Client detail: all rounds, compare over time |
+| `/admin/rounds/[id]` | View a single round's answers |
+| `/admin/rounds/[id]/edit` | Edit questions before sending the link |
+| `/admin/template` | Edit the default question template |
 
 ---
 
@@ -143,28 +373,29 @@ export async function GET(req, { params }) { ... }
 
 ```bash
 # 1. Install dependencies
-npm install prisma @prisma/client next-auth@beta @auth/prisma-adapter nanoid recharts
+npm install prisma @prisma/client next-auth@beta @auth/prisma-adapter nanoid
 
 # 2. Set up Prisma
 npx prisma init
-# → copy design_handoff_onboarding/starter/schema.prisma.txt into prisma/schema.prisma and extend it
+# → paste the schema above into prisma/schema.prisma
 
 # 3. Add environment variables to .env.local
 DATABASE_URL="postgresql://..."
-AUTH_SECRET="..."           # run: npx auth secret
-AUTH_GOOGLE_ID="..."
-AUTH_GOOGLE_SECRET="..."
+AUTH_SECRET=""           # generate: npx auth secret
+AUTH_GOOGLE_ID=""
+AUTH_GOOGLE_SECRET=""
 
 # 4. Run first migration
 npx prisma migrate dev --name init
 
-# 5. Seed some test data (questions + a test submission)
+# 5. Seed template questions + a test client + test round
 npx prisma db seed
+# → seed from lib/questions.ts (shape is identical to QuestionTemplate)
 
-# 6. Implement /k/[token] route
-# 7. Implement submitBaseline server action
+# 6. Implement getSubmission, saveAnswer, submitRound
+# 7. Implement /k/[token] page
 # 8. Implement Auth.js
-# 9. Build admin routes
+# 9. Build admin routes + admin server actions
 ```
 
 ---
@@ -173,7 +404,7 @@ npx prisma db seed
 
 ```bash
 # .env.local
-DATABASE_URL="postgresql://user:password@localhost:5432/brave_onboarding"
+DATABASE_URL="postgresql://user:password@localhost:5432/vekstprofil"
 AUTH_SECRET=""           # generate with: npx auth secret
 AUTH_GOOGLE_ID=""
 AUTH_GOOGLE_SECRET=""
@@ -185,22 +416,21 @@ AUTH_GOOGLE_SECRET=""
 
 | Path | What it is |
 |---|---|
-| `lib/types.ts` | Shared types — `Question`, `AnswerMap`, `SKIPPED` |
-| `lib/questions.ts` | Current static question list — your DB Question model uses the same shape |
-| `design_handoff_onboarding/starter/schema.prisma.txt` | Starter Prisma schema |
+| `lib/types.ts` | Shared types — `Question`, `AnswerMap`, `SKIPPED`, `QuestionType` |
+| `lib/questions.ts` | Static question list — seed `QuestionTemplate` from this |
 | `design_handoff_onboarding/README.md` | Full UI spec — useful context for what data the frontend needs |
-| `CLAUDE.md` | Project-wide notes including architecture and important Next.js 16 gotchas |
+| `CLAUDE.md` | Project-wide notes, architecture decisions, Next.js 16 gotchas |
 
 ---
 
 ## Important Next.js 16 Gotcha
 
-`params` in page components is a **Promise** — you must await it:
+`params` in page components is a **Promise** — always await it:
 
 ```ts
 // ✅ correct
 const { token } = await params
 
-// ❌ wrong — will throw in Next.js 16
+// ❌ wrong — throws in Next.js 16
 const { token } = params
 ```
