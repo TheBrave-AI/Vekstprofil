@@ -1,6 +1,7 @@
 "use server";
 
 import { nanoid } from "nanoid";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { SKIPPED } from "@/lib/types";
 import type { Question } from "@/lib/types";
@@ -24,6 +25,11 @@ function mapQuestion(q: {
     options:     q.options ? (q.options as string[]) : undefined,
     slider:      q.slider  ? (q.slider  as Question["slider"]) : undefined,
   };
+}
+
+async function requireAuth() {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
 }
 
 // ── Customer-facing ───────────────────────────────────────────────────────────
@@ -65,8 +71,12 @@ export async function saveAnswer(
   questionId: string,
   value: string | typeof SKIPPED
 ): Promise<{ ok: boolean }> {
-  const survey = await db.survey.findUnique({ where: { token } });
+  const survey = await db.survey.findUnique({
+    where:   { token },
+    include: { questions: { where: { questionId }, select: { id: true } } },
+  });
   if (!survey || survey.status !== "active") return { ok: false };
+  if (survey.questions.length === 0) return { ok: false };
 
   const skipped = value === SKIPPED;
   await db.answer.upsert({
@@ -97,6 +107,7 @@ export async function createCustomer(data: {
   contactName:  string;
   contactEmail?: string;
 }) {
+  await requireAuth();
   if (!data.companyName.trim() || !data.contactName.trim()) {
     throw new Error("Company name and contact name are required");
   }
@@ -110,6 +121,7 @@ export async function createCustomer(data: {
 }
 
 export async function listCustomers() {
+  await requireAuth();
   return db.customer.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -127,6 +139,7 @@ export async function createSurvey(
   customerId: string,
   templateId?: string
 ): Promise<{ token: string; id: string }> {
+  await requireAuth();
   const token = nanoid(10);
   let surveyId = "";
 
@@ -155,8 +168,9 @@ export async function createSurvey(
 }
 
 export async function activateSurvey(surveyId: string): Promise<void> {
+  await requireAuth();
   await db.survey.update({
-    where: { id: surveyId },
+    where: { id: surveyId, status: "draft" },
     data:  { status: "active", sentAt: new Date() },
   });
 }
@@ -165,12 +179,18 @@ export async function addQuestionToSurvey(
   surveyId: string,
   questionId: string
 ): Promise<void> {
-  const last = await db.surveyQuestion.findFirst({
-    where:   { surveyId },
-    orderBy: { order: "desc" },
-  });
-  await db.surveyQuestion.create({
-    data: { surveyId, questionId, order: (last?.order ?? -1) + 1 },
+  await requireAuth();
+  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
+  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+
+  await db.$transaction(async (tx) => {
+    const last = await tx.surveyQuestion.findFirst({
+      where:   { surveyId },
+      orderBy: { order: "desc" },
+    });
+    await tx.surveyQuestion.create({
+      data: { surveyId, questionId, order: (last?.order ?? -1) + 1 },
+    });
   });
 }
 
@@ -178,10 +198,15 @@ export async function removeQuestionFromSurvey(
   surveyId: string,
   questionId: string
 ): Promise<void> {
+  await requireAuth();
+  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
+  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+
   await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
 }
 
 export async function getSurveyAdmin(surveyId: string) {
+  await requireAuth();
   return db.survey.findUnique({
     where:   { id: surveyId },
     include: {
@@ -196,6 +221,7 @@ export async function getSurveyAdmin(surveyId: string) {
 // ── Admin: templates ──────────────────────────────────────────────────────────
 
 export async function listTemplates() {
+  await requireAuth();
   return db.template.findMany({
     where:   { active: true },
     orderBy: { createdAt: "asc" },
@@ -208,15 +234,21 @@ export async function createTemplate(data: {
   description?: string;
   questionIds:  string[];
 }): Promise<{ id: string }> {
+  await requireAuth();
   if (!data.name.trim()) throw new Error("Template name is required");
-  const t = await db.template.create({
-    data: { name: data.name.trim(), description: data.description?.trim() ?? null },
+
+  const t = await db.$transaction(async (tx) => {
+    const template = await tx.template.create({
+      data: { name: data.name.trim(), description: data.description?.trim() ?? null },
+    });
+    await tx.templateQuestion.createMany({
+      data: data.questionIds.map((questionId, i) => ({
+        templateId: template.id, questionId, order: i,
+      })),
+    });
+    return template;
   });
-  await db.templateQuestion.createMany({
-    data: data.questionIds.map((questionId, i) => ({
-      templateId: t.id, questionId, order: i,
-    })),
-  });
+
   return { id: t.id };
 }
 
@@ -224,12 +256,14 @@ export async function updateTemplate(
   id: string,
   data: Partial<{ name: string; description: string | null; active: boolean }>
 ): Promise<void> {
+  await requireAuth();
   await db.template.update({ where: { id }, data });
 }
 
 // ── Admin: questions ──────────────────────────────────────────────────────────
 
 export async function listQuestions() {
+  await requireAuth();
   return db.question.findMany({ orderBy: { createdAt: "asc" } });
 }
 
@@ -242,6 +276,7 @@ export async function createQuestion(data: {
   prefix?:      string;
   suffix?:      string;
 }): Promise<{ id: string }> {
+  await requireAuth();
   if (!data.label.trim()) throw new Error("Label is required");
   const q = await db.question.create({ data });
   return { id: q.id };
@@ -259,5 +294,6 @@ export async function updateQuestion(
     suffix:      string | null;
   }>
 ): Promise<void> {
+  await requireAuth();
   await db.question.update({ where: { id }, data });
 }
