@@ -1,0 +1,82 @@
+import type { Question } from "./types";
+
+/** Static question catalog — used for seeding and as fallback before DB is populated. */
+export const QUESTIONS: Omit<Question, "q_id">[] = [
+  {
+    category: "Økonomi",
+    question: "Hva er bedriftens nåværende årsomsetning?",
+    hint: "Et omtrentlig tall holder. Dette blir nullpunktet vi måler vekst mot.",
+    placeholder: "f.eks. 12 000 000",
+    prefix: "kr",
+    answer_type: "numeric",
+  },
+  {
+    category: "Pipeline",
+    question: "Hvor mange leads genererer dere i en typisk måned?",
+    hint: "Tell alle reelle henvendelser — innkommende og oppsøkende.",
+    placeholder: "f.eks. 45",
+    suffix: "leads / mnd",
+    answer_type: "numeric",
+  },
+  {
+    category: "Pipeline",
+    question: "Hva er deres nåværende close rate?",
+    hint: "Andelen kvalifiserte leads som ender som signerte kunder.",
+    placeholder: "f.eks. 22",
+    suffix: "%",
+    answer_type: "numeric",
+  },
+  {
+    category: "Økonomi",
+    question: "Hva er gjennomsnittlig avtalestørrelse?",
+    hint: "Snittverdien på en signert kontrakt eller et salg.",
+    placeholder: "f.eks. 85 000",
+    prefix: "kr",
+    answer_type: "numeric",
+  },
+  {
+    category: "Økonomi",
+    question: "Hvor mye bruker dere på markedsføring i dag?",
+    hint: "Samlet månedlig budsjett — annonser, byrå, verktøy og innhold.",
+    placeholder: "f.eks. 60 000",
+    prefix: "kr",
+    answer_type: "numeric",
+  },
+  {
+    category: "Team",
+    question: "Hvor mange jobber i salgsteamet?",
+    hint: "Inkluder alle som aktivt selger, også deltid.",
+    placeholder: "f.eks. 4",
+    suffix: "personer",
+    answer_type: "numeric",
+  },
+  {
+    category: "Strategi",
+    question: "Hva er den største flaskehalsen for vekst akkurat nå?",
+    hint: "Beskriv med egne ord — det er ofte her vi finner de raske gevinstene.",
+    placeholder: "Skriv fritt — f.eks. «For få kvalifiserte møter»",
+    answer_type: "open",
+  },
+  {
+    category: "Verktøy",
+    question: "Hvilke CRM- og salgsverktøy bruker dere i dag?",
+    hint: "List opp det dere bruker, eller skriv hvis dere ikke bruker noe ennå.",
+    placeholder: "f.eks. HubSpot, Pipedrive, regneark …",
+    answer_type: "open",
+  },
+  {
+    category: "Team",
+    question: "Hvor mye tid bruker teamet på prospektering per uke?",
+    hint: "Samlet antall timer på å finne og kontakte nye potensielle kunder.",
+    placeholder: "f.eks. 10",
+    suffix: "timer / uke",
+    answer_type: "numeric",
+  },
+  {
+    category: "Strategi",
+    question: "Hva er deres viktigste salgskanal i dag?",
+    hint: "Der mesteparten av nye kunder faktisk kommer fra.",
+    placeholder: "f.eks. Anbefalinger, LinkedIn, kald e-post …",
+    answer_type: "open",
+  },
+];

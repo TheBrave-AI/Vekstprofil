@@ -1,0 +1,111 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum AnswerType {
+  yes_no
+  open
+  numeric
+}
+
+model question {
+  q_id        Int        @id @default(autoincrement())
+  question    String
+  hint        String?
+  placeholder String?
+  suffix      String?
+  prefix      String?
+  category    String?
+  answer_type AnswerType
+  answers     answer[]
+}
+
+model template {
+  t_id           Int             @id @default(autoincrement())
+  question_ids   Json
+  title          String
+  description    String?
+  short_title    String?
+  questionnaires questionnaire[]
+}
+
+model customer {
+  c_id           Int             @id @default(autoincrement())
+  name           String
+  questionnaires questionnaire[]
+}
+
+// One questionnaire = one template sent to one customer
+model questionnaire {
+  qu_id      Int      @id @default(autoincrement())
+  t_id       Int
+  c_id       Int
+  answer_ids Json?    // null = not submitted; array of a_id once submitted
+  link       String   @unique
+  template   template @relation(fields: [t_id], references: [t_id])
+  customer   customer @relation(fields: [c_id], references: [c_id])
+}
+
+model answer {
+  a_id     Int      @id @default(autoincrement())
+  q_id     Int
+  value    String?
+  empty    Boolean  @default(false)
+  question question @relation(fields: [q_id], references: [q_id])
+}
+
+// Auth.js (NextAuth v5) — required by the Prisma adapter
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
