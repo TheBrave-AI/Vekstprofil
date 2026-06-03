@@ -5,7 +5,7 @@ import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
 import Arrow from "../ui/Arrow";
 import BrandBar from "../ui/BrandBar";
-import ProgressBar from "../skjema/Progressbar";
+import ProgressBar from "./Progressbar";
 
 interface Props {
     question: Question;

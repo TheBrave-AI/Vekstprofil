@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces } from "next/font/google";
 import "./globals.css";
+import DevNav from "@/components/dev/DevNav";
 
 // Fraunces is loaded via next/font for automatic optimization and self-hosting.
 // Satoshi (Fontshare) is loaded via @import in globals.css — next/font only supports Google Fonts.
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className="min-h-full">
         <div className="grain" aria-hidden="true" />
         {children}
+        <DevNav />
       </body>
     </html>
   );
