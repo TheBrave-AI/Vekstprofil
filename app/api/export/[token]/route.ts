@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import type { Question } from "@/lib/types";
 
 export async function GET(
   _req: Request,
@@ -12,62 +11,41 @@ export async function GET(
 
   const { token } = await params;
 
-  const questionnaire = await db.questionnaire.findUnique({
-    where:   { link: token },
-    include: { customer: true, template: true },
-  });
-  if (!questionnaire) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const answerIds = questionnaire.answer_ids as number[] | null;
-  const answers = answerIds && answerIds.length > 0
-    ? await db.answer.findMany({ where: { a_id: { in: answerIds } }, include: { question: true } })
-    : [];
-
-  const templateQuestionIds = questionnaire.template.question_ids as number[];
-  const allQuestions = await db.question.findMany({
-    where: { q_id: { in: templateQuestionIds } },
+  const survey = await db.survey.findUnique({
+    where:   { token },
+    include: {
+      customer:  true,
+      template:  true,
+      questions: { orderBy: { order: "asc" }, include: { question: true } },
+      answers:   true,
+    },
   });
 
-  const questions: Question[] = templateQuestionIds
-    .map((qid) => allQuestions.find((q) => q.q_id === qid))
-    .filter((q): q is NonNullable<typeof q> => q !== undefined)
-    .map((q) => ({
-      id:          q.id,
-      category:    q.category,
-      label:       q.label,
-      help:        q.help,
-      placeholder: q.placeholder,
-      type:        q.type as Question["type"],
-      prefix:      q.prefix  ?? undefined,
-      suffix:      q.suffix  ?? undefined,
-    }));
+  if (!survey) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const answerBySlug = Object.fromEntries(
-    answers.map((a) => [a.question.id, a])
-  );
+  const answerByQid = Object.fromEntries(survey.answers.map((a) => [a.questionId, a]));
 
   const rows: string[][] = [
-    ["Kunde", "Mal", "Spørsmål ID", "Spørsmål", "Svar", "Tom"],
+    ["Bedrift", "Kontakt", "Mal", "Spørsmål", "Kategori", "Svar", "Hoppet over"],
   ];
 
-  for (const q of questions) {
-    const a = answerBySlug[q.id];
+  for (const sq of survey.questions) {
+    const q = sq.question;
+    const a = answerByQid[q.id];
     rows.push([
-      questionnaire.customer.name,
-      questionnaire.template.short_title ?? questionnaire.template.title,
-      q.id,
+      survey.customer.companyName,
+      survey.customer.contactName,
+      survey.template?.name ?? "",
       q.label,
+      q.category ?? "",
       a?.value ?? "",
-      a?.empty ? "Ja" : "Nei",
+      a?.skipped ? "Ja" : "Nei",
     ]);
   }
 
-  function escapeCell(v: string): string {
-    return `"${v.replace(/"/g, '""')}"`;
-  }
-
+  const escapeCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const csv = rows.map((r) => r.map(escapeCell).join(",")).join("\n");
-  const safeName = questionnaire.customer.name.replace(/[^\w\s.-]/g, "_").trim().replace(/\s+/g, "_");
+  const safeName = survey.customer.companyName.replace(/[^\w\s.-]/g, "_").trim().replace(/\s+/g, "_");
 
   return new Response(csv, {
     headers: {

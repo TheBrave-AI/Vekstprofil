@@ -9,55 +9,104 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-model question {
-  q_id         Int      @id @default(autoincrement())
-  id           String   @unique  // string slug e.g. "teamSize", "closeRate"
-  category     String
-  label        String
-  help         String
-  placeholder  String
-  type         String           // "number" | "text" | "boolean" | "select" | "multiselect"
-  prefix       String?
-  suffix       String?
-  options      Json?            // string[] for select/multiselect
-  slider       Json?            // { min, max, step } for slider
-  answers      answer[]
+// ── Business models ───────────────────────────────────────────────────────────
+
+model Customer {
+  id           String   @id @default(cuid())
+  companyName  String
+  contactName  String
+  contactEmail String?
+  createdAt    DateTime @default(now())
+  surveys      Survey[]
 }
 
-model template {
-  t_id           Int             @id @default(autoincrement())
-  question_ids   Json
-  title          String
-  description    String?
-  short_title    String?
-  questionnaires questionnaire[]
+model Template {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  questions   TemplateQuestion[]
+  surveys     Survey[]
 }
 
-model customer {
-  c_id           Int             @id @default(autoincrement())
-  name           String
-  questionnaires questionnaire[]
+// Global question catalog — shared across templates and surveys
+model Question {
+  id          String             @id @default(cuid())
+  label       String
+  type        String
+  category    String?
+  help        String?
+  placeholder String?
+  prefix      String?
+  suffix      String?
+  options     Json?
+  slider      Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  templates   TemplateQuestion[]
+  surveys     SurveyQuestion[]
+  answers     Answer[]
 }
 
-model questionnaire {
-  qu_id      Int      @id @default(autoincrement())
-  t_id       Int
-  c_id       Int
-  answer_ids Json?
-  link       String   @unique
-  template   template @relation(fields: [t_id], references: [t_id])
-  customer   customer @relation(fields: [c_id], references: [c_id])
+// Junction: Template ↔ Question with display order
+model TemplateQuestion {
+  id         String   @id @default(cuid())
+  templateId String
+  questionId String
+  order      Int
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, questionId])
 }
 
-model answer {
-  a_id     Int      @id @default(autoincrement())
-  q_id     Int
-  value    String?
-  empty    Boolean  @default(false)
-  question question @relation(fields: [q_id], references: [q_id])
+// One survey = one form link sent to one customer
+// draft → admin sets up; active → link is live; submitted → customer completed
+model Survey {
+  id          String           @id @default(cuid())
+  customerId  String
+  templateId  String?
+  token       String           @unique
+  status      String           @default("draft") // "draft" | "active" | "submitted"
+  createdAt   DateTime         @default(now())
+  sentAt      DateTime?        // set when admin activates
+  submittedAt DateTime?        // set when customer submits
+  customer    Customer         @relation(fields: [customerId], references: [id])
+  template    Template?        @relation(fields: [templateId], references: [id])
+  questions   SurveyQuestion[]
+  answers     Answer[]
 }
 
-// Auth.js (NextAuth v5) — required by the Prisma adapter
+// Junction: Survey ↔ Question with display order
+model SurveyQuestion {
+  id         String   @id @default(cuid())
+  surveyId   String
+  questionId String
+  order      Int
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([surveyId, questionId])
+}
+
+// One answer per question per survey, upserted as customer progresses
+model Answer {
+  id         String   @id @default(cuid())
+  surveyId   String
+  questionId String
+  value      String?
+  skipped    Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([surveyId, questionId])
+}
+
+// ── Auth.js (NextAuth v5) ─────────────────────────────────────────────────────
+
 model User {
   id            String    @id @default(cuid())
   name          String?

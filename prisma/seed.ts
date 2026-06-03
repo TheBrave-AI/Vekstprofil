@@ -4,65 +4,64 @@ import { QUESTIONS } from "../lib/questions";
 const db = new PrismaClient();
 
 async function main() {
+  // 1. Seed global Question catalog
   console.log("Seeding questions...");
-  const createdQuestions = [];
-
-  for (const q of QUESTIONS) {
-    const created = await db.question.upsert({
+  const created: { id: string; order: number }[] = [];
+  for (const [i, q] of QUESTIONS.entries()) {
+    const row = await db.question.upsert({
       where:  { id: q.id },
       update: {
-        category:    q.category,
-        label:       q.label,
-        help:        q.help,
-        placeholder: q.placeholder,
-        type:        q.type,
-        prefix:      q.prefix  ?? null,
-        suffix:      q.suffix  ?? null,
-        options:     q.options ? q.options as Prisma.InputJsonValue : Prisma.JsonNull,
-        slider:      q.slider  ? q.slider  as Prisma.InputJsonValue : Prisma.JsonNull,
+        label: q.label, type: q.type, category: q.category ?? null,
+        help: q.help ?? null, placeholder: q.placeholder ?? null,
+        prefix: q.prefix ?? null, suffix: q.suffix ?? null,
+        options: q.options ? q.options as Prisma.InputJsonValue : Prisma.JsonNull,
+        slider:  q.slider  ? q.slider  as Prisma.InputJsonValue : Prisma.JsonNull,
       },
       create: {
-        id:          q.id,
-        category:    q.category,
-        label:       q.label,
-        help:        q.help,
-        placeholder: q.placeholder,
-        type:        q.type,
-        prefix:      q.prefix  ?? null,
-        suffix:      q.suffix  ?? null,
-        options:     q.options ? q.options as Prisma.InputJsonValue : Prisma.JsonNull,
-        slider:      q.slider  ? q.slider  as Prisma.InputJsonValue : Prisma.JsonNull,
+        id: q.id,
+        label: q.label, type: q.type, category: q.category ?? null,
+        help: q.help ?? null, placeholder: q.placeholder ?? null,
+        prefix: q.prefix ?? null, suffix: q.suffix ?? null,
+        options: q.options ? q.options as Prisma.InputJsonValue : Prisma.JsonNull,
+        slider:  q.slider  ? q.slider  as Prisma.InputJsonValue : Prisma.JsonNull,
       },
     });
-    createdQuestions.push(created);
+    created.push({ id: row.id, order: i });
   }
-  console.log(`Seeded ${createdQuestions.length} questions.`);
+  console.log(`Seeded ${created.length} questions.`);
 
-  const questionIds = createdQuestions.map((q) => q.q_id);
+  // 2. Default Template
   const template = await db.template.upsert({
-    where:  { t_id: 1 },
-    update: { question_ids: questionIds },
-    create: {
-      title:        "Brave Nullpunkt",
-      short_title:  "Nullpunkt",
-      description:  "Kartlegging av salgs- og markedssituasjon",
-      question_ids: questionIds,
-    },
+    where:  { id: "default-template" },
+    update: {},
+    create: { id: "default-template", name: "Brave Nullpunkt", description: "Kartlegging av salgs- og markedssituasjon" },
   });
-  console.log(`Seeded template: "${template.title}" (t_id=${template.t_id})`);
+  for (const q of created) {
+    await db.templateQuestion.upsert({
+      where:  { templateId_questionId: { templateId: template.id, questionId: q.id } },
+      update: { order: q.order },
+      create: { templateId: template.id, questionId: q.id, order: q.order },
+    });
+  }
+  console.log(`Seeded template: "${template.name}"`);
 
+  // 3. Test Customer + Survey (active so /k/test-onboarding-demo works)
   const customer = await db.customer.upsert({
-    where:  { c_id: 1 },
+    where:  { id: "test-customer-001" },
     update: {},
-    create: { name: "Eksempel AS" },
+    create: { id: "test-customer-001", companyName: "Eksempel AS", contactName: "Ola Nordmann", contactEmail: "ola@eksempel.no" },
   });
 
-  await db.questionnaire.upsert({
-    where:  { link: "test-onboarding-demo" },
-    update: {},
-    create: { t_id: template.t_id, c_id: customer.c_id, link: "test-onboarding-demo" },
-  });
-  console.log("Seeded test questionnaire: /k/test-onboarding-demo");
+  let survey = await db.survey.findUnique({ where: { token: "test-onboarding-demo" } });
+  if (!survey) {
+    survey = await db.survey.create({
+      data: { customerId: customer.id, templateId: template.id, token: "test-onboarding-demo", status: "active", sentAt: new Date() },
+    });
+    await db.surveyQuestion.createMany({
+      data: created.map((q) => ({ surveyId: survey!.id, questionId: q.id, order: q.order })),
+    });
+    console.log("Seeded test survey: /k/test-onboarding-demo (status: active)");
+  }
 }
 
 main()

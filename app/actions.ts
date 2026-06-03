@@ -1,116 +1,263 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { SKIPPED } from "@/lib/types";
+import type { Question } from "@/lib/types";
 
-// ── Client-facing ────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-/**
- * Called by the frontend Questionnaire on submit.
- * answers: Record<questionId (string slug), value | "__SKIPPED__">
- */
-export async function submitQuestionnaire(
-  link: string,
-  answers: Record<string, string>
+function mapQuestion(q: {
+  id: string; label: string; type: string; category: string | null;
+  help: string | null; placeholder: string | null; prefix: string | null;
+  suffix: string | null; options: unknown; slider: unknown;
+}): Question {
+  return {
+    id:          q.id,
+    label:       q.label,
+    type:        q.type as Question["type"],
+    category:    q.category    ?? "",
+    help:        q.help        ?? "",
+    placeholder: q.placeholder ?? "",
+    prefix:      q.prefix      ?? undefined,
+    suffix:      q.suffix      ?? undefined,
+    options:     q.options ? (q.options as string[]) : undefined,
+    slider:      q.slider  ? (q.slider  as Question["slider"]) : undefined,
+  };
+}
+
+// ── Customer-facing ───────────────────────────────────────────────────────────
+
+export async function getSurvey(token: string): Promise<{
+  status: "not_found" | "draft" | "submitted" | "ok";
+  survey?: {
+    id: string;
+    questions: Array<Question & { order: number }>;
+    answers: Record<string, { value: string | null; skipped: boolean }>;
+  };
+}> {
+  const survey = await db.survey.findUnique({
+    where:   { token },
+    include: {
+      questions: { orderBy: { order: "asc" }, include: { question: true } },
+      answers:   true,
+    },
+  });
+
+  if (!survey)                        return { status: "not_found" };
+  if (survey.status === "draft")      return { status: "draft" };
+  if (survey.status === "submitted")  return { status: "submitted" };
+
+  const questions = survey.questions.map((sq) => ({
+    ...mapQuestion(sq.question),
+    order: sq.order,
+  }));
+
+  const answers = Object.fromEntries(
+    survey.answers.map((a) => [a.questionId, { value: a.value, skipped: a.skipped }])
+  );
+
+  return { status: "ok", survey: { id: survey.id, questions, answers } };
+}
+
+export async function saveAnswer(
+  token: string,
+  questionId: string,
+  value: string | typeof SKIPPED
 ): Promise<{ ok: boolean }> {
-  const questionnaire = await db.questionnaire.findUnique({ where: { link } });
-  if (!questionnaire) return { ok: false };
-  if (questionnaire.answer_ids !== null) return { ok: false };
+  const survey = await db.survey.findUnique({ where: { token } });
+  if (!survey || survey.status !== "active") return { ok: false };
 
-  try {
-    await db.$transaction(async (tx) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const claimed = await tx.questionnaire.updateMany({
-        where: { qu_id: questionnaire.qu_id, answer_ids: { equals: null as any } },
-        data:  { answer_ids: [] },
-      });
-      if (claimed.count === 0) throw new Error("ALREADY_SUBMITTED");
-
-      // Look up q_id for each string slug
-      const slugs = Object.keys(answers);
-      const questions = await tx.question.findMany({
-        where: { id: { in: slugs } },
-        select: { q_id: true, id: true },
-      });
-      const slugToQid = Object.fromEntries(questions.map((q) => [q.id, q.q_id]));
-
-      const created = await Promise.all(
-        Object.entries(answers).map(([slug, rawValue]) => {
-          const q_id = slugToQid[slug];
-          if (!q_id) return null;
-          const empty = rawValue === SKIPPED || rawValue === "";
-          return tx.answer.create({
-            data: { q_id, value: empty ? null : rawValue, empty },
-          });
-        })
-      );
-
-      const aIds = created.filter(Boolean).map((a) => a!.a_id);
-      await tx.questionnaire.update({
-        where: { qu_id: questionnaire.qu_id },
-        data:  { answer_ids: aIds },
-      });
-    });
-  } catch (e) {
-    if (e instanceof Error && e.message === "ALREADY_SUBMITTED") return { ok: false };
-    throw e;
-  }
+  const skipped = value === SKIPPED;
+  await db.answer.upsert({
+    where:  { surveyId_questionId: { surveyId: survey.id, questionId } },
+    create: { surveyId: survey.id, questionId, value: skipped ? null : value, skipped },
+    update: { value: skipped ? null : value, skipped },
+  });
 
   return { ok: true };
 }
 
-// ── Admin: questionnaires ─────────────────────────────────────────────────────
+export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
+  const survey = await db.survey.findUnique({ where: { token } });
+  if (!survey || survey.status !== "active") return { ok: false };
 
-export async function createQuestionnaire(
-  t_id: number,
-  customerName: string
-): Promise<{ link: string }> {
-  if (!customerName.trim()) throw new Error("Customer name is required");
+  await db.survey.update({
+    where: { id: survey.id },
+    data:  { status: "submitted", submittedAt: new Date() },
+  });
 
-  let customer = await db.customer.findFirst({ where: { name: customerName.trim() } });
-  if (!customer) {
-    customer = await db.customer.create({ data: { name: customerName.trim() } });
-  }
-
-  const link = randomUUID();
-  await db.questionnaire.create({ data: { t_id, c_id: customer.c_id, link } });
-  return { link };
+  return { ok: true };
 }
 
-// ── Admin: questions ──────────────────────────────────────────────────────────
+// ── Admin: customers ──────────────────────────────────────────────────────────
 
-export async function updateQuestion(
-  q_id: number,
-  data: Partial<{
-    category:    string;
-    label:       string;
-    help:        string;
-    placeholder: string;
-    type:        string;
-    prefix:      string | null;
-    suffix:      string | null;
-  }>
+export async function createCustomer(data: {
+  companyName:  string;
+  contactName:  string;
+  contactEmail?: string;
+}) {
+  if (!data.companyName.trim() || !data.contactName.trim()) {
+    throw new Error("Company name and contact name are required");
+  }
+  return db.customer.create({
+    data: {
+      companyName:  data.companyName.trim(),
+      contactName:  data.contactName.trim(),
+      contactEmail: data.contactEmail?.trim() || null,
+    },
+  });
+}
+
+export async function listCustomers() {
+  return db.customer.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      surveys: {
+        orderBy: { createdAt: "desc" },
+        select:  { id: true, status: true, createdAt: true, sentAt: true, submittedAt: true, token: true, templateId: true },
+      },
+    },
+  });
+}
+
+// ── Admin: surveys ────────────────────────────────────────────────────────────
+
+export async function createSurvey(
+  customerId: string,
+  templateId?: string
+): Promise<{ token: string; id: string }> {
+  const token = nanoid(10);
+  let surveyId = "";
+
+  await db.$transaction(async (tx) => {
+    const survey = await tx.survey.create({
+      data: { customerId, templateId: templateId ?? null, token, status: "draft" },
+    });
+    surveyId = survey.id;
+
+    if (templateId) {
+      const tqs = await tx.templateQuestion.findMany({
+        where:   { templateId },
+        orderBy: { order: "asc" },
+      });
+      await tx.surveyQuestion.createMany({
+        data: tqs.map((tq) => ({
+          surveyId:   survey.id,
+          questionId: tq.questionId,
+          order:      tq.order,
+        })),
+      });
+    }
+  });
+
+  return { token, id: surveyId };
+}
+
+export async function activateSurvey(surveyId: string): Promise<void> {
+  await db.survey.update({
+    where: { id: surveyId },
+    data:  { status: "active", sentAt: new Date() },
+  });
+}
+
+export async function addQuestionToSurvey(
+  surveyId: string,
+  questionId: string
 ): Promise<void> {
-  await db.question.update({ where: { q_id }, data });
+  const last = await db.surveyQuestion.findFirst({
+    where:   { surveyId },
+    orderBy: { order: "desc" },
+  });
+  await db.surveyQuestion.create({
+    data: { surveyId, questionId, order: (last?.order ?? -1) + 1 },
+  });
+}
+
+export async function removeQuestionFromSurvey(
+  surveyId: string,
+  questionId: string
+): Promise<void> {
+  await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
+}
+
+export async function getSurveyAdmin(surveyId: string) {
+  return db.survey.findUnique({
+    where:   { id: surveyId },
+    include: {
+      customer:  true,
+      template:  true,
+      questions: { orderBy: { order: "asc" }, include: { question: true } },
+      answers:   true,
+    },
+  });
 }
 
 // ── Admin: templates ──────────────────────────────────────────────────────────
 
-export async function createTemplate(data: {
-  title:        string;
-  short_title?: string;
-  description?: string;
-  question_ids: number[];
-}): Promise<{ t_id: number }> {
-  if (!data.title.trim()) throw new Error("Title is required");
-  const t = await db.template.create({
-    data: {
-      title:        data.title.trim(),
-      short_title:  data.short_title?.trim() ?? null,
-      description:  data.description?.trim() ?? null,
-      question_ids: data.question_ids,
-    },
+export async function listTemplates() {
+  return db.template.findMany({
+    where:   { active: true },
+    orderBy: { createdAt: "asc" },
+    include: { _count: { select: { questions: true } } },
   });
-  return { t_id: t.t_id };
+}
+
+export async function createTemplate(data: {
+  name:         string;
+  description?: string;
+  questionIds:  string[];
+}): Promise<{ id: string }> {
+  if (!data.name.trim()) throw new Error("Template name is required");
+  const t = await db.template.create({
+    data: { name: data.name.trim(), description: data.description?.trim() ?? null },
+  });
+  await db.templateQuestion.createMany({
+    data: data.questionIds.map((questionId, i) => ({
+      templateId: t.id, questionId, order: i,
+    })),
+  });
+  return { id: t.id };
+}
+
+export async function updateTemplate(
+  id: string,
+  data: Partial<{ name: string; description: string | null; active: boolean }>
+): Promise<void> {
+  await db.template.update({ where: { id }, data });
+}
+
+// ── Admin: questions ──────────────────────────────────────────────────────────
+
+export async function listQuestions() {
+  return db.question.findMany({ orderBy: { createdAt: "asc" } });
+}
+
+export async function createQuestion(data: {
+  label:        string;
+  type:         string;
+  category?:    string;
+  help?:        string;
+  placeholder?: string;
+  prefix?:      string;
+  suffix?:      string;
+}): Promise<{ id: string }> {
+  if (!data.label.trim()) throw new Error("Label is required");
+  const q = await db.question.create({ data });
+  return { id: q.id };
+}
+
+export async function updateQuestion(
+  id: string,
+  data: Partial<{
+    label:       string;
+    type:        string;
+    category:    string | null;
+    help:        string | null;
+    placeholder: string | null;
+    prefix:      string | null;
+    suffix:      string | null;
+  }>
+): Promise<void> {
+  await db.question.update({ where: { id }, data });
 }
