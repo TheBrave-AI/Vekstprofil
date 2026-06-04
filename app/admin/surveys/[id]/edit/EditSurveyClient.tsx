@@ -1,8 +1,9 @@
 "use client";
 
 import { setSurveyQuestions, activateSurvey } from "@/app/actions";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { NewQuestionForm } from "@/app/admin/questions/new/NewQuestionForm";
 import {
   DndContext,
   closestCenter,
@@ -28,6 +29,14 @@ export function EditSurveyClient({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [current, setCurrent] = useState(surveyQuestions);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (!showModal) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setShowModal(false); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showModal]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -73,7 +82,7 @@ export function EditSurveyClient({
 
   return (
     <div className="space-y-8">
-
+      
       {/* Current questions */}
       <div className="space-y-3">
         <h2 className="font-display text-lg text-cloud">Spørsmål i surveyen ({current.length})</h2>
@@ -107,11 +116,25 @@ export function EditSurveyClient({
           </div>
         )}
       </div>
+      
 
       {/* Available questions */}
       {available.length > 0 && (
         <div className="space-y-3">
           <h2 className="font-display text-lg text-cloud">Legg til spørsmål</h2>
+          {/* Create new question */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent hover:text-accent/70 transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2V12M2 7H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          Lag nytt spørsmål
+        </button>
+      </div>
           <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
             {available.map((q) => (
               <div key={q.id} className="flex items-center justify-between px-5 py-3 border-b border-line last:border-0">
@@ -125,6 +148,8 @@ export function EditSurveyClient({
           </div>
         </div>
       )}
+
+      
 
       {/* Actions */}
       <div className="flex items-center gap-3 relative z-10">
@@ -151,9 +176,35 @@ export function EditSurveyClient({
           disabled={isPending || current.length === 0}
           className="rounded-xl bg-accent/10 px-5 py-2.5 text-sm font-medium text-accent hover:bg-accent/20 disabled:opacity-40 transition"
         >
-          Aktiver og send til kunde
+          Aktiver skjema
         </button>
       </div>
+      {/* New question modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
+              aria-label="Lukk"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <NewQuestionForm
+              onCreated={(q) => {
+                setCurrent((prev) => [...prev, q]);
+                setShowModal(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

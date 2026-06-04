@@ -53,6 +53,7 @@ Key entities:
 - Framer Motion — used for slide transitions in the questionnaire
 - Auth.js (NextAuth v5) — Google OAuth for admin section
 - Prisma + PostgreSQL
+- **@dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) — drag-and-drop for question reordering in survey/template editors
 
 ## Key Files
 
@@ -70,6 +71,7 @@ Key entities:
 | `design_handoff_onboarding/README.md` | Full UI spec — screens, interactions, copy, tokens. Source of truth for UI. |
 | `design_handoff_onboarding/reference/Brave Onboarding.html` | Working HTML prototype — open in browser to see intended UX |
 | `BACKEND.md` | Backend setup guide for George |
+| `components/ui/SortableQuestion.tsx` | Reusable drag-and-drop question row — accepts `item`, `index`, optional `action` slot |
 
 ## Design System
 
@@ -92,6 +94,12 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **Pair programming style** — Andreas does frontend, George does backend.
 - **Auto-save, not submit-on-finish** — `saveAnswer(token, questionId, value)` called fire-and-forget on each Next/Skip. `submitSurvey(token)` called on final confirm.
 - **Code language is English** — all identifiers, function names, comments in English. UI copy stays Norwegian.
+- **Caching architecture (George):** All major DB queries use `unstable_cache` in `actions.ts`. Never query DB directly in new admin pages — use the exported action. Tags: `questions`, `templates`, `customers`, `surveys`.
+- **Cache invalidation:** After mutations, call both `revalidateTag` AND `revalidatePath` for affected pages — `revalidateTag` alone doesn't bust the client-side router cache.
+- **Dates from `unstable_cache`:** Come out as strings, not `Date` objects. Always wrap with `new Date(...)` before calling `.toISOString()` or other date methods.
+- **DndContext hydration mismatch:** Always pass a stable `id` prop to `DndContext` (e.g. `id="survey-questions"`) — otherwise dnd-kit generates mismatched `aria-describedby` IDs between SSR and client.
+- **shadow-card z-index:** `shadow-card` is 40px deep — elements directly below a card get visually covered. Fix: `relative z-0` on the card, `relative z-10` on the element below.
+- **Centering form pages:** Content containers with `max-w-*` need `mx-auto` to be centered within `AdminShell`'s `max-w-5xl` wrapper.
 
 ## Component Structure (current)
 
@@ -116,6 +124,7 @@ components/
     GhostButton.tsx
     BrandBar.tsx
     Arrow.tsx
+    SortableQuestion.tsx  — drag-and-drop question row used in survey/template edit pages
   dev/
     DevNav.tsx        — fixed bottom-right nav (dev only), links to all routes + seed data
 ```
@@ -168,6 +177,9 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 - Survey detail (`/admin/surveys/[id]`): row layout matching customer Summary — category label, question, answer in display font right-aligned; long text answers shown below; `max-w-3xl` card
 - Question catalog (`/admin/questions`): table with category, label, type, option count; "+ Nytt spørsmål" button
 - Create question (`/admin/questions/new`): type picker (5 types), conditional fields (placeholder, prefix/suffix, options textarea)
+- Active sidebar shows answered/total progress (x/y) per active survey (`SurveyItem.answeredCount` / `.totalQuestions`)
+- Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`
+- Template edit (`/admin/templates/[id]/edit`): drag-and-drop reorder + remove questions, manual save via `setTemplateQuestions`
 
 **Backend (George):**
 - Full Prisma schema (7 tables)
@@ -195,11 +207,11 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 3. `/admin/customers/new` — create customer form ✅ (done)
 4. `/admin/surveys` — survey list overview
 5. `/admin/surveys/[id]` — view survey + answers ✅ (done)
-6. `/admin/surveys/[id]/edit` — edit survey questions
+6. `/admin/surveys/[id]/edit` — edit survey questions ✅ (done)
 7. `/admin/surveys/new` — create survey (pick customer + template)
 8. `/admin/templates` — list templates
 9. `/admin/templates/new` — create template
-10. `/admin/templates/[id]/edit` — edit template questions
+10. `/admin/templates/[id]/edit` — edit template questions ✅ (done)
 11. `/admin/questions` — question catalog ✅ (done)
 12. `/admin/questions/new` — create question ✅ (done)
 13. `/admin/questions/[id]/edit` — edit question

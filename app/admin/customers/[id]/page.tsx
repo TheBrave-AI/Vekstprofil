@@ -42,7 +42,7 @@ export default async function CustomerDetailPage({
     <div className="space-y-8">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <Link href="/admin" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>
+          <Link href="/admin/customers" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>
           <h1 className="font-display text-2xl text-cloud">{customer.companyName}</h1>
           <p className="text-sm text-mist">{customer.contactName}{customer.contactEmail && ` · ${customer.contactEmail}`}</p>
         </div>

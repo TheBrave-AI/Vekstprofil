@@ -12,7 +12,9 @@ const TYPES = [
   { value: "multiselect", label: "Velg flere",     desc: "Velg ett eller flere" },
 ];
 
-export function NewQuestionForm() {
+interface CreatedQuestion { id: string; label: string; category: string | null; }
+
+export function NewQuestionForm({ onCreated }: { onCreated?: (q: CreatedQuestion) => void } = {}) {
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState("text");
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +28,9 @@ export function NewQuestionForm() {
     setError(null);
     startTransition(async () => {
       try {
+        const label    = (formData.get("label")    as string).trim();
+        const category = (formData.get("category") as string).trim() || undefined;
+
         const optionsRaw = (formData.get("options") as string ?? "").trim();
         const options = needsOptions
           ? optionsRaw.split("\n").map(s => s.trim()).filter(Boolean)
@@ -36,17 +41,22 @@ export function NewQuestionForm() {
           return;
         }
 
-        await createQuestion({
-          label:       (formData.get("label")       as string).trim(),
+        const { id } = await createQuestion({
+          label,
           type,
-          category:    (formData.get("category")    as string).trim() || undefined,
+          category,
           help:        (formData.get("help")         as string).trim() || undefined,
           placeholder: needsPlaceholder ? ((formData.get("placeholder") as string).trim() || undefined) : undefined,
           prefix:      needsPrefix ? ((formData.get("prefix")  as string).trim() || undefined) : undefined,
           suffix:      needsPrefix ? ((formData.get("suffix")  as string).trim() || undefined) : undefined,
           options,
         });
-        router.push("/admin/questions");
+
+        if (onCreated) {
+          onCreated({ id, label, category: category ?? null });
+        } else {
+          router.push("/admin/questions");
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Noe gikk galt.");
       }
@@ -130,12 +140,11 @@ export function NewQuestionForm() {
         >
           {isPending ? "Oppretter…" : "Opprett spørsmål"}
         </button>
-        <a
-          href="/admin/questions"
-          className="text-sm text-muted hover:text-cloud transition"
-        >
-          Avbryt
-        </a>
+        {!onCreated && (
+          <a href="/admin/questions" className="text-sm text-muted hover:text-cloud transition">
+            Avbryt
+          </a>
+        )}
       </div>
     </form>
   );
