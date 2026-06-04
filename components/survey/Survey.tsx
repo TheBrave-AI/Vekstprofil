@@ -26,11 +26,11 @@ function toAnswerMap(raw: Props["existingAnswers"]): AnswerMap {
 
 type Stage = "intro" | number | "summary" | "submitted";
 
-const EASE = "easeInOut";
+const EASE = [0.32, 0, 0.18, 1] as const;
 const variants = {
-  enter: (dir: number) => ({ x: dir > 0 ? "110vw" : "-110vw", opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? "-110vw" : "110vw", opacity: 0 }),
+  enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? 24 : -24 }),
+  center: { opacity: 1, y: 0 },
+  exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? -24 : 24 }),
 };
 const reducedVariants = {
   enter: { opacity: 0 },
@@ -109,7 +109,7 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
   return (
     <div className="flex flex-col min-h-screen bg-ink">
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 overflow-hidden">
-        <div className="relative w-full flex justify-center overflow-hidden">
+        <div className="relative w-full flex justify-center">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={typeof stage === "number" ? `q-${stage}` : stage}
@@ -121,8 +121,9 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
             transition={
               prefersReducedMotion
                 ? { opacity: { duration: 0.2 } }
-                : { x: { duration: 0.4, ease: EASE }, opacity: { duration: 0.3, ease: EASE } }
+                : { opacity: { duration: 0.2, ease: EASE }, y: { duration: 0.25, ease: EASE } }
             }
+            style={{ willChange: "transform, opacity" }}
             className="w-full flex justify-center"
             onAnimationComplete={(definition: AnimationDefinition) => {
               if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);

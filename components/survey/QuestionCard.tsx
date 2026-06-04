@@ -6,6 +6,11 @@ import GhostButton from "../ui/GhostButton";
 import BrandBar from "../ui/BrandBar";
 import ProgressBar from "./Progressbar";
 
+function validateNumber(val: string): string | null {
+  if (!val.trim()) return null; // empty = skip, always valid
+  return /^-?\d+([.,]\d+)?$/.test(val.trim()) ? null : "Skriv inn et gyldig tall";
+}
+
 interface Props {
   question: Question;
   index: number;
@@ -20,6 +25,20 @@ interface Props {
 
 export default function QuestionCard({ question, index, total, draft, onDraftChange, onNext, onSkip, onBack, focusTrigger }: Props) {
   const [focused, setFocused] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const numberError = question.type === "number" && touched ? validateNumber(draft) : null;
+  const hasError = numberError !== null;
+
+  function handleNext() {
+    if (question.type === "number") {
+      setTouched(true);
+      if (validateNumber(draft) !== null) return;
+    }
+    onNext();
+  }
+
+  useEffect(() => { setTouched(false); }, [focusTrigger]);
 
   // Boolean state — parsed from draft on mount (component remounts per question via AnimatePresence key)
   const [boolChoice, setBoolChoice] = useState<"Ja" | "Nei" | null>(() => {
@@ -116,8 +135,10 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
 
       {/* Input area */}
       {question.type === "text" || question.type === "number" ? (
-        <div className={`flex items-stretch mt-[34px] bg-navy rounded-xl overflow-hidden border-[1.5px] transition-all duration-200 ${
-          focused ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
+        <div className="mt-[34px]">
+        <div className={`flex items-stretch bg-navy rounded-xl overflow-hidden border-[1.5px] transition-all duration-200 ${
+          hasError ? "border-coral shadow-[0_0_0_4px_rgba(191,77,39,0.12)]" :
+          focused   ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
           {question.prefix && (
             <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
               {question.prefix}
@@ -156,6 +177,10 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
               {question.suffix}
             </span>
           )}
+        </div>
+        {numberError && (
+          <p className="mt-2 text-[13px] text-coral font-medium">{numberError}</p>
+        )}
         </div>
 
       ) : question.type === "boolean" ? (
@@ -225,7 +250,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
 
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-7">
-        <PrimaryButton label={index === 0 ? "Start" : "Lagre og fortsett"} onClick={onNext} />
+        <PrimaryButton label={index === 0 ? "Start" : "Lagre og fortsett"} onClick={handleNext} disabled={hasError} />
         <GhostButton label="Vet ikke / Har ikke tall på det" onClick={onSkip} />
         <button
           type="button"
