@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { listTemplates, createSurvey, activateSurvey } from "@/app/actions";
-import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { DeleteCustomerButton } from "@/components/admin/DeleteCustomerButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -52,6 +52,7 @@ export default async function CustomerDetailPage({
             "use server";
             const tid = fd.get("templateId") as string;
             await createSurvey(id, tid || undefined);
+            redirect(`/admin/customers/${id}`);
           }}>
             <div className="flex gap-2">
               <select name="templateId" className="rounded-xl border border-line bg-navy px-3 py-2 text-sm text-cloud focus:border-accent focus:outline-none">
@@ -76,7 +77,6 @@ export default async function CustomerDetailPage({
                 <th className="px-5 py-3">Opprettet</th>
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Svar</th>
-                <th className="px-5 py-3">Token</th>
                 <th className="px-5 py-3"></th>
               </tr>
             </thead>
@@ -91,12 +91,11 @@ export default async function CustomerDetailPage({
                     </span>
                   </td>
                   <td className="px-5 py-4 text-mist">{s._count.answers}</td>
-                  <td className="px-5 py-4 max-w-[220px]"><CopyLinkButton token={s.token} /></td>
                   <td className="px-5 py-4 text-right flex gap-3 justify-end">
                     {s.status === "draft" && (
                       <>
                         <Link href={`/admin/surveys/${s.id}/edit`} className="text-mist hover:text-cloud text-xs font-medium">Rediger</Link>
-                        <form action={async () => { "use server"; await activateSurvey(s.id); redirect(`/admin/surveys/${s.id}`); }}>
+                        <form action={async () => { "use server"; await activateSurvey(s.id); redirect("/admin"); }}>
                           <button type="submit" className="text-accent hover:underline text-xs font-medium">Aktiver →</button>
                         </form>
                       </>
@@ -111,6 +110,15 @@ export default async function CustomerDetailPage({
           </table>
         </div>
       )}
+
+      {/* Danger zone */}
+      <div className="pt-4 border-t border-line">
+        <DeleteCustomerButton
+          customerId={customer.id}
+          customerName={customer.companyName}
+          surveyCount={customer.surveys.length}
+        />
+      </div>
     </div>
   );
 }

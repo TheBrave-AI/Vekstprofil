@@ -73,7 +73,7 @@ export function EditSurveyClient({
       try {
         await setSurveyQuestions(surveyId, current.map((q) => q.id));
         await activateSurvey(surveyId);
-        router.push(`/admin/surveys/${surveyId}`);
+        router.push("/admin");
       } catch {
         router.refresh();
       }
