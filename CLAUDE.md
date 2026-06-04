@@ -205,8 +205,7 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 13. `/admin/questions/[id]/edit` — edit question
 
 ### Waiting on George 🔒
-- **SCRUM-27:** `compareSurveys(surveyId1, surveyId2)` server action — compare two surveys side-by-side
-- **SCRUM-28:** Copy survey link to clipboard button on survey detail page (instead of email activation)
+
 
 ## Dev Workflow
 
