@@ -7,12 +7,12 @@ const STATUS = {
   draft:     { label: "Utkast",    dot: "bg-steel",    badge: "bg-steel/40 text-muted"  },
 } as const;
 
-function fmt(d: Date) {
-  return d.toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric" });
+function fmt(d: Date | string) {
+  return new Date(d).toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function relativeTime(d: Date): string {
-  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+function relativeTime(d: Date | string): string {
+  const seconds = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
   if (seconds < 3600)      return `${Math.floor(seconds / 60)} min siden`;
   if (seconds < 86400)     return `${Math.floor(seconds / 3600)}t siden`;
   if (seconds < 86400 * 7) return `${Math.floor(seconds / 86400)} d siden`;

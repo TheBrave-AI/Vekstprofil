@@ -1,6 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { getSidebarData } from "@/app/actions";
 import AdminTopNav from "@/components/admin/AdminTopNav";
 import AdminShell from "@/components/admin/AdminShell";
 import type { SurveyItem } from "@/components/admin/AdminSidebar";
@@ -9,23 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth();
   if (!session) redirect("/admin/login");
 
-  const [activeSurveys, submittedSurveys, draftCount] = await Promise.all([
-    db.survey.findMany({
-      where: { status: "active" },
-      include: {
-        customer: { select: { companyName: true } },
-        _count: { select: { answers: true, questions: true } },
-      },
-      orderBy: { sentAt: "desc" },
-    }),
-    db.survey.findMany({
-      where: { status: "submitted" },
-      include: { customer: { select: { companyName: true } } },
-      orderBy: { submittedAt: "desc" },
-      take: 8,
-    }),
-    db.survey.count({ where: { status: "draft" } }),
-  ]);
+  const { active: activeSurveys, submitted: submittedSurveys, draftCount } = await getSidebarData();
 
   const active: SurveyItem[] = activeSurveys.map(s => ({
     id: s.id,
