@@ -1,8 +1,18 @@
 "use client";
 
-import { addQuestionToSurvey, removeQuestionFromSurvey, activateSurvey } from "@/app/actions";
+import { setSurveyQuestions, activateSurvey } from "@/app/actions";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { SortableQuestion } from "@/components/ui/SortableQuestion";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 
@@ -11,30 +21,48 @@ export function EditSurveyClient({
   surveyQuestions,
   allQuestions,
 }: {
-  surveyId:       string;
+  surveyId:        string;
   surveyQuestions: QuestionRow[];
-  allQuestions:   QuestionRow[];
+  allQuestions:    QuestionRow[];
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [current, setCurrent] = useState(surveyQuestions);
 
-  const inSurvey = new Set(current.map((q) => q.id));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const isDirty = JSON.stringify(current.map(q => q.id)) !== JSON.stringify(surveyQuestions.map(q => q.id));
+  const inSurvey  = new Set(current.map((q) => q.id));
   const available = allQuestions.filter((q) => !inSurvey.has(q.id));
 
   function add(q: QuestionRow) {
     setCurrent((prev) => [...prev, q]);
-    startTransition(() => addQuestionToSurvey(surveyId, q.id));
   }
 
   function remove(id: string) {
     setCurrent((prev) => prev.filter((q) => q.id !== id));
-    startTransition(() => removeQuestionFromSurvey(surveyId, id));
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = current.findIndex((q) => q.id === active.id);
+    const newIndex = current.findIndex((q) => q.id === over.id);
+    setCurrent((prev) => arrayMove(prev, oldIndex, newIndex));
+  }
+
+  function handleSave() {
+    startTransition(() => setSurveyQuestions(surveyId, current.map((q) => q.id)));
+  }
+
+  function handleReset() {
+    setCurrent(surveyQuestions);
   }
 
   function handleActivate() {
     startTransition(async () => {
       try {
+        await setSurveyQuestions(surveyId, current.map((q) => q.id));
         await activateSurvey(surveyId);
         router.push(`/admin/surveys/${surveyId}`);
       } catch {
@@ -45,7 +73,6 @@ export function EditSurveyClient({
 
   return (
     <div className="space-y-8">
-      {isPending && <p className="text-xs text-accent">Lagrer…</p>}
 
       {/* Current questions */}
       <div className="space-y-3">
@@ -53,19 +80,30 @@ export function EditSurveyClient({
         {current.length === 0 ? (
           <p className="text-sm text-mist">Ingen spørsmål ennå.</p>
         ) : (
-          <div className="rounded-card bg-midnight shadow-card overflow-hidden">
-            {current.map((q, i) => (
-              <div key={q.id} className="flex items-center justify-between px-5 py-3 border-b border-line last:border-0">
-                <div>
-                  {q.category && <p className="text-xs text-accent uppercase tracking-widest">{q.category}</p>}
-                  <p className="text-sm text-cloud">{q.label}</p>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted">
-                  <span>#{i + 1}</span>
-                  <button onClick={() => remove(q.id)} className="text-coral hover:text-coral/70 transition">Fjern</button>
-                </div>
-              </div>
-            ))}
+          <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
+            <DndContext id="survey-questions" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={current.map((q) => q.id)} strategy={verticalListSortingStrategy}>
+                {current.map((q, i) => (
+                  <SortableQuestion
+                    key={q.id}
+                    item={q}
+                    index={i}
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => remove(q.id)}
+                        className="text-muted hover:text-coral transition"
+                        aria-label="Fjern"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                          <path d="M2 2L11 11M11 2L2 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    }
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         )}
       </div>
@@ -74,27 +112,48 @@ export function EditSurveyClient({
       {available.length > 0 && (
         <div className="space-y-3">
           <h2 className="font-display text-lg text-cloud">Legg til spørsmål</h2>
-          <div className="rounded-card bg-midnight shadow-card overflow-hidden">
+          <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
             {available.map((q) => (
               <div key={q.id} className="flex items-center justify-between px-5 py-3 border-b border-line last:border-0">
                 <div>
                   {q.category && <p className="text-xs text-accent uppercase tracking-widest">{q.category}</p>}
                   <p className="text-sm text-cloud">{q.label}</p>
                 </div>
-                <button onClick={() => add(q)} className="text-accent hover:underline text-xs font-medium">+ Legg til</button>
+                <button type="button" onClick={() => add(q)} className="text-accent hover:underline text-xs font-medium">+ Legg til</button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <button
-        onClick={handleActivate}
-        disabled={isPending || current.length === 0}
-        className="rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
-      >
-        Aktiver og send til kunde
-      </button>
+      {/* Actions */}
+      <div className="flex items-center gap-3 relative z-10">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || !isDirty}
+          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-40 transition"
+        >
+          {isPending ? "Lagrer…" : "Lagre"}
+        </button>
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={isPending || !isDirty}
+          className="rounded-xl border border-line px-5 py-2.5 text-sm font-medium text-mist hover:text-cloud disabled:opacity-40 transition"
+        >
+          Tilbakestill
+        </button>
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={handleActivate}
+          disabled={isPending || current.length === 0}
+          className="rounded-xl bg-accent/10 px-5 py-2.5 text-sm font-medium text-accent hover:bg-accent/20 disabled:opacity-40 transition"
+        >
+          Aktiver og send til kunde
+        </button>
+      </div>
     </div>
   );
 }

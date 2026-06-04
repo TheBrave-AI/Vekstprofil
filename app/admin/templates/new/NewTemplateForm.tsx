@@ -25,7 +25,7 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6 max-w-2xl">
+    <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-cloud">Navn</span>

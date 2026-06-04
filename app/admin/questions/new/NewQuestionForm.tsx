@@ -54,7 +54,7 @@ export function NewQuestionForm() {
   }
 
   return (
-    <form action={handleSubmit} className="rounded-card bg-midnight p-8 shadow-card space-y-6 max-w-xl">
+    <form action={handleSubmit} className="rounded-card bg-midnight p-8 shadow-card space-y-6 max-w-xl mx-auto">
       <div className="space-y-1">
         <p className="text-xs font-medium tracking-widest uppercase text-accent">Nytt spørsmål</p>
         <h2 className="font-display text-xl text-cloud">Opprett spørsmål</h2>

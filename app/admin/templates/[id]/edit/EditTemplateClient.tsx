@@ -1,7 +1,17 @@
 "use client";
 
-import { updateTemplate } from "@/app/actions";
+import { updateTemplate, setTemplateQuestions } from "@/app/actions";
 import { useState, useTransition } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { SortableQuestion } from "@/components/ui/SortableQuestion";
 
 interface TemplateQuestion {
   id:         string; // TemplateQuestion id
@@ -27,8 +37,12 @@ export function EditTemplateClient({
   const [name,        setName]        = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
   const [active,      setActive]      = useState(initialActive);
+  const [questions,   setQuestions]   = useState(initialQuestions);
   const [saved,       setSaved]       = useState(false);
   const [isPending,   startTransition] = useTransition();
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const isDirty = JSON.stringify(questions.map(q => q.questionId)) !== JSON.stringify(initialQuestions.map(q => q.questionId));
 
   function flash() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
 
@@ -39,6 +53,27 @@ export function EditTemplateClient({
     });
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = questions.findIndex((q) => q.questionId === active.id);
+    const newIndex = questions.findIndex((q) => q.questionId === over.id);
+    const next = arrayMove(questions, oldIndex, newIndex);
+    setQuestions(next);
+  }
+
+  function removeQuestion(questionId: string) {
+    setQuestions((prev) => prev.filter((q) => q.questionId !== questionId));
+  }
+
+  function handleSaveQuestions() {
+    startTransition(() => setTemplateQuestions(templateId, questions.map((q) => q.questionId)));
+  }
+
+  function handleResetQuestions() {
+    setQuestions(initialQuestions);
+  }
+
   function toggleActive() {
     const next = !active;
     setActive(next);
@@ -46,7 +81,7 @@ export function EditTemplateClient({
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8">
       {isPending && <p className="text-xs text-accent">Lagrer…</p>}
       {saved    && <p className="text-xs text-accent">✓ Lagret</p>}
 
@@ -99,26 +134,54 @@ export function EditTemplateClient({
 
       {/* Questions */}
       <div className="space-y-3">
-        <h2 className="font-display text-lg text-cloud">Spørsmål ({initialQuestions.length})</h2>
-        <div className="rounded-card bg-midnight shadow-card overflow-hidden">
-          {initialQuestions.length === 0 ? (
+        <h2 className="font-display text-lg text-cloud">Spørsmål ({questions.length})</h2>
+        <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
+          {questions.length === 0 ? (
             <p className="px-5 py-4 text-sm text-mist">Ingen spørsmål i denne malen.</p>
           ) : (
-            initialQuestions.map((q, i) => (
-              <div key={q.id} className="flex items-center gap-4 px-5 py-3 border-b border-line last:border-0">
-                <span className="text-xs text-muted font-mono w-4">{i + 1}</span>
-                <div className="flex-1">
-                  {q.category && <p className="text-xs text-accent uppercase tracking-widest">{q.category}</p>}
-                  <p className="text-sm text-cloud">{q.label}</p>
-                </div>
-              </div>
-            ))
+            <DndContext id="template-questions" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={questions.map((q) => q.questionId)} strategy={verticalListSortingStrategy}>
+                {questions.map((q, i) => (
+                  <SortableQuestion
+                    key={q.id}
+                    item={{ id: q.questionId, label: q.label, category: q.category }}
+                    index={i}
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => removeQuestion(q.questionId)}
+                        className="text-muted hover:text-coral transition"
+                        aria-label="Fjern"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                          <path d="M2 2L11 11M11 2L2 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    }
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           )}
         </div>
-        <p className="text-xs text-muted">
-          For å endre spørsmål i en mal, gå til{" "}
-          <a href="/admin/questions" className="text-accent hover:underline">Spørsmålskatalog</a>.
-        </p>
+        <div className="flex items-center gap-3 relative z-10">
+          <button
+            type="button"
+            onClick={handleSaveQuestions}
+            disabled={isPending || !isDirty}
+            className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-40 transition"
+          >
+            {isPending ? "Lagrer…" : "Lagre"}
+          </button>
+          <button
+            type="button"
+            onClick={handleResetQuestions}
+            disabled={isPending || !isDirty}
+            className="rounded-xl border border-line px-5 py-2.5 text-sm font-medium text-mist hover:text-cloud disabled:opacity-40 transition"
+          >
+            Tilbakestill
+          </button>
+        </div>
       </div>
     </div>
   );

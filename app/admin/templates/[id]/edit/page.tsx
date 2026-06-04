@@ -23,7 +23,7 @@ export default async function EditTemplatePage({
   if (!template) notFound();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div>
         <Link href="/admin/templates" className="text-xs text-mist hover:text-accent transition">← Maler</Link>
         <h1 className="font-display text-2xl text-cloud mt-1">Rediger mal</h1>

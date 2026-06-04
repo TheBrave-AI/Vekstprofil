@@ -1,7 +1,7 @@
 "use server";
 
 import { nanoid } from "nanoid";
-import { unstable_cache, revalidateTag } from "next/cache";
+import { unstable_cache, revalidateTag, revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { SKIPPED } from "@/lib/types";
@@ -181,6 +181,8 @@ export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
   });
 
   revalidateTag("surveys", {});
+  revalidateTag("customers", {});
+  revalidatePath("/admin/customers");
   return { ok: true };
 }
 
@@ -203,6 +205,7 @@ export async function createCustomer(data: {
     },
   });
   revalidateTag("customers", {});
+  revalidatePath("/admin/customers");
   return customer;
 }
 
@@ -262,6 +265,7 @@ export async function createSurvey(
 
   revalidateTag("surveys", {});
   revalidateTag("customers", {});
+  revalidatePath("/admin/customers");
   return { token, id: surveyId };
 }
 
@@ -274,6 +278,7 @@ export async function activateSurvey(surveyId: string): Promise<{ activated: boo
   if (result.count > 0) {
     revalidateTag("surveys", {});
     revalidateTag("customers", {});
+    revalidatePath("/admin/customers");
   }
   return { activated: result.count > 0 };
 }
@@ -308,6 +313,39 @@ export async function removeQuestionFromSurvey(
   if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
 
   await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
+  revalidateTag("surveys", {});
+}
+
+export async function setSurveyQuestions(
+  surveyId: string,
+  orderedQuestionIds: string[]
+): Promise<void> {
+  await requireAuth();
+  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
+  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+
+  await db.$transaction(async (tx) => {
+    await tx.surveyQuestion.deleteMany({ where: { surveyId } });
+    await tx.surveyQuestion.createMany({
+      data: orderedQuestionIds.map((questionId, order) => ({ surveyId, questionId, order })),
+    });
+  });
+  revalidateTag("surveys", {});
+}
+
+export async function reorderSurveyQuestions(
+  surveyId: string,
+  orderedQuestionIds: string[]
+): Promise<void> {
+  await requireAuth();
+  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
+  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to reorder questions");
+
+  await db.$transaction(
+    orderedQuestionIds.map((questionId, order) =>
+      db.surveyQuestion.updateMany({ where: { surveyId, questionId }, data: { order } })
+    )
+  );
   revalidateTag("surveys", {});
 }
 
@@ -361,6 +399,42 @@ export async function updateTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.template.update({ where: { id }, data });
+  revalidateTag("templates", {});
+}
+
+export async function removeQuestionFromTemplate(
+  templateId: string,
+  questionId: string
+): Promise<void> {
+  await requireAuth();
+  await db.templateQuestion.deleteMany({ where: { templateId, questionId } });
+  revalidateTag("templates", {});
+}
+
+export async function setTemplateQuestions(
+  templateId: string,
+  orderedQuestionIds: string[]
+): Promise<void> {
+  await requireAuth();
+  await db.$transaction(async (tx) => {
+    await tx.templateQuestion.deleteMany({ where: { templateId } });
+    await tx.templateQuestion.createMany({
+      data: orderedQuestionIds.map((questionId, order) => ({ templateId, questionId, order })),
+    });
+  });
+  revalidateTag("templates", {});
+}
+
+export async function reorderTemplateQuestions(
+  templateId: string,
+  orderedQuestionIds: string[]
+): Promise<void> {
+  await requireAuth();
+  await db.$transaction(
+    orderedQuestionIds.map((questionId, order) =>
+      db.templateQuestion.updateMany({ where: { templateId, questionId }, data: { order } })
+    )
+  );
   revalidateTag("templates", {});
 }
 
