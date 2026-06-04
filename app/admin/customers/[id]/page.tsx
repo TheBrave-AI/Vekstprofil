@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
 import { listTemplates, createSurvey, activateSurvey } from "@/app/actions";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -94,7 +95,7 @@ export default async function CustomerDetailPage({
                     {s.status === "draft" && (
                       <>
                         <Link href={`/admin/surveys/${s.id}/edit`} className="text-mist hover:text-cloud text-xs font-medium">Rediger</Link>
-                        <form action={async () => { "use server"; await activateSurvey(s.id); }}>
+                        <form action={async () => { "use server"; await activateSurvey(s.id); redirect(`/admin/surveys/${s.id}`); }}>
                           <button type="submit" className="text-accent hover:underline text-xs font-medium">Aktiver →</button>
                         </form>
                       </>

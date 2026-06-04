@@ -262,14 +262,17 @@ export async function createSurvey(
   return { token, id: surveyId };
 }
 
-export async function activateSurvey(surveyId: string): Promise<void> {
+export async function activateSurvey(surveyId: string): Promise<{ activated: boolean }> {
   await requireAuth();
-  await db.survey.update({
+  const result = await db.survey.updateMany({
     where: { id: surveyId, status: "draft" },
     data:  { status: "active", sentAt: new Date() },
   });
-  revalidateTag("surveys", {});
-  revalidateTag("customers", {});
+  if (result.count > 0) {
+    revalidateTag("surveys", {});
+    revalidateTag("customers", {});
+  }
+  return { activated: result.count > 0 };
 }
 
 export async function addQuestionToSurvey(

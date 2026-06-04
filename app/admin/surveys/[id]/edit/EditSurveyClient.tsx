@@ -34,8 +34,12 @@ export function EditSurveyClient({
 
   function handleActivate() {
     startTransition(async () => {
-      await activateSurvey(surveyId);
-      router.refresh();
+      try {
+        await activateSurvey(surveyId);
+        router.push(`/admin/surveys/${surveyId}`);
+      } catch {
+        router.refresh();
+      }
     });
   }
 
