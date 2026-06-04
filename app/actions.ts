@@ -1,6 +1,7 @@
 "use server";
 
 import { nanoid } from "nanoid";
+import { unstable_cache, revalidateTag } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { SKIPPED } from "@/lib/types";
@@ -31,6 +32,85 @@ async function requireAuth() {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
 }
+
+// ── Cache: DB queries (auth checked separately in each action) ────────────────
+//
+// Cache strategy:
+//   questions  — invalidated by createQuestion / updateQuestion
+//   templates  — invalidated by createTemplate / updateTemplate
+//   customers  — invalidated by createCustomer
+//   surveys    — invalidated by createSurvey / activateSurvey / submitSurvey
+//                             / addQuestionToSurvey / removeQuestionFromSurvey
+//
+// NOT cached: getSurvey (client form needs fresh answers),
+//             getSurveyAdmin (admin detail needs fresh answers),
+//             saveAnswer / submitSurvey (mutations)
+
+const cachedQuestions = unstable_cache(
+  () => db.question.findMany({ orderBy: { createdAt: "asc" } }),
+  ["questions"],
+  { tags: ["questions"] }
+);
+
+const cachedTemplates = unstable_cache(
+  () => db.template.findMany({
+    where:   { active: true },
+    orderBy: { createdAt: "asc" },
+    include: { _count: { select: { questions: true } } },
+  }),
+  ["templates"],
+  { tags: ["templates"] }
+);
+
+const cachedCustomers = unstable_cache(
+  () => db.customer.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      surveys: {
+        orderBy: { createdAt: "desc" },
+        select:  { id: true, status: true, createdAt: true, sentAt: true, submittedAt: true, token: true, templateId: true },
+      },
+    },
+  }),
+  ["customers"],
+  { tags: ["customers"] }
+);
+
+const cachedSurveys = unstable_cache(
+  () => db.survey.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      customer: { select: { id: true, companyName: true } },
+      template: { select: { name: true } },
+      _count:   { select: { answers: true } },
+    },
+  }),
+  ["surveys"],
+  { tags: ["surveys"] }
+);
+
+// Sidebar data — loaded on every admin page via layout.tsx
+const cachedSidebarData = unstable_cache(
+  async () => {
+    const [active, submitted, draftCount] = await Promise.all([
+      db.survey.findMany({
+        where:   { status: "active" },
+        include: { customer: { select: { companyName: true } } },
+        orderBy: { sentAt: "desc" },
+      }),
+      db.survey.findMany({
+        where:   { status: "submitted" },
+        include: { customer: { select: { companyName: true } } },
+        orderBy: { submittedAt: "desc" },
+        take:    8,
+      }),
+      db.survey.count({ where: { status: "draft" } }),
+    ]);
+    return { active, submitted, draftCount };
+  },
+  ["sidebar"],
+  { tags: ["surveys"] }
+);
 
 // ── Customer-facing ───────────────────────────────────────────────────────────
 
@@ -97,6 +177,7 @@ export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
     data:  { status: "submitted", submittedAt: new Date() },
   });
 
+  revalidateTag("surveys", {});
   return { ok: true };
 }
 
@@ -111,23 +192,35 @@ export async function createCustomer(data: {
   if (!data.companyName.trim() || !data.contactName.trim()) {
     throw new Error("Company name and contact name are required");
   }
-  return db.customer.create({
+  const customer = await db.customer.create({
     data: {
       companyName:  data.companyName.trim(),
       contactName:  data.contactName.trim(),
       contactEmail: data.contactEmail?.trim() || null,
     },
   });
+  revalidateTag("customers", {});
+  return customer;
 }
 
 export async function listCustomers() {
   await requireAuth();
-  return db.customer.findMany({
-    orderBy: { createdAt: "desc" },
+  return cachedCustomers();
+}
+
+export async function getSidebarData() {
+  await requireAuth();
+  return cachedSidebarData();
+}
+
+export async function getCustomer(id: string) {
+  await requireAuth();
+  return db.customer.findUnique({
+    where:   { id },
     include: {
       surveys: {
         orderBy: { createdAt: "desc" },
-        select:  { id: true, status: true, createdAt: true, sentAt: true, submittedAt: true, token: true, templateId: true },
+        include: { template: { select: { name: true } }, _count: { select: { answers: true } } },
       },
     },
   });
@@ -164,6 +257,8 @@ export async function createSurvey(
     }
   });
 
+  revalidateTag("surveys", {});
+  revalidateTag("customers", {});
   return { token, id: surveyId };
 }
 
@@ -173,6 +268,8 @@ export async function activateSurvey(surveyId: string): Promise<void> {
     where: { id: surveyId, status: "draft" },
     data:  { status: "active", sentAt: new Date() },
   });
+  revalidateTag("surveys", {});
+  revalidateTag("customers", {});
 }
 
 export async function addQuestionToSurvey(
@@ -192,6 +289,8 @@ export async function addQuestionToSurvey(
       data: { surveyId, questionId, order: (last?.order ?? -1) + 1 },
     });
   });
+
+  revalidateTag("surveys", {});
 }
 
 export async function removeQuestionFromSurvey(
@@ -203,6 +302,7 @@ export async function removeQuestionFromSurvey(
   if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
 
   await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
+  revalidateTag("surveys", {});
 }
 
 export async function getSurveyAdmin(surveyId: string) {
@@ -222,11 +322,7 @@ export async function getSurveyAdmin(surveyId: string) {
 
 export async function listTemplates() {
   await requireAuth();
-  return db.template.findMany({
-    where:   { active: true },
-    orderBy: { createdAt: "asc" },
-    include: { _count: { select: { questions: true } } },
-  });
+  return cachedTemplates();
 }
 
 export async function createTemplate(data: {
@@ -249,6 +345,7 @@ export async function createTemplate(data: {
     return template;
   });
 
+  revalidateTag("templates", {});
   return { id: t.id };
 }
 
@@ -258,13 +355,14 @@ export async function updateTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.template.update({ where: { id }, data });
+  revalidateTag("templates", {});
 }
 
 // ── Admin: questions ──────────────────────────────────────────────────────────
 
 export async function listQuestions() {
   await requireAuth();
-  return db.question.findMany({ orderBy: { createdAt: "asc" } });
+  return cachedQuestions();
 }
 
 export async function createQuestion(data: {
@@ -283,6 +381,7 @@ export async function createQuestion(data: {
   const q = await db.question.create({
     data: { ...rest, options: options && options.length > 0 ? options : undefined },
   });
+  revalidateTag("questions", {});
   return { id: q.id };
 }
 
@@ -300,18 +399,12 @@ export async function updateQuestion(
 ): Promise<void> {
   await requireAuth();
   await db.question.update({ where: { id }, data });
+  revalidateTag("questions", {});
 }
 
 export async function listSurveys() {
   await requireAuth();
-  return db.survey.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      customer: { select: { id: true, companyName: true } },
-      template: { select: { name: true } },
-      _count:   { select: { answers: true } },
-    },
-  });
+  return cachedSurveys();
 }
 
 // ── Admin: comparison ─────────────────────────────────────────────────────────

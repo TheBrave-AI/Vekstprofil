@@ -1,6 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
+import { getSidebarData } from "@/app/actions";
 import AdminTopNav from "@/components/admin/AdminTopNav";
 import AdminShell from "@/components/admin/AdminShell";
 import type { SurveyItem } from "@/components/admin/AdminSidebar";
@@ -9,26 +9,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth();
   if (!session) redirect("/admin/login");
 
-  const [activeSurveys, submittedSurveys, draftCount] = await Promise.all([
-    db.survey.findMany({
-      where: { status: "active" },
-      include: { customer: { select: { companyName: true } } },
-      orderBy: { sentAt: "desc" },
-    }),
-    db.survey.findMany({
-      where: { status: "submitted" },
-      include: { customer: { select: { companyName: true } } },
-      orderBy: { submittedAt: "desc" },
-      take: 8,
-    }),
-    db.survey.count({ where: { status: "draft" } }),
-  ]);
+  const { active: activeSurveys, submitted: submittedSurveys, draftCount } = await getSidebarData();
 
-  const toItem = (s: typeof activeSurveys[number], dateField: Date | null): SurveyItem => ({
+  const toItem = (s: typeof activeSurveys[number], dateField: Date | string | null): SurveyItem => ({
     id: s.id,
     companyName: s.customer.companyName,
     status: s.status as "active" | "submitted",
-    date: (dateField ?? s.createdAt).toISOString(),
+    date: new Date(dateField ?? s.createdAt).toISOString(),
   });
 
   const active    = activeSurveys.map(s => toItem(s, s.sentAt));
