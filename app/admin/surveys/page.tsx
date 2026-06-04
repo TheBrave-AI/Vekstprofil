@@ -129,7 +129,11 @@ export default async function SurveysPage() {
 
                     {/* Answers count */}
                     <div className="text-center shrink-0 w-12">
-                      <p className="text-[15px] font-semibold text-cloud tabular-nums">{s._count.answers}</p>
+                      <p className="text-[15px] font-semibold text-cloud tabular-nums">
+                        {s.status === "active"
+                          ? <>{s._count.answers}<span className="text-[12px] font-normal text-muted">/{s._count.questions}</span></>
+                          : s._count.answers}
+                      </p>
                       <p className="text-[10.5px] text-muted uppercase tracking-wide">svar</p>
                     </div>
 

@@ -34,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full">
         <div className="grain" aria-hidden="true" />
         {children}
-        <DevNav />
+        {/* <DevNav /> Removed for now */}
       </body>
     </html>
   );

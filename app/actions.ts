@@ -309,7 +309,7 @@ export async function listSurveys() {
     include: {
       customer: { select: { id: true, companyName: true } },
       template: { select: { name: true } },
-      _count:   { select: { answers: true } },
+      _count:   { select: { answers: true, questions: true } },
     },
   });
 }

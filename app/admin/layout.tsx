@@ -12,7 +12,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const [activeSurveys, submittedSurveys, draftCount] = await Promise.all([
     db.survey.findMany({
       where: { status: "active" },
-      include: { customer: { select: { companyName: true } } },
+      include: {
+        customer: { select: { companyName: true } },
+        _count: { select: { answers: true, questions: true } },
+      },
       orderBy: { sentAt: "desc" },
     }),
     db.survey.findMany({
@@ -24,15 +27,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     db.survey.count({ where: { status: "draft" } }),
   ]);
 
-  const toItem = (s: typeof activeSurveys[number], dateField: Date | null): SurveyItem => ({
+  const active: SurveyItem[] = activeSurveys.map(s => ({
     id: s.id,
     companyName: s.customer.companyName,
-    status: s.status as "active" | "submitted",
-    date: (dateField ?? s.createdAt).toISOString(),
-  });
+    status: "active",
+    date: (s.sentAt ?? s.createdAt).toISOString(),
+    answeredCount: s._count.answers,
+    totalQuestions: s._count.questions,
+  }));
 
-  const active    = activeSurveys.map(s => toItem(s, s.sentAt));
-  const submitted = submittedSurveys.map(s => toItem(s, s.submittedAt));
+  const submitted: SurveyItem[] = submittedSurveys.map(s => ({
+    id: s.id,
+    companyName: s.customer.companyName,
+    status: "submitted",
+    date: (s.submittedAt ?? s.createdAt).toISOString(),
+  }));
 
   return (
     <div className="min-h-screen bg-ink flex flex-col">

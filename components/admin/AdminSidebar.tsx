@@ -6,6 +6,8 @@ export interface SurveyItem {
   companyName: string;
   status: "active" | "submitted";
   date: string;
+  answeredCount?: number;
+  totalQuestions?: number;
 }
 
 interface Props {
@@ -109,6 +111,10 @@ function EmptyRow({ text }: { text: string }) {
 }
 
 function SurveyRow({ survey }: { survey: SurveyItem }) {
+  const showProgress = survey.status === "active"
+    && survey.answeredCount !== undefined
+    && survey.totalQuestions !== undefined;
+
   return (
     <Link
       href={`/admin/surveys/${survey.id}`}
@@ -119,7 +125,14 @@ function SurveyRow({ survey }: { survey: SurveyItem }) {
         <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-brand transition-colors">
           {survey.companyName}
         </p>
-        <p className="text-[11.5px] text-muted mt-0.5">{relativeTime(survey.date)}</p>
+        <p className="text-[11.5px] text-muted mt-0.5">
+          {relativeTime(survey.date)}
+          {showProgress && (
+            <span className="ml-1.5 text-muted">
+              · {survey.answeredCount}/{survey.totalQuestions}
+            </span>
+          )}
+        </p>
       </div>
     </Link>
   );
