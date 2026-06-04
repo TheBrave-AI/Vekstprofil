@@ -180,8 +180,8 @@ export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
     data:  { status: "submitted", submittedAt: new Date() },
   });
 
-  revalidateTag("surveys", {});
-  revalidateTag("customers", {});
+  revalidateTag("surveys", { expire: 0 });
+  revalidateTag("customers", { expire: 0 });
   revalidatePath("/admin/customers");
   return { ok: true };
 }
@@ -204,7 +204,7 @@ export async function createCustomer(data: {
       contactEmail: data.contactEmail?.trim() || null,
     },
   });
-  revalidateTag("customers", {});
+  revalidateTag("customers", { expire: 0 });
   revalidatePath("/admin/customers");
   return customer;
 }
@@ -212,6 +212,17 @@ export async function createCustomer(data: {
 export async function listCustomers() {
   await requireAuth();
   return cachedCustomers();
+}
+
+export async function deleteCustomer(id: string): Promise<void> {
+  await requireAuth();
+  await db.$transaction(async (tx) => {
+    await tx.survey.deleteMany({ where: { customerId: id } });
+    await tx.customer.deleteMany({ where: { id } });
+  });
+  revalidateTag("customers", { expire: 0 });
+  revalidateTag("surveys", { expire: 0 });
+  revalidatePath("/admin/customers");
 }
 
 export async function getSidebarData() {
@@ -263,8 +274,8 @@ export async function createSurvey(
     }
   });
 
-  revalidateTag("surveys", {});
-  revalidateTag("customers", {});
+  revalidateTag("surveys", { expire: 0 });
+  revalidateTag("customers", { expire: 0 });
   revalidatePath("/admin/customers");
   return { token, id: surveyId };
 }
@@ -276,8 +287,8 @@ export async function activateSurvey(surveyId: string): Promise<{ activated: boo
     data:  { status: "active", sentAt: new Date() },
   });
   if (result.count > 0) {
-    revalidateTag("surveys", {});
-    revalidateTag("customers", {});
+    revalidateTag("surveys", { expire: 0 });
+    revalidateTag("customers", { expire: 0 });
     revalidatePath("/admin/customers");
   }
   return { activated: result.count > 0 };
@@ -301,7 +312,7 @@ export async function addQuestionToSurvey(
     });
   });
 
-  revalidateTag("surveys", {});
+  revalidateTag("surveys", { expire: 0 });
 }
 
 export async function removeQuestionFromSurvey(
@@ -313,7 +324,7 @@ export async function removeQuestionFromSurvey(
   if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
 
   await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
-  revalidateTag("surveys", {});
+  revalidateTag("surveys", { expire: 0 });
 }
 
 export async function setSurveyQuestions(
@@ -330,7 +341,7 @@ export async function setSurveyQuestions(
       data: orderedQuestionIds.map((questionId, order) => ({ surveyId, questionId, order })),
     });
   });
-  revalidateTag("surveys", {});
+  revalidateTag("surveys", { expire: 0 });
 }
 
 export async function reorderSurveyQuestions(
@@ -346,7 +357,7 @@ export async function reorderSurveyQuestions(
       db.surveyQuestion.updateMany({ where: { surveyId, questionId }, data: { order } })
     )
   );
-  revalidateTag("surveys", {});
+  revalidateTag("surveys", { expire: 0 });
 }
 
 export async function getSurveyAdmin(surveyId: string) {
@@ -389,7 +400,7 @@ export async function createTemplate(data: {
     return template;
   });
 
-  revalidateTag("templates", {});
+  revalidateTag("templates", { expire: 0 });
   return { id: t.id };
 }
 
@@ -399,7 +410,7 @@ export async function updateTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.template.update({ where: { id }, data });
-  revalidateTag("templates", {});
+  revalidateTag("templates", { expire: 0 });
 }
 
 export async function removeQuestionFromTemplate(
@@ -408,7 +419,7 @@ export async function removeQuestionFromTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.templateQuestion.deleteMany({ where: { templateId, questionId } });
-  revalidateTag("templates", {});
+  revalidateTag("templates", { expire: 0 });
 }
 
 export async function setTemplateQuestions(
@@ -422,7 +433,7 @@ export async function setTemplateQuestions(
       data: orderedQuestionIds.map((questionId, order) => ({ templateId, questionId, order })),
     });
   });
-  revalidateTag("templates", {});
+  revalidateTag("templates", { expire: 0 });
 }
 
 export async function reorderTemplateQuestions(
@@ -435,7 +446,7 @@ export async function reorderTemplateQuestions(
       db.templateQuestion.updateMany({ where: { templateId, questionId }, data: { order } })
     )
   );
-  revalidateTag("templates", {});
+  revalidateTag("templates", { expire: 0 });
 }
 
 // ── Admin: questions ──────────────────────────────────────────────────────────
@@ -461,7 +472,7 @@ export async function createQuestion(data: {
   const q = await db.question.create({
     data: { ...rest, options: options && options.length > 0 ? options : undefined },
   });
-  revalidateTag("questions", {});
+  revalidateTag("questions", { expire: 0 });
   return { id: q.id };
 }
 
@@ -479,7 +490,7 @@ export async function updateQuestion(
 ): Promise<void> {
   await requireAuth();
   await db.question.update({ where: { id }, data });
-  revalidateTag("questions", {});
+  revalidateTag("questions", { expire: 0 });
 }
 
 export async function listSurveys() {
