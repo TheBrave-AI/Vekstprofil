@@ -7,11 +7,11 @@ export function formatAnswer(q: Question, raw: AnswerMap[string] | undefined): s
   const out = String(raw).trim();
 
   if (q.type === "boolean") {
-    return out === "true" ? "Ja" : "Nei";
+    return out === "true" || out === "Ja" || out.startsWith("Ja\n") ? "Ja" : "Nei";
   }
 
   if (q.type === "multiselect") {
-    return out.split(",").map((v) => v.trim()).filter(Boolean).join(", ");
+    return out.split("\n").map((v) => v.trim()).filter(Boolean).join(", ");
   }
 
   if (q.type === "select" || q.type === "text") {

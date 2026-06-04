@@ -16,8 +16,8 @@ A full-stack Next.js app for Brave (Norwegian B2B sales/marketing agency). Brave
 **Admin section (`/admin/*`):**
 - Customer management — create customers, view all customers and their history
 - Create surveys — either from a Template or by hand-picking questions
-- Manage Templates — named form compositions (e.g. "Ny-kunde Skjema", "Evaluerings-skjema")
-- Manage the question catalog — add, edit questions (edits apply retroactively, which is intentional for typo fixes)
+- Manage Templates — named form compositions
+- Manage the question catalog — add, edit questions
 - View responses per customer/survey
 - Compare surveys over time to demonstrate growth
 
@@ -25,13 +25,13 @@ A full-stack Next.js app for Brave (Norwegian B2B sales/marketing agency). Brave
 
 Seven tables. `TemplateQuestion` and `SurveyQuestion` are junction tables that resolve many-to-many relationships.
 
-**Key principle: Questions are not copied.** A Survey references Questions directly via `SurveyQuestion`. Questions are mutable — fixing a typo updates all Surveys using that question (intentional). For substantively different questions, create a new one.
+**Key principle: Questions are not copied.** A Survey references Questions directly via `SurveyQuestion`. Questions are mutable — fixing a typo updates all Surveys using that question (intentional).
 
 Key entities:
 - `Customer` — the client company
 - `Template` — a named, reusable form composition
 - `TemplateQuestion` — junction: which questions belong to a template (with order)
-- `Question` — the question catalog; only `label` and `type` are required, all other fields optional
+- `Question` — the question catalog; only `label` and `type` are required
 - `Survey` — one form sent to one customer; status: `draft | active | submitted`
 - `SurveyQuestion` — junction: which questions belong to a survey (with order)
 - `Answer` — auto-saved per question per survey; unique on `(surveyId, questionId)`
@@ -40,6 +40,7 @@ Key entities:
 
 - **Client route:** `/k/[token]` — public questionnaire, token-gated
 - **Admin routes:** `/admin/*` — protected by Auth.js (Google OAuth, @thebrave.no accounts only)
+- **Root `/`** — smart redirect: logged in → `/admin`, not logged in → `/admin/login`
 - **Database:** PostgreSQL via Prisma
 - **No auth for clients** — unguessable token in URL is the only gate
 
@@ -58,13 +59,17 @@ Key entities:
 | File | Purpose |
 |---|---|
 | `app/globals.css` | All design tokens (`@theme`) + base styles. Edit here, not in a config file. |
-| `app/layout.tsx` | Root layout — fonts (Fraunces via next/font, Satoshi via link tag), grain overlay |
+| `app/layout.tsx` | Root layout — fonts (Fraunces via next/font, Satoshi via link tag), grain overlay, DevNav |
 | `lib/types.ts` | Shared types: `Question`, `AnswerMap`, `SKIPPED` sentinel |
-| `lib/questions.ts` | Question catalog — static array for now, will move to DB |
+| `lib/questions.ts` | Question catalog — static array, also seeded to DB via `prisma/seed.ts` |
 | `lib/formatAnswer.ts` | Formats raw answers for the summary screen |
+| `app/actions.ts` | All server actions — customer-facing (`getSurvey`, `saveAnswer`, `submitSurvey`) and admin |
+| `auth.ts` | Auth.js config — Google OAuth, restricted to @thebrave.no |
+| `prisma/schema.prisma` | Full DB schema |
+| `prisma/seed.ts` | Seeds 15 questions, default template, test survey (dev/staging only) |
 | `design_handoff_onboarding/README.md` | Full UI spec — screens, interactions, copy, tokens. Source of truth for UI. |
 | `design_handoff_onboarding/reference/Brave Onboarding.html` | Working HTML prototype — open in browser to see intended UX |
-| `BACKEND.md` | Backend setup guide for George (colleague) |
+| `BACKEND.md` | Backend setup guide for George |
 
 ## Design System
 
@@ -76,91 +81,136 @@ All Brave design tokens live in `app/globals.css` under `@theme`. Key values:
 - **Accent:** `--color-accent: #0c8ba0` (teal)
 - **Card radius:** `--radius-card: 1.25rem`
 
-Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, and interaction specs before building a component.
-
-## Questions (from brief)
-
-These are the 15 canonical questions. The design mockup was built around 10 — update all "10 spørsmål" / "~4 minutter" copy to match when building the UI.
-
-1. Hvor mange selgere har dere i dag?
-2. Hva er gjennomsnittlig fartstid for selgerne i selskapet?
-3. Hva er gjennomsnittsalderen på selgerteamet?
-4. Beskriv deres ICP (ideelle kundeprofil) — bransje, størrelse, rolle på beslutningstaker.
-5. Hvor mange salgsmøter holder hver selger i snitt per måned i dag?
-6. Hva er gjennomsnittlig closing rate fra møte til signert deal?
-7. Hva er gjennomsnittlig deal size (ACV og månedlig abonnement der relevant)?
-8. Hva er gjennomsnittlig sales cycle — tid fra første møte til signert deal?
-9. Hvilket CRM bruker dere, og hvor disiplinert føres data der?
-10. Hvor mye cold outreach gjør selgerne selv i dag (telefon, mail, LinkedIn)?
-11. Hvor mange tilbud sender dere i snitt per måned, og hva er total pipeline value nå?
-12. Hvor får dere leads fra i dag? Ranger kanalene etter volum og kvalitet.
-13. Har dere en definert salgsprosess eller playbook?
-14. Hvordan måler dere konvertering (MQL → SQL → tilbud → signert)? Hvilke tall rapporteres?
-15. Hva oppfatter dere selv som den største flaskehalsen i salget akkurat nå?
+Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, and interaction specs before building a component. Build directly from spec — no need for brainstorming/mockup phase when spec is available.
 
 ## Important Notes
 
-- **Tailwind v4:** No `tailwind.config.ts`. Tokens go in `globals.css` `@theme` block. Font `@import`s must NOT be in CSS — use `<link>` tags in `layout.tsx` (PostCSS inlines Tailwind first, pushing @imports to invalid positions).
+- **Tailwind v4:** No `tailwind.config.ts`. Tokens go in `globals.css` `@theme` block. Font `@import`s must NOT be in CSS — use `<link>` tags in `layout.tsx`.
 - **Next.js 16 has breaking changes** from earlier versions. Always check `node_modules/next/dist/docs/` before using routing APIs, params, or server actions.
 - **`params` is a Promise** in Next.js 16 page components — always `await params` before accessing properties.
-- **Questions are currently static** in `lib/questions.ts`. They will move to the DB to support admin editing — keep this in mind when building the admin UI.
-- **Pair programming style** — Andreas does frontend, George does backend. The frontend's integration points are: `saveAnswer(token, questionId, value)` (called on each Next/Skip) and a final `submitSurvey(token)` to mark the survey complete. On page load, `getSurvey(token)` returns questions + existing answers so the customer can resume.
-- **Auto-save, not submit-on-finish** — answers are persisted per question as the customer moves forward, not in one batch at the end.
+- **Questions are DB-backed** — `lib/questions.ts` is the static source used for seeding and the Summary component. `Survey.tsx` receives questions as props from `getSurvey()`.
+- **Pair programming style** — Andreas does frontend, George does backend.
+- **Auto-save, not submit-on-finish** — `saveAnswer(token, questionId, value)` called fire-and-forget on each Next/Skip. `submitSurvey(token)` called on final confirm.
+- **Code language is English** — all identifiers, function names, comments in English. UI copy stays Norwegian.
 
-## Component Structure (planned)
+## Component Structure (current)
 
 ```
 components/
-  skjema/
-    Skjema.tsx          — stateful orchestrator ('use client')
-    Intro.tsx
-    SpørsmålKort.tsx
-    Oppsummering.tsx
-    Innsendt.tsx
-    Fremdrift.tsx
-    BrandBar.tsx
+  survey/
+    Survey.tsx        — stateful orchestrator ('use client'), direction + focusTrigger state, Framer Motion variants
+    Intro.tsx         — intro card
+    QuestionCard.tsx  — all 5 input types: text, number, boolean, select, multiselect
+    Summary.tsx       — review all answers, click row to jump back
+    Submitted.tsx     — confirmation screen
+    Progressbar.tsx   — animated progress bar (visible on question stages only)
+  admin/
+    AdminShell.tsx        — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
+    AdminShellContext.tsx — createContext({ collapsed, onOpen }); useSidebar() hook
+    AdminSidebar.tsx      — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
+    AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål
+    SidebarToggle.tsx     — 'use client', consumes useSidebar(); renders › arrow only when collapsed
+    ActivityFeed.tsx      — (unused, commented out)
   ui/
     PrimaryButton.tsx
     GhostButton.tsx
+    BrandBar.tsx
+    Arrow.tsx
+  dev/
+    DevNav.tsx        — fixed bottom-right nav (dev only), links to all routes + seed data
 ```
 
-Only `Skjema.tsx` holds state. Everything else is presentational.
+`Survey.tsx` and `AdminShell.tsx` are the stateful components. Everything else is presentational.
+
+### Key implementation notes
+
+**Framer Motion (Survey):**
+- Variants use `"110vw"` for x-translation (CSS viewport unit — avoids measuring unmounted element width)
+- `overflow-hidden` wrapper around AnimatePresence isolates sliding elements
+- `focusTrigger` incremented only when `definition === "center"` (avoids double-fire from exit animation)
+- `useReducedMotion` respected — opacity-only fallback variants
+
+**Input storage format:**
+- boolean: `"Ja"` / `"Ja\n{description}"` / `"Nei"`
+- multiselect: options joined with `"\n"` (not `","` — option text may contain commas)
+- `lib/formatAnswer.ts` handles both formats for Summary display
+
+**Admin sidebar toggle:**
+- `AdminShellContext` shares `collapsed` + `onOpen` between `AdminShell` and `AdminSidebar`
+- `SidebarToggle` lives in `AdminShell` itself (absolute top-left of main content area) — do NOT add it to individual pages
+- Main content is centered via `mx-auto max-w-5xl` wrapper in `AdminShell`
 
 ## External Product Name
 
-The product is called **Vekstprofil** externally. Target URL: `https://vekstprofil.thebrave.no` (separate Vercel deployment, not integrated into thebrave.no). Update `metadata.title` in `app/layout.tsx` to reflect this.
+The product is called **Vekstprofil** externally. Target URL: `https://vekstprofil.thebrave.no`.
 
 ## Current Build Status
 
 ### Done ✅
-- `lib/types.ts` — `Question`, `AnswerMap`, `SKIPPED`, `QuestionType` (includes `boolean`, `select`, `multiselect`), `slider` config
-- `lib/questions.ts` — all 15 questions from the brief
-- `lib/formatAnswer.ts` — formats answers for summary screen (handles boolean, multiselect, select, kr, %, suffixes)
-- `app/globals.css` — all design tokens, fonts, grain overlay
-- `app/layout.tsx` — Fraunces via next/font, Satoshi via Fontshare link tag, grain div
-- `components/ui/Arrow.tsx` — inline SVG arrow
-- `components/ui/PrimaryButton.tsx` — bg-brand, text-onbrand, hover:bg-brand-deep, includes Arrow
-- `components/ui/GhostButton.tsx` — transparent, border-steel, hover:border-muted
-- `components/ui/BrandBar.tsx` — "Brave" in Fraunces + 9px coral dot
+
+**Customer survey flow (`/k/[token]`):**
+- Full survey flow: Intro → QuestionCard (×15) → Summary → Submitted
+- `Survey.tsx` integrated with backend: `getSurvey` on load, `saveAnswer` fire-and-forget per question, `submitSurvey` on final submit
+- Existing answers pre-loaded (customers can resume)
+- Framer Motion slide transitions — directional slide + fade, `"110vw"` x-translate, `useReducedMotion` fallback
+- All 5 input types in `QuestionCard.tsx`: text, number, boolean, select, multiselect
+- Autofocus after animation settles (`onAnimationComplete` → `focusTrigger` increment)
+- Keyboard shortcuts: `Enter` advances on number inputs, `Cmd/Ctrl+Enter` on textareas
+- Progress bar, debug dev nav (bottom-left), DevNav (bottom-right)
+
+**Admin UI:**
+- Layout: topbar (h-12, AdminTopNav with active route highlighting) + collapsible sidebar + main content
+- Sidebar: sticky card, lists active + submitted surveys, status dot summary, animated collapse/expand (Framer Motion)
+- Sidebar toggle: absolute top-left in `AdminShell` main area — do not add to individual pages
+- Main content centered: `mx-auto max-w-5xl` wrapper in `AdminShell`
+- Dashboard (`/admin`): 4 stat cards, "Trenger oppfølging", "Nylig mottatt", "Siste kunder"
+- Customer list at `/admin/customers`
+- Survey detail (`/admin/surveys/[id]`): row layout matching customer Summary — category label, question, answer in display font right-aligned; long text answers shown below; `max-w-3xl` card
+- Question catalog (`/admin/questions`): table with category, label, type, option count; "+ Nytt spørsmål" button
+- Create question (`/admin/questions/new`): type picker (5 types), conditional fields (placeholder, prefix/suffix, options textarea)
+
+**Backend (George):**
+- Full Prisma schema (7 tables)
+- Auth.js Google OAuth (@thebrave.no only)
+- All server actions: `getSurvey`, `saveAnswer`, `submitSurvey`, all admin CRUD
+- CSV export at `/api/export/[token]`
+- Seed: 15 questions, default template, test survey at `/k/test-onboarding-demo`
+
+**Security:**
+- `maxLength` on all inputs (2000 text, 30 number)
+- Security headers: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, CSP
+- `type="button"` on all buttons
+- Seed test data guarded — only created when `NODE_ENV !== "production"`
+- `requireAuth()` guard on all admin server actions in `actions.ts`
+- `saveAnswer` validates that `questionId` belongs to the survey before upserting
+
+### In progress 🔄
+- Nothing — ready for next admin pages
 
 ### Next up (in order) 🔜
-1. `components/skjema/Skjema.tsx` — shell with state + dev debug nav
-   - State: `stage: 'intro' | number | 'summary' | 'submitted'`, `answers: AnswerMap`, `draft: string`
-   - Debug nav (dev only): buttons to jump between stages via `process.env.NODE_ENV === 'development'`
-2. `components/skjema/Fremdrift.tsx` — visible on question stages only, fill = `(stage+1)/15`, animated width
-3. `components/skjema/Intro.tsx` — eyebrow, headline, body, 3-up meta row, CTA
-4. `components/skjema/SpørsmålKort.tsx` — category eyebrow, question, help, input, action row
-5. `components/skjema/Oppsummering.tsx` — review all answers, click to jump back
-6. `components/skjema/Innsendt.tsx` — confirmation screen
-7. `app/k/[token]/page.tsx` — server component, validates token, renders Skjema
 
-### Waiting on George (backend) 🔒
-- SCRUM-3: PostgreSQL + Prisma schema
-- SCRUM-4: Auth.js OAuth (@thebrave.no only)
-- SCRUM-18: Server actions — `getSurvey`, `saveAnswer`, `submitSurvey`
+**Admin pages to build:**
+1. `/admin/customers` — customer list ✅ (done)
+2. `/admin/customers/[id]` — customer detail + survey history
+3. `/admin/customers/new` — create customer form ✅ (done)
+4. `/admin/surveys` — survey list overview
+5. `/admin/surveys/[id]` — view survey + answers ✅ (done)
+6. `/admin/surveys/[id]/edit` — edit survey questions
+7. `/admin/surveys/new` — create survey (pick customer + template)
+8. `/admin/templates` — list templates
+9. `/admin/templates/new` — create template
+10. `/admin/templates/[id]/edit` — edit template questions
+11. `/admin/questions` — question catalog ✅ (done)
+12. `/admin/questions/new` — create question ✅ (done)
+13. `/admin/questions/[id]/edit` — edit question
 
-## Workflow Notes
+### Waiting on George 🔒
+- **SCRUM-27:** `compareSurveys(surveyId1, surveyId2)` server action — compare two surveys side-by-side
+- **SCRUM-28:** Copy survey link to clipboard button on survey detail page (instead of email activation)
 
-- **Andreas builds all frontend with mock data** — no need to wait for George
-- **Integration happens last** — swap mock data for real server actions when SCRUM-18 is done
-- **Jira project:** braveaiteam.atlassian.net — all sprint tasks tracked there with blocker relationships set up
+## Dev Workflow
+
+- **Test survey:** `/k/test-onboarding-demo` (seeded, active) — use Prisma Studio to reset status if accidentally submitted: `DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d '=' -f2-) npx prisma studio`
+- **DevNav:** fixed bottom-right on all pages in dev — links to all routes
+- **Debug nav:** fixed bottom-left on survey pages in dev — jump between stages
+- **Jira project:** braveaiteam.atlassian.net

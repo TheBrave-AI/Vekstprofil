@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Question } from "@/lib/types";
 import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
@@ -15,10 +15,78 @@ interface Props {
   onSkip: () => void;
   onNext: () => void;
   onBack: () => void;
+  focusTrigger: number;
 }
 
-export default function QuestionCard({ question, index, total, draft, onDraftChange, onNext, onSkip, onBack }: Props) {
+export default function QuestionCard({ question, index, total, draft, onDraftChange, onNext, onSkip, onBack, focusTrigger }: Props) {
   const [focused, setFocused] = useState(false);
+
+  // Boolean state — parsed from draft on mount (component remounts per question via AnimatePresence key)
+  const [boolChoice, setBoolChoice] = useState<"Ja" | "Nei" | null>(() => {
+    if (draft === "Ja" || draft.startsWith("Ja\n")) return "Ja";
+    if (draft === "Nei") return "Nei";
+    return null;
+  });
+
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const numberRef = useRef<HTMLInputElement>(null);
+  const boolTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (question.type === "text") {
+      textRef.current?.focus();
+    } else if (question.type === "number") {
+      numberRef.current?.focus();
+    } else if (question.type === "boolean" && boolChoice === "Ja") {
+      boolTextareaRef.current?.focus();
+    }
+  }, [focusTrigger]);
+
+  const [boolDesc, setBoolDesc] = useState<string>(() =>
+    draft.startsWith("Ja\n") ? draft.slice(3) : ""
+  );
+
+  // Select state
+  const [selectValue, setSelectValue] = useState<string>(() => draft || "");
+
+  // Multiselect state — stored/parsed with \n separator
+  const [multiValues, setMultiValues] = useState<string[]>(() =>
+    draft ? draft.split("\n").filter(Boolean) : []
+  );
+
+  function handleBoolChoice(choice: "Ja" | "Nei") {
+    setBoolChoice(choice);
+    if (choice === "Nei") {
+      setBoolDesc("");
+      onDraftChange("Nei");
+    } else {
+      onDraftChange(boolDesc ? `Ja\n${boolDesc}` : "Ja");
+    }
+  }
+
+  function handleBoolDesc(text: string) {
+    setBoolDesc(text);
+    onDraftChange(text ? `Ja\n${text}` : "Ja");
+  }
+
+  function handleSelect(option: string) {
+    setSelectValue(option);
+    onDraftChange(option);
+  }
+
+  function handleMultiToggle(option: string) {
+    const next = multiValues.includes(option)
+      ? multiValues.filter(v => v !== option)
+      : [...multiValues, option];
+    setMultiValues(next);
+    onDraftChange(next.join("\n"));
+  }
+
+  const pillBase = "px-4 py-3 rounded-xl text-[15px] font-medium border-[1.5px] transition-all duration-200";
+  const pillActive = "bg-brand text-onbrand border-brand";
+  const pillInactive = "bg-navy text-mist border-steel hover:border-accent hover:text-cloud";
 
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
@@ -46,48 +114,114 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
         {question.help}
       </p>
 
-      {/* Input row */}
-      <div className={`flex items-stretch mt-[34px] bg-navy rounded-xl overflow-hidden border-[1.5px] transition-all duration-200 ${
-        focused ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
-        {question.prefix && (
-          <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
-            {question.prefix}
-          </span>
-        )}
+      {/* Input area */}
+      {question.type === "text" || question.type === "number" ? (
+        <div className={`flex items-stretch mt-[34px] bg-navy rounded-xl overflow-hidden border-[1.5px] transition-all duration-200 ${
+          focused ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
+          {question.prefix && (
+            <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
+              {question.prefix}
+            </span>
+          )}
+          {question.type === "text" ? (
+            <textarea
+              ref={textRef}
+              value={draft}
+              onChange={e => onDraftChange(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); onNext(); } }}
+              placeholder={question.placeholder}
+              rows={3}
+              maxLength={2000}
+              className="flex-1 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px] resize-none outline-none min-h-[92px]"
+            />
+          ) : (
+            <input
+              ref={numberRef}
+              type="text"
+              inputMode="decimal"
+              value={draft}
+              onChange={e => onDraftChange(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onNext(); } }}
+              placeholder={question.placeholder}
+              maxLength={30}
+              className="flex-1 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"
+            />
+          )}
+          {question.suffix && (
+            <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
+              {question.suffix}
+            </span>
+          )}
+        </div>
 
-        {question.type === "text" ? (
-          <textarea
-            value={draft}
-            onChange={e => onDraftChange(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={question.placeholder}
-            rows={3}
-            maxLength={2000}
-            className="flex-1 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px] resize-none outline-none min-h-[92px]"
-          />
-        ) : question.type === "number" ? (
-          <input
-            type="text"
-            inputMode="decimal"
-            value={draft}
-            onChange={e => onDraftChange(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={question.placeholder}
-            maxLength={30}
-            className="flex-1 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"
-          />
-        ) : (
-          <div className="flex-1 p-5 text-muted text-[15px]">TODO: {question.type}</div>
-        )}
+      ) : question.type === "boolean" ? (
+        <div className="mt-[34px] flex flex-col gap-3">
+          <div className="flex gap-3">
+            {(["Ja", "Nei"] as const).map(choice => (
+              <button
+                key={choice}
+                type="button"
+                onClick={() => handleBoolChoice(choice)}
+                className={`flex-1 py-4 rounded-xl text-[17px] font-medium border-[1.5px] transition-all duration-200 ${
+                  boolChoice === choice ? pillActive : pillInactive
+                }`}
+              >
+                {choice}
+              </button>
+            ))}
+          </div>
+          {boolChoice === "Ja" && (
+            <div className={`flex items-stretch bg-navy rounded-xl overflow-hidden border-[1.5px] transition-all duration-200 ${
+              focused ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
+              <textarea
+                ref={boolTextareaRef}
+                value={boolDesc}
+                onChange={e => handleBoolDesc(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); onNext(); } }}
+                placeholder={question.placeholder}
+                rows={3}
+                maxLength={2000}
+                className="flex-1 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px] resize-none outline-none min-h-[92px]"
+              />
+            </div>
+          )}
+        </div>
 
-        {question.suffix && (
-          <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
-            {question.suffix}
-          </span>
-        )}
-      </div>
+      ) : question.type === "select" ? (
+        <div className="mt-[34px] flex flex-wrap gap-2">
+          {question.options?.map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => handleSelect(option)}
+              className={`${pillBase} ${selectValue === option ? pillActive : pillInactive}`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+
+      ) : question.type === "multiselect" ? (
+        <div className="mt-[34px] flex flex-wrap gap-2">
+          {question.options?.map(option => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => handleMultiToggle(option)}
+              className={`${pillBase} ${multiValues.includes(option) ? pillActive : pillInactive}`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+
+      ) : null}
 
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-7">

@@ -8,6 +8,7 @@ import Intro from "./Intro";
 import Summary from "./Summary";
 import Submitted from "./Submitted";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import type { AnimationDefinition } from "framer-motion";
 
 interface Props {
   token: string;
@@ -25,19 +26,26 @@ function toAnswerMap(raw: Props["existingAnswers"]): AnswerMap {
 
 type Stage = "intro" | number | "summary" | "submitted";
 
-const EASE = [0.22, 1, 0.36, 1] as const; // Cubic-bezier for a snappy feel
+const EASE = "easeInOut";
 const variants = {
-  enter: (dir: number) => ({ x: dir * 24, opacity: 0 }),
-  center: { x: 0, opacity: 1, transition: { duration: 0.4, ease: EASE } },
-  exit: (dir: number) => ({ x: dir * -24, opacity: 0, transition: { duration: 0.4, ease: EASE } }),
-}
+  enter: (dir: number) => ({ x: dir > 0 ? "110vw" : "-110vw", opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? "-110vw" : "110vw", opacity: 0 }),
+};
+const reducedVariants = {
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 },
+};
 
 
 export default function Survey({ token, questions, existingAnswers }: Props) {
   const [stage, setStage] = useState<Stage>("intro");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
-  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward — controls animation direction
+  const [direction, setDirection] = useState(1);
+  const [focusTrigger, setFocusTrigger] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   function goNext() {
     if (stage === "intro") { setDirection(1); setStage(0); return; }
@@ -100,28 +108,51 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
 
   return (
     <div className="flex flex-col min-h-screen bg-ink">
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-        {stage === "intro" && <Intro onStart={goNext} />}
-        {typeof stage === "number" && (
-          <QuestionCard
-            question={questions[stage]}
-            index={stage}
-            total={questions.length}
-            draft={draft}
-            onDraftChange={setDraft}
-            onNext={goNext}
-            onSkip={goSkip}
-            onBack={goBack}
-          />
-        )}
-        {stage === "summary" && (
-          <Summary
-            answers={answers}
-            onSubmit={handleSubmit}
-            onGoToQuestion={goToQuestion}
-          />
-        )}
-        {stage === "submitted" && <Submitted onReset={handleReset} />}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 overflow-hidden">
+        <div className="relative w-full flex justify-center overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={typeof stage === "number" ? `q-${stage}` : stage}
+            custom={direction}
+            variants={prefersReducedMotion ? reducedVariants : variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={
+              prefersReducedMotion
+                ? { opacity: { duration: 0.2 } }
+                : { x: { duration: 0.4, ease: EASE }, opacity: { duration: 0.3, ease: EASE } }
+            }
+            className="w-full flex justify-center"
+            onAnimationComplete={(definition: AnimationDefinition) => {
+              if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);
+            }}
+          >
+            {stage === "intro" && <Intro onStart={goNext} />}
+            {typeof stage === "number" && (
+              <QuestionCard
+                question={questions[stage]}
+                index={stage}
+                total={questions.length}
+                draft={draft}
+                onDraftChange={setDraft}
+                onNext={goNext}
+                onSkip={goSkip}
+                onBack={goBack}
+                focusTrigger={focusTrigger}
+              />
+            )}
+            {stage === "summary" && (
+              <Summary
+                answers={answers}
+                onSubmit={handleSubmit}
+                onGoToQuestion={goToQuestion}
+              />
+            )}
+            {stage === "submitted" && <Submitted onReset={handleReset} />}
+          </motion.div>
+        </AnimatePresence>
+        </div>
       </main>
 
       {process.env.NODE_ENV === "development" && (

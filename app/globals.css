@@ -26,6 +26,11 @@
   --color-marker:     #2bcfe2;  /* cyan — understreker, eyebrow-strek */
   --color-coral:      #bf4d27;  /* oransje/rød — "Ikke oppgitt"-pill */
 
+  /* Admin-panel (mørkt tema) */
+  --color-admin-bg:      #0c1828;  /* admin hovebakgrunn */
+  --color-admin-surface: #1a3258;  /* admin kort / elevated */
+  --color-admin-border:  rgba(255,255,255,0.08);
+
   /* Fonter */
   --font-body:    "Satoshi", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: "Fraunces", Georgia, serif;

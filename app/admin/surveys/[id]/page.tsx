@@ -16,54 +16,127 @@ export default async function SurveyDetailPage({
   const answerByQid = Object.fromEntries(survey.answers.map((a) => [a.questionId, a]));
 
   const statusLabel: Record<string, string> = { draft: "Utkast", active: "Aktiv", submitted: "Innsendt" };
+  const answeredCount = survey.questions.filter(({ question: q }) => {
+    const a = answerByQid[q.id];
+    return a && !a.skipped && a.value;
+  }).length;
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <Link href={`/admin/customers/${survey.customerId}`} className="text-xs text-mist hover:text-accent transition">
+          <Link
+            href={`/admin/customers/${survey.customerId}`}
+            className="text-xs text-muted hover:text-accent transition"
+          >
             ← {survey.customer.companyName}
           </Link>
-          <h1 className="font-display text-2xl text-cloud">Survey — {survey.createdAt.toLocaleDateString("nb-NO")}</h1>
-          <p className="text-sm text-mist">
+          <h1 className="font-display text-2xl text-cloud">
+            Survey — {survey.createdAt.toLocaleDateString("nb-NO")}
+          </h1>
+          <p className="text-[12.5px] text-muted">
             {survey.template?.name ?? "Ingen mal"} · {statusLabel[survey.status]}
-            {survey.submittedAt && ` · Innsendt ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
+            {survey.submittedAt &&
+              ` · Innsendt ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
           </p>
         </div>
-        <a href={`/api/export/${survey.token}`} className="rounded-xl border border-line px-4 py-2 text-sm font-medium text-cloud hover:bg-midnight transition">
+        <a
+          href={`/api/export/${survey.token}`}
+          className="shrink-0 rounded-xl border border-line px-4 py-2 text-sm font-medium text-cloud hover:bg-black/[0.04] transition"
+        >
           Last ned CSV
         </a>
       </div>
 
+      {/* Answer list */}
       {survey.questions.length === 0 ? (
-        <p className="text-sm text-mist">Ingen spørsmål i denne surveyen.</p>
+        <p className="text-sm text-muted">Ingen spørsmål i denne surveyen.</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {survey.questions.map((sq) => {
-            const q = sq.question;
-            const a = answerByQid[q.id];
-            const qTyped: Question = {
-              id: q.id, label: q.label, type: q.type as Question["type"],
-              category: q.category ?? "", help: q.help ?? "", placeholder: q.placeholder ?? "",
-              prefix: q.prefix ?? undefined, suffix: q.suffix ?? undefined,
-            };
-            const formatted = a && !a.skipped ? formatAnswer(qTyped, a.value ?? undefined) : null;
-            return (
-              <div key={q.id} className="rounded-xl bg-midnight border border-line p-4 space-y-1">
-                {q.category && <p className="text-xs font-medium tracking-widest uppercase text-accent">{q.category}</p>}
-                <p className="text-sm font-medium text-cloud">{q.label}</p>
-                {formatted ? (
-                  <p className="text-sm text-cloud font-mono">{formatted}</p>
-                ) : (
-                  <span className="inline-block rounded-full bg-coral/10 px-2.5 py-0.5 text-xs text-coral">
-                    {a?.skipped ? "Hoppet over" : "Ikke besvart"}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+        <div className="rounded-card bg-midnight shadow-card overflow-hidden max-w-3xl">
+          {/* Count */}
+          <div className="px-6 py-4 border-b border-line">
+            <p className="text-[12.5px] text-muted">
+              {answeredCount} av {survey.questions.length} besvart
+            </p>
+          </div>
+
+          {/* Rows */}
+          <div>
+            {survey.questions.map(({ question: q }) => {
+              const a = answerByQid[q.id];
+              const qTyped: Question = {
+                id: q.id, label: q.label, type: q.type as Question["type"],
+                category: q.category ?? "", help: q.help ?? "", placeholder: q.placeholder ?? "",
+                prefix: q.prefix ?? undefined, suffix: q.suffix ?? undefined,
+              };
+              const formatted = a && !a.skipped ? formatAnswer(qTyped, a.value ?? undefined) : null;
+              const isLongText = q.type === "text";
+
+              // For boolean: extract optional description after "Ja\n"
+              const boolDesc =
+                q.type === "boolean" && a?.value?.startsWith("Ja\n")
+                  ? a.value.slice(3).trim()
+                  : null;
+
+              return (
+                <div
+                  key={q.id}
+                  className="grid gap-5 px-6 py-[18px] border-b border-line last:border-0"
+                  style={{ gridTemplateColumns: isLongText ? "1fr" : "minmax(0,1fr) auto" }}
+                >
+                  {/* Left: category + question */}
+                  <div className="flex flex-col gap-1 min-w-0">
+                    {q.category && (
+                      <span className="text-muted text-[11px] font-bold uppercase tracking-[0.12em]">
+                        {q.category}
+                      </span>
+                    )}
+                    <span className="text-cloud text-[16px] font-medium leading-snug">
+                      {q.label}
+                    </span>
+                    {/* Long text answers shown below the question */}
+                    {isLongText && formatted && (
+                      <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
+                    )}
+                    {isLongText && !formatted && (
+                      <NotAnsweredPill skipped={!!a?.skipped} />
+                    )}
+                    {/* Boolean description */}
+                    {boolDesc && (
+                      <p className="text-mist text-[13px] mt-1 leading-relaxed">{boolDesc}</p>
+                    )}
+                  </div>
+
+                  {/* Right: answer (non-text types only) */}
+                  {!isLongText && (
+                    <div className="flex items-center justify-end pl-4 shrink-0">
+                      {formatted ? (
+                        <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[200px] leading-tight">
+                          {formatted}
+                        </span>
+                      ) : (
+                        <NotAnsweredPill skipped={!!a?.skipped} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function NotAnsweredPill({ skipped }: { skipped: boolean }) {
+  return (
+    <span
+      className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"
+      style={{ background: "rgba(191,77,39,0.10)" }}
+    >
+      {skipped ? "Hoppet over" : "Ikke besvart"}
+    </span>
   );
 }

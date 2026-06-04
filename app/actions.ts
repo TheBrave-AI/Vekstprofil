@@ -275,10 +275,14 @@ export async function createQuestion(data: {
   placeholder?: string;
   prefix?:      string;
   suffix?:      string;
+  options?:     string[];
 }): Promise<{ id: string }> {
   await requireAuth();
   if (!data.label.trim()) throw new Error("Label is required");
-  const q = await db.question.create({ data });
+  const { options, ...rest } = data;
+  const q = await db.question.create({
+    data: { ...rest, options: options && options.length > 0 ? options : undefined },
+  });
   return { id: q.id };
 }
 

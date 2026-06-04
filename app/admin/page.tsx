@@ -1,81 +1,201 @@
-import { listCustomers } from "@/app/actions";
+import { db } from "@/lib/db";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
-  const customers = await listCustomers();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const total     = customers.length;
-  const submitted = customers.filter((c) => c.surveys.some((s) => s.status === "submitted")).length;
+  const [
+    customerCount,
+    activeCount,
+    submittedCount,
+    needsFollowUp,
+    recentSubmitted,
+    recentCustomers,
+  ] = await Promise.all([
+    db.customer.count(),
+    db.survey.count({ where: { status: "active" } }),
+    db.survey.count({ where: { status: "submitted" } }),
+    db.survey.findMany({
+      where: { status: "active", sentAt: { lt: sevenDaysAgo } },
+      include: { customer: { select: { id: true, companyName: true } } },
+      orderBy: { sentAt: "asc" },
+    }),
+    db.survey.findMany({
+      where: { status: "submitted" },
+      include: { customer: { select: { id: true, companyName: true } } },
+      orderBy: { submittedAt: "desc" },
+      take: 5,
+    }),
+    db.customer.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { _count: { select: { surveys: true } } },
+    }),
+  ]);
+
+  const totalSent = activeCount + submittedCount;
+  const responseRate = totalSent > 0 ? Math.round((submittedCount / totalSent) * 100) : 0;
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl text-cloud">Kunder</h1>
-        <Link
-          href="/admin/customers/new"
-          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep transition"
-        >
-          + Ny kunde
-        </Link>
-      </div>
+      <h1 className="font-display text-2xl text-cloud">Dashboard</h1>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Totalt kunder", value: total },
-          { label: "Med innsendt svar", value: submitted },
-        ].map((s) => (
+          { label: "Kunder",       value: customerCount,  },
+          { label: "Aktive surveys", value: activeCount,  },
+          { label: "Innsendte",    value: submittedCount, },
+          { label: "Svarprosent",  value: `${responseRate} %`, },
+        ].map(s => (
           <div key={s.label} className="rounded-card bg-midnight px-6 py-5 shadow-card">
-            <p className="text-3xl font-display text-cloud">{s.value}</p>
+            <p className="text-3xl font-display text-cloud tabular-nums">{s.value}</p>
             <p className="text-sm text-mist mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
-      {customers.length === 0 ? (
-        <p className="text-mist text-sm">Ingen kunder ennå.</p>
-      ) : (
-        <div className="overflow-hidden rounded-card bg-midnight shadow-card">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-xs text-muted uppercase tracking-wider">
-                <th className="px-5 py-3">Bedrift</th>
-                <th className="px-5 py-3">Kontakt</th>
-                <th className="px-5 py-3">Surveys</th>
-                <th className="px-5 py-3">Siste status</th>
-                <th className="px-5 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c) => {
-                const latest = c.surveys[0];
-                return (
-                  <tr key={c.id} className="border-b border-line last:border-0">
-                    <td className="px-5 py-4 font-medium text-cloud">{c.companyName}</td>
-                    <td className="px-5 py-4 text-mist">{c.contactName}</td>
-                    <td className="px-5 py-4 text-mist">{c.surveys.length}</td>
-                    <td className="px-5 py-4">
-                      {latest ? (
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          latest.status === "submitted" ? "bg-accent/10 text-accent" : "bg-steel/40 text-mist"
-                        }`}>
-                          {latest.status === "submitted" ? "Innsendt" : "Avventer"}
-                        </span>
-                      ) : (
-                        <span className="text-muted text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <Link href={`/admin/customers/${c.id}`} className="text-accent hover:underline text-xs font-medium">
-                        Se kunde →
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Trenger oppfølging */}
+        <Section
+          title="Trenger oppfølging"
+          subtitle="Aktive surveys uten svar i over 7 dager"
+          cta={{ label: "Se alle surveys", href: "/admin/surveys" }}
+        >
+          {needsFollowUp.length === 0 ? (
+            <Empty text="Ingen surveys venter på oppfølging." />
+          ) : (
+            needsFollowUp.map(s => (
+              <Row
+                key={s.id}
+                href={`/admin/surveys/${s.id}`}
+                primary={s.customer.companyName}
+                secondary={`Sendt ${formatDate(s.sentAt)}`}
+                badge={{ label: "Venter", color: "amber" }}
+              />
+            ))
+          )}
+        </Section>
+
+        {/* Nylig mottatt */}
+        <Section
+          title="Nylig mottatt"
+          subtitle="Sist innsendte surveys"
+          cta={{ label: "Se alle", href: "/admin/surveys" }}
+        >
+          {recentSubmitted.length === 0 ? (
+            <Empty text="Ingen innsendte surveys ennå." />
+          ) : (
+            recentSubmitted.map(s => (
+              <Row
+                key={s.id}
+                href={`/admin/surveys/${s.id}`}
+                primary={s.customer.companyName}
+                secondary={`Mottatt ${formatDate(s.submittedAt)}`}
+                badge={{ label: "Mottatt", color: "teal" }}
+              />
+            ))
+          )}
+        </Section>
+
+        {/* Siste kunder */}
+        <Section
+          title="Siste kunder"
+          subtitle="Nylig opprettede kunder"
+          cta={{ label: "Se alle kunder", href: "/admin/customers" }}
+        >
+          {recentCustomers.length === 0 ? (
+            <Empty text="Ingen kunder ennå." />
+          ) : (
+            recentCustomers.map(c => (
+              <Row
+                key={c.id}
+                href={`/admin/customers/${c.id}`}
+                primary={c.companyName}
+                secondary={`${c._count.surveys} survey${c._count.surveys === 1 ? "" : "s"}`}
+                action={{ label: "+ Ny survey", href: `/admin/surveys/new?customerId=${c.id}` }}
+              />
+            ))
+          )}
+        </Section>
+      </div>
     </div>
   );
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return "—";
+  const days = Math.floor((Date.now() - date.getTime()) / 86400000);
+  if (days === 0) return "i dag";
+  if (days === 1) return "i går";
+  if (days < 7)  return `${days} d siden`;
+  return date.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
+}
+
+function Section({ title, subtitle, cta, children }: {
+  title: string;
+  subtitle: string;
+  cta: { label: string; href: string };
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-card bg-midnight shadow-card overflow-hidden">
+      <div className="flex items-start justify-between px-5 pt-5 pb-3">
+        <div>
+          <h2 className="text-[15px] font-semibold text-cloud">{title}</h2>
+          <p className="text-[12.5px] text-muted mt-0.5">{subtitle}</p>
+        </div>
+        <Link href={cta.href} className="text-[12.5px] text-accent hover:underline shrink-0 mt-0.5">
+          {cta.label} →
+        </Link>
+      </div>
+      <div className="divide-y divide-line">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Row({ href, primary, secondary, badge, action }: {
+  href: string;
+  primary: string;
+  secondary: string;
+  badge?: { label: string; color: "teal" | "amber" };
+  action?: { label: string; href: string };
+}) {
+  const badgeClass = badge?.color === "teal"
+    ? "bg-accent/10 text-accent"
+    : "bg-[#b45309]/10 text-[#b45309]";
+
+  return (
+    <div className="flex items-center justify-between px-5 py-3 hover:bg-black/[0.03] transition-colors">
+      <Link href={href} className="flex flex-col min-w-0 group">
+        <span className="text-[13.5px] font-medium text-cloud group-hover:text-brand transition-colors truncate">
+          {primary}
+        </span>
+        <span className="text-[12px] text-muted mt-0.5">{secondary}</span>
+      </Link>
+      <div className="flex items-center gap-2 ml-3 shrink-0">
+        {badge && (
+          <span className={`text-[11.5px] font-medium px-2 py-0.5 rounded-full ${badgeClass}`}>
+            {badge.label}
+          </span>
+        )}
+        {action && (
+          <Link
+            href={action.href}
+            className="text-[12px] font-medium text-accent hover:underline"
+          >
+            {action.label}
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return <p className="px-5 py-4 text-[13px] text-muted italic">{text}</p>;
 }
