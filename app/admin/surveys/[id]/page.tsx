@@ -1,5 +1,6 @@
 import { getSurveyAdmin } from "@/app/actions";
 import { formatAnswer } from "@/lib/formatAnswer";
+import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Question } from "@/lib/types";
@@ -30,9 +31,12 @@ export default async function SurveyDetailPage({
             {survey.submittedAt && ` · Innsendt ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
           </p>
         </div>
-        <a href={`/api/export/${survey.token}`} className="rounded-xl border border-line px-4 py-2 text-sm font-medium text-cloud hover:bg-midnight transition">
-          Last ned CSV
-        </a>
+        <div className="flex gap-2">
+          {survey.status === "active" && <CopyLinkButton token={survey.token} />}
+          <a href={`/api/export/${survey.token}`} className="rounded-xl border border-line px-4 py-2 text-sm font-medium text-cloud hover:bg-midnight transition">
+            Last ned CSV
+          </a>
+        </div>
       </div>
 
       {survey.questions.length === 0 ? (

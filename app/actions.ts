@@ -297,3 +297,59 @@ export async function updateQuestion(
   await requireAuth();
   await db.question.update({ where: { id }, data });
 }
+
+// ── Admin: comparison ─────────────────────────────────────────────────────────
+
+type SurveySnapshot = {
+  id:        string;
+  createdAt: Date;
+  questions: Array<{ id: string; label: string; category: string; answer: string | null; skipped: boolean }>;
+};
+
+export async function compareSurveys(
+  surveyId1: string,
+  surveyId2: string
+): Promise<{ survey1: SurveySnapshot; survey2: SurveySnapshot }> {
+  await requireAuth();
+
+  const [s1, s2] = await Promise.all([
+    db.survey.findUnique({
+      where:   { id: surveyId1 },
+      include: {
+        questions: { orderBy: { order: "asc" }, include: { question: true } },
+        answers:   true,
+      },
+    }),
+    db.survey.findUnique({
+      where:   { id: surveyId2 },
+      include: {
+        questions: { orderBy: { order: "asc" }, include: { question: true } },
+        answers:   true,
+      },
+    }),
+  ]);
+
+  if (!s1) throw new Error(`Survey not found: ${surveyId1}`);
+  if (!s2) throw new Error(`Survey not found: ${surveyId2}`);
+  if (s1.customerId !== s2.customerId) throw new Error("Surveys must belong to the same customer");
+
+  function toSnapshot(s: NonNullable<typeof s1>): SurveySnapshot {
+    const answerByQid = Object.fromEntries(s.answers.map((a) => [a.questionId, a]));
+    return {
+      id:        s.id,
+      createdAt: s.createdAt,
+      questions: s.questions.map((sq) => {
+        const a = answerByQid[sq.questionId];
+        return {
+          id:       sq.question.id,
+          label:    sq.question.label,
+          category: sq.question.category ?? "",
+          answer:   a?.skipped ? null : (a?.value ?? null),
+          skipped:  a?.skipped ?? false,
+        };
+      }),
+    };
+  }
+
+  return { survey1: toSnapshot(s1), survey2: toSnapshot(s2) };
+}
