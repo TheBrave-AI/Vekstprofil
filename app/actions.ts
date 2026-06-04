@@ -302,6 +302,18 @@ export async function updateQuestion(
   await db.question.update({ where: { id }, data });
 }
 
+export async function listSurveys() {
+  await requireAuth();
+  return db.survey.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      customer: { select: { id: true, companyName: true } },
+      template: { select: { name: true } },
+      _count:   { select: { answers: true } },
+    },
+  });
+}
+
 // ── Admin: comparison ─────────────────────────────────────────────────────────
 
 type SurveySnapshot = {
