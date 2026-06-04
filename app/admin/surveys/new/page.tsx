@@ -3,7 +3,13 @@ import { listTemplates } from "@/app/actions";
 import { NewSurveyForm } from "./NewSurveyForm";
 import Link from "next/link";
 
-export default async function NewSurveyPage() {
+export default async function NewSurveyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ customerId?: string }>;
+}) {
+  const { customerId } = await searchParams;
+
   const [customers, templates] = await Promise.all([
     db.customer.findMany({ orderBy: { companyName: "asc" }, select: { id: true, companyName: true } }),
     listTemplates(),
@@ -22,6 +28,7 @@ export default async function NewSurveyPage() {
       <NewSurveyForm
         customers={customers}
         templates={templates.map((t) => ({ id: t.id, name: t.name }))}
+        preselectedCustomerId={customerId}
       />
     </div>
   );

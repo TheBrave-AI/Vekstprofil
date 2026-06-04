@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { listTemplates, createSurvey, activateSurvey } from "@/app/actions";
+import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -90,7 +91,7 @@ export default async function CustomerDetailPage({
                     </span>
                   </td>
                   <td className="px-5 py-4 text-mist">{s._count.answers}</td>
-                  <td className="px-5 py-4 font-mono text-xs text-muted select-all">{s.token}</td>
+                  <td className="px-5 py-4 max-w-[220px]"><CopyLinkButton token={s.token} /></td>
                   <td className="px-5 py-4 text-right flex gap-3 justify-end">
                     {s.status === "draft" && (
                       <>

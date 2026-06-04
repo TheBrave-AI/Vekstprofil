@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     id: s.id,
     companyName: s.customer.companyName,
     status: "active",
-    date: (s.sentAt ?? s.createdAt).toISOString(),
+    date: new Date(s.sentAt ?? s.createdAt).toISOString(),
     answeredCount: s._count.answers,
     totalQuestions: s._count.questions,
   }));
@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     id: s.id,
     companyName: s.customer.companyName,
     status: "submitted",
-    date: (s.submittedAt ?? s.createdAt).toISOString(),
+    date: new Date(s.submittedAt ?? s.createdAt).toISOString(),
   }));
 
   return (

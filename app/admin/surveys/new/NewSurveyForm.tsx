@@ -10,9 +10,11 @@ interface TemplateRow { id: string; name: string; }
 export function NewSurveyForm({
   customers,
   templates,
+  preselectedCustomerId,
 }: {
   customers: CustomerRow[];
   templates: TemplateRow[];
+  preselectedCustomerId?: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -43,6 +45,7 @@ export function NewSurveyForm({
           <select
             name="customerId"
             required
+            defaultValue={preselectedCustomerId ?? customers[0]?.id}
             className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud focus:border-accent focus:outline-none transition"
           >
             {customers.map((c) => (

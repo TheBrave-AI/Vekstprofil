@@ -10,12 +10,12 @@ export function NewCustomerForm() {
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
-      await createCustomer({
+      const customer = await createCustomer({
         companyName:  (formData.get("companyName")  as string).trim(),
         contactName:  (formData.get("contactName")  as string).trim(),
         contactEmail: (formData.get("contactEmail") as string).trim() || undefined,
       });
-      router.push("/admin");
+      router.push(`/admin/surveys/new?customerId=${customer.id}`);
     });
   }
 
