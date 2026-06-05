@@ -3,6 +3,7 @@ import PrimaryButton from "../ui/PrimaryButton";
 
 interface Props {
   onStart: () => void;
+  questionCount?: number;
 }
 
 function MetaItem({ value, label }: { value: string; label: string }) {
@@ -16,7 +17,9 @@ function MetaItem({ value, label }: { value: string; label: string }) {
   );
 }
 
-export default function Intro({ onStart }: Props) {
+ 
+
+export default function Intro({ onStart, questionCount }: Props) {
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
       <BrandBar />
@@ -39,15 +42,15 @@ export default function Intro({ onStart }: Props) {
 
       {/* Body */}
       <p className="text-mist text-[18.5px] leading-[1.55] max-w-[52ch] mt-5">
-        Vi stiller 15 korte spørsmål om salg og marked. Svarene danner et
+        Vi stiller {questionCount} korte spørsmål om salg og marked. Svarene danner et
         utgangspunkt vi kommer tilbake til senere — slik at vi sammen kan se
-        nøyaktig hvor mye dere har vokst. Har dere ikke tallet? Hopp videre.
+        nøyaktig hvor mye dere har vokst. Har dere ikke tallet? Hopp videre, og evt. kom tilbake til det senere.
       </p>
 
       {/* Meta-rad */}
       <div className="flex gap-8 border-t border-line mt-7 pt-7">
-        <MetaItem value="15" label="spørsmål" />
-        <MetaItem value="~6" label="minutter" />
+        <MetaItem value={String(questionCount)} label="spørsmål" />
+        <MetaItem value={`~${String(Math.round(questionCount ? questionCount * 0.4 : 5))}`} label="minutter" />
         <MetaItem value="0" label="krav om tall" />
       </div>
 

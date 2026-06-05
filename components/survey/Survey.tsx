@@ -129,7 +129,7 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
               if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);
             }}
           >
-            {stage === "intro" && <Intro onStart={goNext} />}
+            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} />}
             {typeof stage === "number" && (
               <QuestionCard
                 question={questions[stage]}
