@@ -2,6 +2,8 @@
 
 import { updateTemplate, setTemplateQuestions } from "@/app/actions";
 import { useState, useTransition } from "react";
+import FormField from "@/components/form/FormField";
+import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
 import {
   DndContext,
   closestCenter,
@@ -21,18 +23,22 @@ interface TemplateQuestion {
   order:      number;
 }
 
+interface QuestionRow { id: string; label: string; category: string | null; }
+
 export function EditTemplateClient({
   templateId,
   initialName,
   initialDescription,
   initialActive,
   initialQuestions,
+  allQuestions,
 }: {
   templateId:          string;
   initialName:         string;
   initialDescription:  string | null;
   initialActive:       boolean;
   initialQuestions:    TemplateQuestion[];
+  allQuestions:        QuestionRow[];
 }) {
   const [name,        setName]        = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
@@ -43,6 +49,16 @@ export function EditTemplateClient({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const isDirty = JSON.stringify(questions.map(q => q.questionId)) !== JSON.stringify(initialQuestions.map(q => q.questionId));
+
+  const inTemplate = new Set(questions.map((q) => q.questionId));
+  const available  = allQuestions.filter((q) => !inTemplate.has(q.id));
+
+  function addQuestion(q: QuestionRow) {
+    setQuestions((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), questionId: q.id, label: q.label, category: q.category, order: prev.length },
+    ]);
+  }
 
   function flash() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
 
@@ -89,24 +105,8 @@ export function EditTemplateClient({
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
         <h2 className="font-display text-lg text-cloud">Malinformasjon</h2>
 
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-cloud">Navn</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud focus:border-accent focus:outline-none transition"
-          />
-        </label>
-
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-cloud">Beskrivelse</span>
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Valgfri"
-            className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud placeholder:text-muted focus:border-accent focus:outline-none transition"
-          />
-        </label>
+        <FormField label="Navn"        value={name}        onChange={(e) => setName(e.target.value)} />
+        <FormField label="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Valgfri" />
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -132,9 +132,11 @@ export function EditTemplateClient({
         </div>
       </div>
 
+      <AddQuestionsPanel available={available} onAdd={addQuestion} />
+
       {/* Questions */}
       <div className="space-y-3">
-        <h2 className="font-display text-lg text-cloud">Spørsmål ({questions.length})</h2>
+        <h2 className="font-display text-xl text-cloud">Spørsmål ({questions.length})</h2>
         <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
           {questions.length === 0 ? (
             <p className="px-5 py-4 text-sm text-mist">Ingen spørsmål i denne malen.</p>
@@ -146,18 +148,7 @@ export function EditTemplateClient({
                     key={q.id}
                     item={{ id: q.questionId, label: q.label, category: q.category }}
                     index={i}
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => removeQuestion(q.questionId)}
-                        className="text-muted hover:text-coral transition"
-                        aria-label="Fjern"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                          <path d="M2 2L11 11M11 2L2 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    }
+                    onRemove={() => removeQuestion(q.questionId)}
                   />
                 ))}
               </SortableContext>

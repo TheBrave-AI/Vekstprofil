@@ -3,6 +3,7 @@
 import { createCustomer } from "@/app/actions";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import FormField from "@/components/form/FormField";
 
 export function NewCustomerForm() {
   const [isPending, startTransition] = useTransition();
@@ -26,21 +27,9 @@ export function NewCustomerForm() {
         <h2 className="font-display text-xl text-cloud">Opprett kundeprofil</h2>
       </div>
       <div className="space-y-4">
-        {[
-          { name: "companyName",  label: "Bedriftsnavn",     placeholder: "Eksempel AS",      required: true },
-          { name: "contactName",  label: "Kontaktperson",    placeholder: "Ola Nordmann",      required: true },
-          { name: "contactEmail", label: "E-post (valgfri)", placeholder: "ola@eksempel.no",  required: false },
-        ].map((f) => (
-          <label key={f.name} className="block space-y-1.5">
-            <span className="text-sm font-medium text-cloud">{f.label}</span>
-            <input
-              name={f.name}
-              required={f.required}
-              placeholder={f.placeholder}
-              className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud placeholder:text-muted focus:border-accent focus:outline-none transition"
-            />
-          </label>
-        ))}
+        <FormField name="companyName"  label="Bedriftsnavn"     placeholder="Eksempel AS"     required />
+        <FormField name="contactName"  label="Kontaktperson"    placeholder="Ola Nordmann"     required />
+        <FormField name="contactEmail" label="E-post (valgfri)" placeholder="ola@eksempel.no" type="email" />
       </div>
       <button
         type="submit"

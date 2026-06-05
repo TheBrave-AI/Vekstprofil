@@ -6,6 +6,7 @@ import { formatAnswer } from "@/lib/formatAnswer";
 import BrandBar from "../ui/BrandBar";
 import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
+import Eyebrow from "../ui/Eyebrow";
 
 interface Props {
   answers: AnswerMap;
@@ -25,13 +26,7 @@ export default function Summary({ answers, onSubmit, onGoToQuestion }: Props) {
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
       <BrandBar />
 
-      {/* Eyebrow — same pattern as Intro and QuestionCard */}
-      <div className="flex items-center gap-3 mt-8 mb-5">
-        <span className="w-[22px] h-[2px] bg-marker shrink-0" />
-        <span className="text-accent text-[12.5px] font-bold uppercase tracking-[0.14em]">
-          Ferdig
-        </span>
-      </div>
+      <Eyebrow label="Ferdig" />
 
       <h1
         className="font-display font-medium text-cloud leading-[1.1] tracking-[-0.015em]"

@@ -16,7 +16,7 @@ export default async function SurveyDetailPage({
 
   const answerByQid = Object.fromEntries(survey.answers.map((a) => [a.questionId, a]));
 
-  const statusLabel: Record<string, string> = { draft: "Utkast", active: "Aktiv", submitted: "Innsendt" };
+  const statusLabel: Record<string, string> = { draft: "Utkast", active: "Ubesvart", submitted: "Besvart" };
   const answeredCount = survey.questions.filter(({ question: q }) => {
     const a = answerByQid[q.id];
     return a && !a.skipped && a.value;
@@ -34,12 +34,12 @@ export default async function SurveyDetailPage({
             ← {survey.customer.companyName}
           </Link>
           <h1 className="font-display text-2xl text-cloud">
-            Survey — {survey.createdAt.toLocaleDateString("nb-NO")}
+            Undersøkelse — {survey.createdAt.toLocaleDateString("nb-NO")}
           </h1>
           <p className="text-[12.5px] text-muted">
             {survey.template?.name ?? "Ingen mal"} · {statusLabel[survey.status]}
             {survey.submittedAt &&
-              ` · Innsendt ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
+              ` · Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -55,7 +55,7 @@ export default async function SurveyDetailPage({
 
       {/* Answer list */}
       {survey.questions.length === 0 ? (
-        <p className="text-sm text-muted">Ingen spørsmål i denne surveyen.</p>
+        <p className="text-sm text-muted">Ingen spørsmål i denne undersøkelsen.</p>
       ) : (
         <div className="rounded-card bg-midnight shadow-card overflow-hidden max-w-3xl">
           {/* Count */}

@@ -19,9 +19,9 @@ export default async function NewSurveyPage({
     <div className="space-y-6">
       <div>
         <Link href="/admin" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>
-        <h1 className="font-display text-2xl text-cloud mt-1">Ny survey</h1>
+        <h1 className="font-display text-2xl text-cloud mt-1">Ny undersøkelse</h1>
         <p className="text-sm text-mist mt-1">
-          Surveyen opprettes som utkast — du kan redigere spørsmål før du aktiverer lenken.
+          Undersøkelsen opprettes som utkast — du kan redigere spørsmål før du aktiverer lenken.
         </p>
       </div>
 

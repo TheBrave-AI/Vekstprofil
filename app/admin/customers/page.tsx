@@ -1,5 +1,9 @@
 import { listCustomers } from "@/app/actions";
 import Link from "next/link";
+import PageHeader from "@/components/admin/PageHeader";
+import SectionHeader from "@/components/admin/SectionHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import type { SurveyStatus } from "@/lib/constants";
 
 export default async function CustomersPage() {
   const customers = await listCustomers();
@@ -7,19 +11,7 @@ export default async function CustomersPage() {
   return (
     <div className="space-y-8">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Oversikt</p>
-          <h1 className="font-display text-[28px] leading-none text-cloud">Kunder</h1>
-        </div>
-        <Link
-          href="/admin/customers/new"
-          className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-onbrand hover:bg-brand-deep transition-colors"
-        >
-          + Ny kunde
-        </Link>
-      </div>
+      <PageHeader title="Kunder" href="/admin/customers/new" cta="+ Ny kunde" />
 
       {/* Empty state */}
       {customers.length === 0 && (
@@ -32,11 +24,7 @@ export default async function CustomersPage() {
       {/* List */}
       {customers.length > 0 && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2.5 px-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Alle kunder</p>
-            <span className="text-[11px] text-muted/60 font-medium">({customers.length})</span>
-            <div className="flex-1 h-px bg-line" />
-          </div>
+          <SectionHeader label="Alle kunder" count={customers.length} />
 
           <div className="rounded-card bg-midnight shadow-card overflow-hidden">
             {customers.map((c, i) => {
@@ -64,19 +52,10 @@ export default async function CustomersPage() {
 
                   {/* Status */}
                   <div className="shrink-0 w-28 text-right">
-                    {latest ? (
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                        latest.status === "submitted"
-                          ? "bg-accent/10 text-accent"
-                          : latest.status === "active"
-                          ? "bg-marker/10 text-marker"
-                          : "bg-steel/40 text-muted"
-                      }`}>
-                        {latest.status === "submitted" ? "Innsendt" : latest.status === "active" ? "Aktiv" : "Utkast"}
-                      </span>
-                    ) : (
-                      <span className="text-[12px] text-muted">—</span>
-                    )}
+                    {latest
+                      ? <StatusBadge status={latest.status as SurveyStatus} />
+                      : <span className="text-[12px] text-muted">—</span>
+                    }
                   </div>
 
                   {/* Action */}

@@ -5,6 +5,7 @@ import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
 import BrandBar from "../ui/BrandBar";
 import ProgressBar from "./Progressbar";
+import Eyebrow from "../ui/Eyebrow";
 
 function validateNumber(val: string): string | null {
   if (!val.trim()) return null; // empty = skip, always valid
@@ -112,13 +113,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
       <BrandBar />
       <ProgressBar current={index} total={total} />
 
-      {/* Eyebrow */}
-      <div className="flex items-center gap-3 mb-5">
-        <span className="w-[22px] h-[2px] bg-marker shrink-0" />
-        <span className="text-accent text-[12.5px] font-bold uppercase tracking-[0.12em]">
-          {question.category}
-        </span>
-      </div>
+      <Eyebrow label={question.category ?? ""} className="mb-5" />
 
       {/* Question */}
       <h2
@@ -166,7 +161,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
               onChange={e => onDraftChange(e.target.value)}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onNext(); } }}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleNext(); } }}
               placeholder={question.placeholder}
               maxLength={30}
               className="flex-1 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"

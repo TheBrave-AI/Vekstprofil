@@ -222,6 +222,54 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 ### Waiting on George 🔒
 
 
+## Code Reuse Backlog
+
+Identified duplications to clean up, in priority order. Strike through + ✅ when done.
+
+### High priority
+
+1. ✅ ~~**`relativeTime()` — trikopiert funksjon** → `lib/formatTime.ts`~~
+   ~~Identisk logikk i `AdminSidebar.tsx`, `surveys/page.tsx`, `ActivityFeed.tsx`. Flytt til lib og importer.~~
+
+2. ✅ ~~**`PageHeader` — identisk toppseksjon på 3 list-sider**~~
+   ~~`customers/page.tsx`, `surveys/page.tsx`, `templates/page.tsx` har samme overline + h1 + CTA-knapp.~~
+   ~~→ `components/admin/PageHeader.tsx` med `{ title, label?, href, cta }` props.~~
+
+3. ✅ ~~**`Eyebrow` — strek + uppercase-tekst i teal**~~
+   ~~`Intro.tsx`, `QuestionCard.tsx`, `Summary.tsx`.~~
+   ~~→ `components/ui/Eyebrow.tsx` med `{ label, className? }` props.~~
+
+4. ✅ ~~**`FormField` — allerede laget i NewQuestionForm, ikke delt**~~
+   ~~Lokal `Field`-helper i `NewQuestionForm.tsx` dekker behovet i alle admin-skjemaer.~~
+   ~~→ `components/form/FormField.tsx`, brukt i NewQuestionForm, NewCustomerForm, NewTemplateForm, EditTemplateClient.~~
+
+### Medium prioritet
+
+5. ✅ ~~**`SectionHeader` — prikk + divider + teller, 3 list-sider**~~
+   ~~Customers, surveys, templates bruker samme seksjonshode-mønster.~~
+   ~~→ `components/admin/SectionHeader.tsx` med `{ label, count, dotColor? }` props.~~
+
+6. ✅ ~~**`StatusBadge` + `lib/constants.ts` — status-maps redefinert 3+ steder**~~
+   ~~`statusStyle`/`statusLabel`-maps gjenskapt i customers/page, surveys/page, customers/[id]/page.~~
+   ~~→ `lib/constants.ts` med `SURVEY_STATUS` + `SurveyStatus` type. `components/ui/StatusBadge.tsx`.~~
+
+7. **`EmptyState` — tomt-kort-mønster på 4 list-sider**
+   Customers, surveys, templates, questions har identisk tom-tilstand-card.
+   → Lag `EmptyState` med `{ title, description }` props.
+
+8. **`FormSubmitButton` — submit-knapp med pending-state, 4 skjemaer**
+   Identisk disabled+opacity-knapp i alle new-skjemaer.
+   → Lag `components/form/FormSubmitButton.tsx` med `{ isPending, label }` props.
+
+### Lav prioritet
+
+9. **`NotAnsweredPill` — definert på feil sted**
+   Laget i `surveys/[id]/page.tsx`, men `Summary.tsx` gjenskaper det inline.
+   → Flytt til `components/survey/NotAnsweredPill.tsx`.
+
+10. **`validateNumber()` — lokal util i QuestionCard**
+    → Flytt til `lib/validation.ts` om det trengs andre steder.
+
 ## Dev Workflow
 
 - **Test survey:** `/k/test-onboarding-demo` (seeded, active) — use Prisma Studio to reset status if accidentally submitted: `DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d '=' -f2-) npx prisma studio`

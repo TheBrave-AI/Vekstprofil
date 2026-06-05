@@ -1,22 +1,12 @@
 import { listSurveys } from "@/app/actions";
 import Link from "next/link";
-
-const STATUS = {
-  submitted: { label: "Innsendt",  dot: "bg-accent",  badge: "bg-accent/10 text-accent" },
-  active:    { label: "Aktiv",     dot: "bg-marker",   badge: "bg-marker/10 text-accent" },
-  draft:     { label: "Utkast",    dot: "bg-steel",    badge: "bg-steel/40 text-muted"  },
-} as const;
+import { relativeTime } from "@/lib/formatTime";
+import PageHeader from "@/components/admin/PageHeader";
+import SectionHeader from "@/components/admin/SectionHeader";
+import { SURVEY_STATUS, type SurveyStatus } from "@/lib/constants";
 
 function fmt(d: Date | string) {
   return new Date(d).toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric" });
-}
-
-function relativeTime(d: Date | string): string {
-  const seconds = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
-  if (seconds < 3600)      return `${Math.floor(seconds / 60)} min siden`;
-  if (seconds < 86400)     return `${Math.floor(seconds / 3600)}t siden`;
-  if (seconds < 86400 * 7) return `${Math.floor(seconds / 86400)} d siden`;
-  return fmt(d);
 }
 
 export default async function SurveysPage() {
@@ -27,51 +17,31 @@ export default async function SurveysPage() {
   const draft     = surveys.filter((s) => s.status === "draft");
 
   const groups = [
-    { key: "submitted", label: "Innsendt",  surveys: submitted },
-    { key: "active",    label: "Aktive",    surveys: active    },
+    { key: "submitted", label: "Besvarte",   surveys: submitted },
+    { key: "active",    label: "Ubesvarte", surveys: active    },
     { key: "draft",     label: "Utkast",    surveys: draft     },
   ].filter((g) => g.surveys.length > 0);
 
   return (
     <div className="space-y-8">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Oversikt</p>
-          <h1 className="font-display text-[28px] leading-none text-cloud">Surveys</h1>
-        </div>
-        <Link
-          href="/admin/surveys/new"
-          className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-onbrand hover:bg-brand-deep transition-colors"
-        >
-          + Ny survey
-        </Link>
-      </div>
+      <PageHeader title="Undersøkelser" href="/admin/surveys/new" cta="+ Ny undersøkelse" />
 
       {/* Empty state */}
       {surveys.length === 0 && (
         <div className="rounded-card bg-midnight shadow-card px-8 py-12 text-center">
-          <p className="font-display text-lg text-cloud mb-1">Ingen surveys ennå</p>
-          <p className="text-[13px] text-muted">Opprett en survey fra en kundes side.</p>
+          <p className="font-display text-lg text-cloud mb-1">Ingen undersøkelser ennå</p>
+          <p className="text-[13px] text-muted">Opprett en undersøkelse fra en kundes side.</p>
         </div>
       )}
 
       {/* Grouped list */}
       {groups.map((group) => {
-        const st = STATUS[group.key as keyof typeof STATUS];
+        const st = SURVEY_STATUS[group.key as SurveyStatus];
         return (
           <div key={group.key} className="space-y-2">
 
-            {/* Section header */}
-            <div className="flex items-center gap-2.5 px-1">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${st.dot}`} />
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-                {group.label}
-              </p>
-              <span className="text-[11px] text-muted/60 font-medium">({group.surveys.length})</span>
-              <div className="flex-1 h-px bg-line" />
-            </div>
+            <SectionHeader label={group.label} count={group.surveys.length} dotColor={st.dot} />
 
             {/* Rows */}
             <div className="rounded-card bg-midnight shadow-card overflow-hidden">

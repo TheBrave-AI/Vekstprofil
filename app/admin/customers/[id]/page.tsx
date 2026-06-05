@@ -4,6 +4,8 @@ import { listTemplates, createSurvey, activateSurvey } from "@/app/actions";
 import { DeleteCustomerButton } from "@/components/admin/DeleteCustomerButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import StatusBadge from "@/components/ui/StatusBadge";
+import type { SurveyStatus } from "@/lib/constants";
 
 export default async function CustomerDetailPage({
   params,
@@ -27,16 +29,6 @@ export default async function CustomerDetailPage({
 
   if (!customer) notFound();
 
-  const statusLabel: Record<string, string> = {
-    draft:     "Utkast",
-    active:    "Aktiv",
-    submitted: "Innsendt",
-  };
-  const statusStyle: Record<string, string> = {
-    draft:     "bg-steel/40 text-mist",
-    active:    "bg-accent/10 text-accent",
-    submitted: "bg-brand/10 text-brand",
-  };
 
   return (
     <div className="space-y-8">
@@ -59,7 +51,7 @@ export default async function CustomerDetailPage({
                 {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
               <button type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-onbrand hover:bg-brand-deep transition">
-                + Ny survey
+                + Ny undersøkelse
               </button>
             </div>
           </form>
@@ -67,7 +59,7 @@ export default async function CustomerDetailPage({
       </div>
 
       {customer.surveys.length === 0 ? (
-        <p className="text-sm text-mist">Ingen surveys ennå.</p>
+        <p className="text-sm text-mist">Ingen undersøkelser ennå.</p>
       ) : (
         <div className="overflow-hidden rounded-card bg-midnight shadow-card">
           <table className="w-full text-sm">
@@ -86,9 +78,7 @@ export default async function CustomerDetailPage({
                   <td className="px-5 py-4 text-mist">{s.template?.name ?? "—"}</td>
                   <td className="px-5 py-4 text-mist">{s.createdAt.toLocaleDateString("nb-NO")}</td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyle[s.status]}`}>
-                      {statusLabel[s.status]}
-                    </span>
+                    <StatusBadge status={s.status as SurveyStatus} />
                   </td>
                   <td className="px-5 py-4 text-mist">{s._count.answers}</td>
                   <td className="px-5 py-4 text-right flex gap-3 justify-end">

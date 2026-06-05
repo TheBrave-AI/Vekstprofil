@@ -1,5 +1,6 @@
 import BrandBar from "../ui/BrandBar";
 import PrimaryButton from "../ui/PrimaryButton";
+import Eyebrow from "../ui/Eyebrow";
 
 interface Props {
   onStart: () => void;
@@ -24,13 +25,7 @@ export default function Intro({ onStart, questionCount }: Props) {
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
       <BrandBar />
 
-      {/* Eyebrow */}
-      <div className="flex items-center gap-3 mt-8 mb-5">
-        <span className="w-[22px] h-[2px] bg-marker shrink-0" />
-        <span className="text-accent text-[12.5px] font-bold uppercase tracking-[0.14em]">
-          Nullpunkt
-        </span>
-      </div>
+      <Eyebrow label="Nullpunkt" />
 
       {/* Headline */}
       <h1

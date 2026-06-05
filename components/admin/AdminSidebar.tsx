@@ -1,5 +1,7 @@
 import Link from "next/link";
 import ActivityFeed from "./ActivityFeed";
+import { relativeTime } from "@/lib/formatTime";
+import { SURVEY_STATUS } from "@/lib/constants";
 
 export interface SurveyItem {
   id: string;
@@ -17,14 +19,6 @@ interface Props {
   onCollapse: () => void;
 }
 
-function relativeTime(iso: string): string {
-  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 3600)      return `${Math.floor(seconds / 60)} min siden`;
-  if (seconds < 86400)     return `${Math.floor(seconds / 3600)}t siden`;
-  if (seconds < 86400 * 7) return `${Math.floor(seconds / 86400)} d siden`;
-  return new Date(iso).toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
-}
-
 export default function AdminSidebar({ active, submitted, draftCount, onCollapse }: Props) {
   return (
     <aside
@@ -33,7 +27,7 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
     >
       {/* Header */}
       <div className="flex items-center justify-between h-10 px-3 border-b border-line shrink-0">
-        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Surveys</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Undersøkelser</span>
         <button
           type="button"
           onClick={onCollapse}
@@ -47,18 +41,18 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
       </div>
 
       {/* Scrollable content */}
-      <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
-        <Section label="Aktive">
-          {active.length > 0
-            ? active.map(s => <SurveyRow key={s.id} survey={s} />)
-            : <EmptyRow text="Ingen aktive" />
-          }
-        </Section>
-
-        <Section label="Mottatt" bordered>
+      <Section label="Besvarte" bordered>
           {submitted.length > 0
             ? submitted.map(s => <SurveyRow key={s.id} survey={s} />)
-            : <EmptyRow text="Ingen mottatte" />
+            : <EmptyRow text="Ingen besvarte" />
+          }
+        </Section>
+        
+      <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
+        <Section label="Ubesvarte">
+          {active.length > 0
+            ? active.map(s => <SurveyRow key={s.id} survey={s} />)
+            : <EmptyRow text="Ingen ubesvarte" />
           }
         </Section>
 
@@ -69,9 +63,9 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
         <div className="mt-auto p-4 border-t border-line shrink-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted mb-3">Totalt</p>
           <div className="flex flex-col gap-2">
-            <StatusRow label="Aktive"  count={active.length}    color="bg-accent" />
-            <StatusRow label="Mottatt" count={submitted.length} color="bg-marker" />
-            <StatusRow label="Utkast"  count={draftCount}       color="bg-steel"  />
+            <StatusRow label="Ubesvarte" count={active.length}    color={SURVEY_STATUS.active.dot}     />
+            <StatusRow label="Besvarte" count={submitted.length} color={SURVEY_STATUS.submitted.dot}  />
+            <StatusRow label="Utkast"  count={draftCount}       color={SURVEY_STATUS.draft.dot}      />
           </div>
         </div>
 
@@ -120,7 +114,7 @@ function SurveyRow({ survey }: { survey: SurveyItem }) {
       href={`/admin/surveys/${survey.id}`}
       className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-black/[0.04] transition-colors group"
     >
-      <span className={`w-2 h-2 rounded-full shrink-0 mt-[5px] ${survey.status === "active" ? "bg-accent" : "bg-marker"}`} />
+      <span className={`w-2 h-2 rounded-full shrink-0 mt-[5px] ${SURVEY_STATUS[survey.status].dot}`} />
       <div className="min-w-0">
         <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-brand transition-colors">
           {survey.companyName}

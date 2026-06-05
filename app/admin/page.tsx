@@ -44,8 +44,8 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Kunder",       value: customerCount,  },
-          { label: "Aktive surveys", value: activeCount,  },
-          { label: "Innsendte",    value: submittedCount, },
+          { label: "Ubesvarte",    value: activeCount,    },
+          { label: "Besvarte",     value: submittedCount, },
           { label: "Svarprosent",  value: `${responseRate} %`, },
         ].map(s => (
           <div key={s.label} className="rounded-card bg-midnight px-6 py-5 shadow-card">
@@ -59,11 +59,11 @@ export default async function AdminDashboard() {
         {/* Trenger oppfølging */}
         <Section
           title="Trenger oppfølging"
-          subtitle="Aktive surveys uten svar i over 7 dager"
-          cta={{ label: "Se alle surveys", href: "/admin/surveys" }}
+          subtitle="Ubesvarte undersøkelser uten svar i over 7 dager"
+          cta={{ label: "Se alle undersøkelser", href: "/admin/surveys" }}
         >
           {needsFollowUp.length === 0 ? (
-            <Empty text="Ingen surveys venter på oppfølging." />
+            <Empty text="Ingen undersøkelser venter på oppfølging." />
           ) : (
             needsFollowUp.map(s => (
               <Row
@@ -79,26 +79,27 @@ export default async function AdminDashboard() {
 
         {/* Nylig mottatt */}
         <Section
-          title="Nylig mottatt"
-          subtitle="Sist innsendte surveys"
+          title="Nylig besvart"
+          subtitle="Sist besvarte undersøkelser"
           cta={{ label: "Se alle", href: "/admin/surveys" }}
         >
           {recentSubmitted.length === 0 ? (
-            <Empty text="Ingen innsendte surveys ennå." />
+            <Empty text="Ingen besvarte undersøkelser ennå." />
           ) : (
             recentSubmitted.map(s => (
               <Row
                 key={s.id}
                 href={`/admin/surveys/${s.id}`}
                 primary={s.customer.companyName}
-                secondary={`Mottatt ${formatDate(s.submittedAt)}`}
-                badge={{ label: "Mottatt", color: "teal" }}
+                secondary={`Besvart ${formatDate(s.submittedAt)}`}
+                badge={{ label: "Besvart", color: "teal" }}
               />
             ))
           )}
         </Section>
 
-        {/* Siste kunder */}
+        {/* Siste kunder | Removed for now*/}
+        {/*}
         <Section
           title="Siste kunder"
           subtitle="Nylig opprettede kunder"
@@ -112,12 +113,13 @@ export default async function AdminDashboard() {
                 key={c.id}
                 href={`/admin/customers/${c.id}`}
                 primary={c.companyName}
-                secondary={`${c._count.surveys} survey${c._count.surveys === 1 ? "" : "s"}`}
-                action={{ label: "+ Ny survey", href: `/admin/surveys/new?customerId=${c.id}` }}
+                secondary={`${c._count.surveys} undersøkelse${c._count.surveys === 1 ? "" : "r"}`}
+                action={{ label: "+ Ny undersøkelse", href: `/admin/surveys/new?customerId=${c.id}` }}
               />
             ))
           )}
         </Section>
+        {/* Siste kunder | Removed for now*/}
       </div>
     </div>
   );

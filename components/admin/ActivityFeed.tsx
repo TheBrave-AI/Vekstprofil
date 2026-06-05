@@ -2,16 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ActivityEvent } from "@/app/api/admin/activity/route";
-
-{/* REMOVED FOR NOW - UNNECCESARY FEATURE THAT CAN BE ADDED LATER */}
-function relativeTime(iso: string): string {
-  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 60) return "akkurat nå";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min siden`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}t siden`;
-  if (seconds < 86400 * 7) return `${Math.floor(seconds / 86400)} d siden`;
-  return new Date(iso).toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
-}
+import { relativeTime } from "@/lib/formatTime";
 
 export default function ActivityFeed() {
   const [events, setEvents] = useState<ActivityEvent[]>([]);

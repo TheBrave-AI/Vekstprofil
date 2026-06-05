@@ -3,6 +3,7 @@
 import { createQuestion } from "@/app/actions";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
+import FormField from "@/components/form/FormField";
 
 const TYPES = [
   { value: "text",        label: "Tekst",         desc: "Fritekst, lang svar" },
@@ -93,24 +94,24 @@ export function NewQuestionForm({ onCreated }: { onCreated?: (q: CreatedQuestion
       </fieldset>
 
       {/* Label */}
-      <Field name="label" label="Spørsmålstekst" placeholder="F.eks. Hvor mange selgere har dere?" required />
+      <FormField name="label" label="Spørsmålstekst" placeholder="F.eks. Hvor mange selgere har dere?" required />
 
       {/* Category */}
-      <Field name="category" label="Kategori (valgfri)" placeholder="F.eks. Salg" />
+      <FormField name="category" label="Kategori (valgfri)" placeholder="F.eks. Salg" />
 
       {/* Help text */}
-      <Field name="help" label="Hjelpetekst (valgfri)" placeholder="Forklarende tekst vist under spørsmålet" />
+      <FormField name="help" label="Hjelpetekst (valgfri)" placeholder="Forklarende tekst vist under spørsmålet" />
 
       {/* Placeholder — text + number only */}
       {needsPlaceholder && (
-        <Field name="placeholder" label="Plassholdertekst (valgfri)" placeholder="F.eks. Skriv inn antall…" />
+        <FormField name="placeholder" label="Plassholdertekst (valgfri)" placeholder="F.eks. Skriv inn antall…" />
       )}
 
       {/* Prefix / suffix — number only */}
       {needsPrefix && (
         <div className="grid grid-cols-2 gap-4">
-          <Field name="prefix" label="Prefiks (valgfri)" placeholder="F.eks. kr" />
-          <Field name="suffix" label="Suffiks (valgfri)" placeholder="F.eks. %" />
+          <FormField name="prefix" label="Prefiks (valgfri)" placeholder="F.eks. kr" />
+          <FormField name="suffix" label="Suffiks (valgfri)" placeholder="F.eks. %" />
         </div>
       )}
 
@@ -150,23 +151,3 @@ export function NewQuestionForm({ onCreated }: { onCreated?: (q: CreatedQuestion
   );
 }
 
-function Field({ name, label, placeholder, required }: {
-  name: string;
-  label: string;
-  placeholder?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-sm font-medium text-cloud">
-        {label}{required && <span className="text-accent ml-0.5">*</span>}
-      </span>
-      <input
-        name={name}
-        required={required}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud placeholder:text-muted focus:border-accent focus:outline-none transition"
-      />
-    </label>
-  );
-}

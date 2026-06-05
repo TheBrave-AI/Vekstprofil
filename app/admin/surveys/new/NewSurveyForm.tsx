@@ -74,7 +74,7 @@ export function NewSurveyForm({
         disabled={isPending}
         className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
       >
-        {isPending ? "Oppretter…" : "Opprett survey (utkast)"}
+        {isPending ? "Oppretter…" : "Opprett undersøkelse (utkast)"}
       </button>
     </form>
   );

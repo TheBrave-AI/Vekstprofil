@@ -3,6 +3,7 @@
 import { createTemplate } from "@/app/actions";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import FormField from "@/components/form/FormField";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 
@@ -27,14 +28,8 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
   return (
     <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-cloud">Navn</span>
-          <input name="name" required placeholder="f.eks. Ny-kunde Skjema" className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud placeholder:text-muted focus:border-accent focus:outline-none transition" />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-cloud">Beskrivelse (valgfri)</span>
-          <input name="description" placeholder="Kort beskrivelse" className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud placeholder:text-muted focus:border-accent focus:outline-none transition" />
-        </label>
+        <FormField name="name"        label="Navn"                  placeholder="f.eks. Ny-kunde Skjema" required />
+        <FormField name="description" label="Beskrivelse (valgfri)" placeholder="Kort beskrivelse" />
       </div>
 
       <div className="space-y-2">

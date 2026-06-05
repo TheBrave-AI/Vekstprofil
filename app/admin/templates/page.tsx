@@ -1,5 +1,7 @@
 import { listTemplates } from "@/app/actions";
 import Link from "next/link";
+import PageHeader from "@/components/admin/PageHeader";
+import SectionHeader from "@/components/admin/SectionHeader";
 
 export default async function TemplatesPage() {
   const templates = await listTemplates();
@@ -7,19 +9,7 @@ export default async function TemplatesPage() {
   return (
     <div className="space-y-8">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted mb-1">Oversikt</p>
-          <h1 className="font-display text-[28px] leading-none text-cloud">Maler</h1>
-        </div>
-        <Link
-          href="/admin/templates/new"
-          className="rounded-xl bg-brand px-4 py-2 text-[13px] font-medium text-onbrand hover:bg-brand-deep transition-colors"
-        >
-          + Ny mal
-        </Link>
-      </div>
+      <PageHeader title="Maler" href="/admin/templates/new" cta="+ Ny mal" />
 
       {/* Empty state */}
       {templates.length === 0 && (
@@ -34,11 +24,7 @@ export default async function TemplatesPage() {
       {/* List */}
       {templates.length > 0 && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2.5 px-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Alle maler</p>
-            <span className="text-[11px] text-muted/60 font-medium">({templates.length})</span>
-            <div className="flex-1 h-px bg-line" />
-          </div>
+          <SectionHeader label="Alle maler" count={templates.length} />
 
           <div className="rounded-card bg-midnight shadow-card overflow-hidden">
             {templates.map((t, i) => {

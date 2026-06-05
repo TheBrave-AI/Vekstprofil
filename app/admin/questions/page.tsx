@@ -10,7 +10,7 @@ export default async function QuestionsPage() {
         <div>
           <h1 className="font-display text-2xl text-cloud">Spørsmålskatalog</h1>
           <p className="text-[12.5px] text-muted mt-0.5">
-            Alle spørsmål deles på tvers av maler og surveys. Endringer gjelder retroaktivt.
+            Alle spørsmål deles på tvers av maler og undersøkelser. Endringer gjelder retroaktivt.
           </p>
         </div>
         <Link

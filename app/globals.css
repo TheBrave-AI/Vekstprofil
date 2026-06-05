@@ -25,6 +25,7 @@
   --color-accent:     #0c8ba0;  /* teal — progress, eyebrows, fokusring */
   --color-marker:     #2bcfe2;  /* cyan — understreker, eyebrow-strek */
   --color-coral:      #bf4d27;  /* oransje/rød — "Ikke oppgitt"-pill */
+  --color-amber:      #d4890f;  /* amber — ubesvarte/aktive surveys */
 
   /* Admin-panel (mørkt tema) */
   --color-admin-bg:      #0c1828;  /* admin hovebakgrunn */

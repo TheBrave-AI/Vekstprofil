@@ -4,9 +4,9 @@ import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/admin",           label: "Dashboard" },
-  { href: "/admin/customers", label: "Kunder" },
-  { href: "/admin/surveys",   label: "Surveys" },
+  { href: "/admin/surveys",   label: "Undersøkelser" },
   { href: "/admin/templates", label: "Maler" },
+  { href: "/admin/customers", label: "Kunder" },
   { href: "/admin/questions", label: "Spørsmål" },
 ];
 
@@ -19,7 +19,7 @@ export default function AdminTopNav() {
   }
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex items-center gap-1"> 
       {NAV.map(({ href, label }) => (
         <Link
           key={href}

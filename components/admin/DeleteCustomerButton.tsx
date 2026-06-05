@@ -51,7 +51,7 @@ export function DeleteCustomerButton({
         <p className="text-[13.5px] font-semibold text-cloud">Slett kunde permanent?</p>
         <p className="text-[12.5px] text-muted leading-relaxed">
           Dette sletter <strong className="text-cloud">{customerName}</strong> og alle
-          {surveyCount > 0 && <> <strong className="text-coral">{surveyCount} {surveyCount === 1 ? "survey" : "surveys"}</strong> med svar</>}.
+          {surveyCount > 0 && <> <strong className="text-coral">{surveyCount} undersøkelse{surveyCount === 1 ? "" : "r"}</strong> med svar</>}.
           {" "}Handlingen kan ikke angres.
         </p>
       </div>

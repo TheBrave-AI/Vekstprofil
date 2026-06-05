@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { listQuestions } from "@/app/actions";
 import { EditTemplateClient } from "./EditTemplateClient";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,15 +11,18 @@ export default async function EditTemplatePage({
 }) {
   const { id } = await params;
 
-  const template = await db.template.findUnique({
-    where:   { id },
-    include: {
-      questions: {
-        orderBy: { order: "asc" },
-        include: { question: { select: { id: true, label: true, category: true } } },
+  const [template, allQuestions] = await Promise.all([
+    db.template.findUnique({
+      where:   { id },
+      include: {
+        questions: {
+          orderBy: { order: "asc" },
+          include: { question: { select: { id: true, label: true, category: true } } },
+        },
       },
-    },
-  });
+    }),
+    listQuestions(),
+  ]);
 
   if (!template) notFound();
 
@@ -40,6 +44,11 @@ export default async function EditTemplatePage({
           label:      tq.question.label,
           category:   tq.question.category,
           order:      tq.order,
+        }))}
+        allQuestions={allQuestions.map((q) => ({
+          id:       q.id,
+          label:    q.label,
+          category: q.category,
         }))}
       />
     </div>
