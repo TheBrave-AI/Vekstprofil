@@ -4,13 +4,6 @@ import Link from "next/link";
 export default async function TemplatesPage() {
   const templates = await listTemplates();
 
-  const totalQuestions = templates.reduce((sum, t) => sum + t._count.questions, 0);
-
-  const stats = [
-    { label: "Maler",      value: templates.length, color: "text-cloud",  bar: "bg-cloud/40" },
-    { label: "Spørsmål",   value: totalQuestions,   color: "text-accent", bar: "bg-accent"   },
-  ];
-
   return (
     <div className="space-y-8">
 
@@ -26,21 +19,6 @@ export default async function TemplatesPage() {
         >
           + Ny mal
         </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-card bg-midnight shadow-card px-5 py-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className={`text-[32px] font-display leading-none ${s.color}`}>{s.value}</p>
-                <p className="text-[12.5px] text-muted mt-1.5">{s.label}</p>
-              </div>
-              <span className={`w-2 h-2 rounded-full mt-1.5 ${s.bar}`} />
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Empty state */}

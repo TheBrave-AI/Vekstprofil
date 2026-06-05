@@ -26,12 +26,6 @@ export default async function SurveysPage() {
   const active    = surveys.filter((s) => s.status === "active");
   const draft     = surveys.filter((s) => s.status === "draft");
 
-  const stats = [
-    { label: "Innsendt", value: submitted.length, color: "text-accent",  bar: "bg-accent"  },
-    { label: "Aktive",   value: active.length,    color: "text-marker",  bar: "bg-marker"  },
-    { label: "Utkast",   value: draft.length,     color: "text-muted",   bar: "bg-steel"   },
-  ];
-
   const groups = [
     { key: "submitted", label: "Innsendt",  surveys: submitted },
     { key: "active",    label: "Aktive",    surveys: active    },
@@ -53,29 +47,6 @@ export default async function SurveysPage() {
         >
           + Ny survey
         </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-card bg-midnight shadow-card px-5 py-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className={`text-[32px] font-display leading-none ${s.color}`}>{s.value}</p>
-                <p className="text-[12.5px] text-muted mt-1.5">{s.label}</p>
-              </div>
-              <span className={`w-2 h-2 rounded-full mt-1.5 ${s.bar}`} />
-            </div>
-            {surveys.length > 0 && (
-              <div className="mt-4 h-[3px] bg-steel/40 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${s.bar}`}
-                  style={{ width: `${Math.round((s.value / surveys.length) * 100)}%` }}
-                />
-              </div>
-            )}
-          </div>
-        ))}
       </div>
 
       {/* Empty state */}

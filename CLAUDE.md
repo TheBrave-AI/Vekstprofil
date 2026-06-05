@@ -72,6 +72,7 @@ Key entities:
 | `design_handoff_onboarding/reference/Brave Onboarding.html` | Working HTML prototype — open in browser to see intended UX |
 | `BACKEND.md` | Backend setup guide for George |
 | `components/ui/SortableQuestion.tsx` | Reusable drag-and-drop question row — accepts `item`, `index`, optional `action` slot |
+| `app/admin/questions/new/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
 
 ## Design System
 
@@ -84,6 +85,8 @@ All Brave design tokens live in `app/globals.css` under `@theme`. Key values:
 - **Card radius:** `--radius-card: 1.25rem`
 
 Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, and interaction specs before building a component. Build directly from spec — no need for brainstorming/mockup phase when spec is available.
+
+**Admin list page pattern:** Use `app/admin/surveys/page.tsx` as the reference layout for list pages. Key elements: overline label (`text-[11px] font-bold uppercase tracking-[0.12em] text-muted`) above `font-display text-[28px] leading-none text-cloud` h1, section headers with colored dot + divider line, row-based card list (`rounded-card bg-midnight shadow-card overflow-hidden`) with `px-5 py-3.5` rows and `border-b border-line` separators. No stat/number cards on list pages.
 
 ## Important Notes
 
