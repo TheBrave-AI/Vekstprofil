@@ -3,6 +3,7 @@ import Link from "next/link";
 import { relativeTime } from "@/lib/formatTime";
 import PageHeader from "@/components/admin/PageHeader";
 import SectionHeader from "@/components/admin/SectionHeader";
+import EmptyState from "@/components/admin/EmptyState";
 import { SURVEY_STATUS, type SurveyStatus } from "@/lib/constants";
 
 function fmt(d: Date | string) {
@@ -29,10 +30,7 @@ export default async function SurveysPage() {
 
       {/* Empty state */}
       {surveys.length === 0 && (
-        <div className="rounded-card bg-midnight shadow-card px-8 py-12 text-center">
-          <p className="font-display text-lg text-cloud mb-1">Ingen undersøkelser ennå</p>
-          <p className="text-[13px] text-muted">Opprett en undersøkelse fra en kundes side.</p>
-        </div>
+        <EmptyState title="Ingen undersøkelser ennå">Opprett en undersøkelse fra en kundes side.</EmptyState>
       )}
 
       {/* Grouped list */}

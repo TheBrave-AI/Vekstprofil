@@ -22,33 +22,25 @@ interface Props {
 export default function AdminSidebar({ active, submitted, draftCount, onCollapse }: Props) {
   return (
     <aside
-      className="w-[210px] shrink-0 sticky top-5 bg-midnight rounded-card shadow-card flex flex-col overflow-hidden"
+      className="w-[210px] shrink-0 sticky top-5 bg-midnight rounded-card shadow-card overflow-hidden"
       style={{ height: "calc(100vh - 5.5rem)" }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between h-10 px-3 border-b border-line shrink-0">
-        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Undersøkelser</span>
-        <button
-          type="button"
-          onClick={onCollapse}
-          className="flex items-center justify-center w-6 h-6 rounded-md text-muted hover:text-cloud hover:bg-black/[0.06] transition-colors"
-          title="Skjul sidebar"
-        >
-          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-            <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
+      <div className="overflow-y-auto h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between h-10 px-3 border-b border-line">
+          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Undersøkelser</span>
+          <button
+            type="button"
+            onClick={onCollapse}
+            className="flex items-center justify-center w-6 h-6 rounded-md text-muted hover:text-cloud hover:bg-black/[0.06] transition-colors"
+            title="Skjul sidebar"
+          >
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
 
-      {/* Scrollable content */}
-      <Section label="Besvarte" bordered>
-          {submitted.length > 0
-            ? submitted.map(s => <SurveyRow key={s.id} survey={s} />)
-            : <EmptyRow text="Ingen besvarte" />
-          }
-        </Section>
-        
-      <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
         <Section label="Ubesvarte">
           {active.length > 0
             ? active.map(s => <SurveyRow key={s.id} survey={s} />)
@@ -56,20 +48,12 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
           }
         </Section>
 
-        
-        {/* <ActivityFeed /> Removed for now */}
-        
-        {/* Status-oppsummering */}
-        <div className="mt-auto p-4 border-t border-line shrink-0">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted mb-3">Totalt</p>
-          <div className="flex flex-col gap-2">
-            <StatusRow label="Ubesvarte" count={active.length}    color={SURVEY_STATUS.active.dot}     />
-            <StatusRow label="Besvarte" count={submitted.length} color={SURVEY_STATUS.submitted.dot}  />
-            <StatusRow label="Utkast"  count={draftCount}       color={SURVEY_STATUS.draft.dot}      />
-          </div>
-        </div>
-
-        
+        <Section label="Besvarte" bordered>
+          {submitted.length > 0
+            ? submitted.map(s => <SurveyRow key={s.id} survey={s} />)
+            : <EmptyRow text="Ingen besvarte" />
+          }
+        </Section>
       </div>
     </aside>
   );

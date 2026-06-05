@@ -78,11 +78,23 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
       setAnswers(prev => ({ ...prev, [q.id]: draft }));
       void saveAnswer(token, q.id, draft);
     }
-    setDraft("");
     setDirection(-1);
-    if (stage === "summary") { setStage(questions.length - 1); return; }
-    if (typeof stage === "number" && stage > 0) setStage(stage - 1);
-    else if (typeof stage === "number" && stage === 0) setStage("intro");
+    if (stage === "summary") {
+      const target = questions.length - 1;
+      const existing = answers[questions[target].id];
+      setDraft(existing && existing !== SKIPPED ? existing : "");
+      setStage(target);
+      return;
+    }
+    if (typeof stage === "number" && stage > 0) {
+      const target = stage - 1;
+      const existing = answers[questions[target].id];
+      setDraft(existing && existing !== SKIPPED ? existing : "");
+      setStage(target);
+    } else if (typeof stage === "number" && stage === 0) {
+      setDraft("");
+      setStage("intro");
+    }
   }
 
   // Jumps directly to a question from Summary — loads the existing answer into draft

@@ -4,6 +4,7 @@ import { createCustomer } from "@/app/actions";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import FormField from "@/components/form/FormField";
+import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 export function NewCustomerForm() {
   const [isPending, startTransition] = useTransition();
@@ -31,13 +32,7 @@ export function NewCustomerForm() {
         <FormField name="contactName"  label="Kontaktperson"    placeholder="Ola Nordmann"     required />
         <FormField name="contactEmail" label="E-post (valgfri)" placeholder="ola@eksempel.no" type="email" />
       </div>
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
-      >
-        {isPending ? "Oppretter…" : "Opprett kunde"}
-      </button>
+      <FormSubmitButton label="Opprett kunde" isPending={isPending} />
     </form>
   );
 }

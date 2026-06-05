@@ -3,6 +3,7 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import SectionHeader from "@/components/admin/SectionHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import EmptyState from "@/components/admin/EmptyState";
 import type { SurveyStatus } from "@/lib/constants";
 
 export default async function CustomersPage() {
@@ -15,10 +16,7 @@ export default async function CustomersPage() {
 
       {/* Empty state */}
       {customers.length === 0 && (
-        <div className="rounded-card bg-midnight shadow-card px-8 py-12 text-center">
-          <p className="font-display text-lg text-cloud mb-1">Ingen kunder ennå</p>
-          <p className="text-[13px] text-muted">Opprett en kunde for å komme i gang.</p>
-        </div>
+        <EmptyState title="Ingen kunder ennå">Opprett en kunde for å komme i gang.</EmptyState>
       )}
 
       {/* List */}

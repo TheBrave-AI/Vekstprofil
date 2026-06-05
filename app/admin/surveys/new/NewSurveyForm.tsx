@@ -3,6 +3,7 @@
 import { createSurvey } from "@/app/actions";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 interface CustomerRow { id: string; companyName: string; }
 interface TemplateRow { id: string; name: string; }
@@ -69,13 +70,7 @@ export function NewSurveyForm({
         </label>
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
-      >
-        {isPending ? "Oppretter…" : "Opprett undersøkelse (utkast)"}
-      </button>
+      <FormSubmitButton label="Opprett undersøkelse (utkast)" isPending={isPending} />
     </form>
   );
 }

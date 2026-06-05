@@ -6,11 +6,7 @@ import GhostButton from "../ui/GhostButton";
 import BrandBar from "../ui/BrandBar";
 import ProgressBar from "./Progressbar";
 import Eyebrow from "../ui/Eyebrow";
-
-function validateNumber(val: string): string | null {
-  if (!val.trim()) return null; // empty = skip, always valid
-  return /^-?\d+([.,]\d+)?$/.test(val.trim()) ? null : "Skriv inn et gyldig tall";
-}
+import { validateNumber } from "@/lib/validation";
 
 interface Props {
   question: Question;

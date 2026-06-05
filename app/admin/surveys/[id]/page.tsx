@@ -4,6 +4,7 @@ import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Question } from "@/lib/types";
+import NotAnsweredPill from "@/components/survey/NotAnsweredPill";
 
 export default async function SurveyDetailPage({
   params,
@@ -87,7 +88,7 @@ export default async function SurveyDetailPage({
                 <div
                   key={q.id}
                   className="grid gap-5 px-6 py-[18px] border-b border-line last:border-0"
-                  style={{ gridTemplateColumns: isLongText ? "1fr" : "minmax(0,1fr) auto" }}
+                  style={{ gridTemplateColumns: "minmax(0,55%) minmax(0,45%)" }}
                 >
                   {/* Left: category + question */}
                   <div className="flex flex-col gap-1 min-w-0">
@@ -99,31 +100,22 @@ export default async function SurveyDetailPage({
                     <span className="text-cloud text-[16px] font-medium leading-snug">
                       {q.label}
                     </span>
-                    {/* Long text answers shown below the question */}
-                    {isLongText && formatted && (
-                      <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
-                    )}
-                    {isLongText && !formatted && (
-                      <NotAnsweredPill skipped={!!a?.skipped} />
-                    )}
                     {/* Boolean description */}
                     {boolDesc && (
                       <p className="text-mist text-[13px] mt-1 leading-relaxed">{boolDesc}</p>
                     )}
                   </div>
 
-                  {/* Right: answer (non-text types only) */}
-                  {!isLongText && (
-                    <div className="flex items-center justify-end pl-4 shrink-0">
-                      {formatted ? (
-                        <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[200px] leading-tight">
-                          {formatted}
-                        </span>
-                      ) : (
-                        <NotAnsweredPill skipped={!!a?.skipped} />
-                      )}
-                    </div>
-                  )}
+                  {/* Right: answer */}
+                  <div className="flex items-center justify-end pl-4">
+                    {formatted ? (
+                      <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[200px] leading-tight">
+                        {formatted}
+                      </span>
+                    ) : (
+                      <NotAnsweredPill skipped={!!a?.skipped} />
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -134,13 +126,3 @@ export default async function SurveyDetailPage({
   );
 }
 
-function NotAnsweredPill({ skipped }: { skipped: boolean }) {
-  return (
-    <span
-      className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"
-      style={{ background: "rgba(191,77,39,0.10)" }}
-    >
-      {skipped ? "Hoppet over" : "Ikke besvart"}
-    </span>
-  );
-}

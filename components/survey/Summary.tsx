@@ -7,6 +7,7 @@ import BrandBar from "../ui/BrandBar";
 import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
 import Eyebrow from "../ui/Eyebrow";
+import NotAnsweredPill from "./NotAnsweredPill";
 
 interface Props {
   answers: AnswerMap;
@@ -69,13 +70,7 @@ export default function Summary({ answers, onSubmit, onGoToQuestion }: Props) {
               {/* Right: formatted answer or "Ikke oppgitt" pill */}
               <div className="flex items-center justify-end pl-4 shrink-0">
                 {isUnanswered ? (
-                  // Coral pill for unanswered questions
-                  <span
-                    className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"
-                    style={{ background: "rgba(191,77,39,0.10)" }}
-                  >
-                    Ikke oppgitt
-                  </span>
+                  <NotAnsweredPill />
                 ) : (
                   <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[180px] leading-tight">
                     {formatted}

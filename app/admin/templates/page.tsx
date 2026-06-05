@@ -2,6 +2,7 @@ import { listTemplates } from "@/app/actions";
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import SectionHeader from "@/components/admin/SectionHeader";
+import EmptyState from "@/components/admin/EmptyState";
 
 export default async function TemplatesPage() {
   const templates = await listTemplates();
@@ -13,12 +14,9 @@ export default async function TemplatesPage() {
 
       {/* Empty state */}
       {templates.length === 0 && (
-        <div className="rounded-card bg-midnight shadow-card px-8 py-12 text-center">
-          <p className="font-display text-lg text-cloud mb-1">Ingen maler ennå</p>
-          <p className="text-[13px] text-muted">
-            Kjør <code className="font-mono text-xs bg-steel/30 px-1.5 py-0.5 rounded">npx prisma db seed</code> for å legge til standardmaler.
-          </p>
-        </div>
+        <EmptyState title="Ingen maler ennå">
+          Kjør <code className="font-mono text-xs bg-steel/30 px-1.5 py-0.5 rounded">npx prisma db seed</code> for å legge til standardmaler.
+        </EmptyState>
       )}
 
       {/* List */}

@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { unstable_cache, revalidateTag, revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { SKIPPED } from "@/lib/types";
 import type { Question } from "@/lib/types";
 
@@ -486,11 +487,30 @@ export async function updateQuestion(
     placeholder: string | null;
     prefix:      string | null;
     suffix:      string | null;
+    options:     string[] | null;
   }>
 ): Promise<void> {
   await requireAuth();
-  await db.question.update({ where: { id }, data });
+  const { options, ...rest } = data;
+  await db.question.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(options !== undefined && { options: options ?? Prisma.JsonNull }),
+    },
+  });
   revalidateTag("questions", { expire: 0 });
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  await requireAuth();
+  await db.$transaction(async (tx) => {
+    await tx.answer.deleteMany({ where: { questionId: id } });
+    await tx.surveyQuestion.deleteMany({ where: { questionId: id } });
+    await tx.question.delete({ where: { id } });
+  });
+  revalidateTag("questions", { expire: 0 });
+  revalidatePath("/admin/questions");
 }
 
 export async function listSurveys() {

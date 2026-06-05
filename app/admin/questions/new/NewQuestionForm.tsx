@@ -4,6 +4,7 @@ import { createQuestion } from "@/app/actions";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import FormField from "@/components/form/FormField";
+import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 const TYPES = [
   { value: "text",        label: "Tekst",         desc: "Fritekst, lang svar" },
@@ -134,13 +135,7 @@ export function NewQuestionForm({ onCreated }: { onCreated?: (q: CreatedQuestion
       )}
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-xl bg-brand px-6 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
-        >
-          {isPending ? "Oppretter…" : "Opprett spørsmål"}
-        </button>
+        <FormSubmitButton label="Opprett spørsmål" isPending={isPending} fullWidth={false} />
         {!onCreated && (
           <a href="/admin/questions" className="text-sm text-muted hover:text-cloud transition">
             Avbryt

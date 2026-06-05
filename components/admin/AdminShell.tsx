@@ -27,7 +27,7 @@ export default function AdminShell({ active, submitted, draftCount, children }: 
               animate={{ width: 210, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="shrink-0 overflow-hidden"
+              className="shrink-0"
             >
               <AdminSidebar
                 active={active}

@@ -103,6 +103,10 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **DndContext hydration mismatch:** Always pass a stable `id` prop to `DndContext` (e.g. `id="survey-questions"`) — otherwise dnd-kit generates mismatched `aria-describedby` IDs between SSR and client.
 - **shadow-card z-index:** `shadow-card` is 40px deep — elements directly below a card get visually covered. Fix: `relative z-0` on the card, `relative z-10` on the element below.
 - **Centering form pages:** Content containers with `max-w-*` need `mx-auto` to be centered within `AdminShell`'s `max-w-5xl` wrapper.
+- **Modal backdrop:** Never add `overflow-y-auto` to `fixed inset-0 flex items-center justify-center` — it breaks backdrop coverage. Use the plain version; the form fits the viewport.
+- **Modal confirm pattern:** Use `deleting` / `creating` state (Question | null or boolean) — show inline modal, Escape closes via `useEffect`. See `QuestionsClient.tsx` for reference implementation with all three modals (create, edit, delete).
+- **Grid two-column rows:** Use `minmax(0,X%) minmax(0,Y%)` (not `auto`) for both columns to avoid collapse. `auto` on the right column can collapse or overflow with long text content. Survey detail uses `"minmax(0,55%) minmax(0,45%)"`.
+- **deleteQuestion cascade:** `SurveyQuestion` and `Answer` lack `onDelete: Cascade` from the question side — must manually delete both before `db.question.delete`. `TemplateQuestion` has cascade, so it's handled automatically.
 
 ## Component Structure (current)
 
@@ -177,9 +181,8 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 - Main content centered: `mx-auto max-w-5xl` wrapper in `AdminShell`
 - Dashboard (`/admin`): 4 stat cards, "Trenger oppfølging", "Nylig mottatt", "Siste kunder"
 - Customer list at `/admin/customers`
-- Survey detail (`/admin/surveys/[id]`): row layout matching customer Summary — category label, question, answer in display font right-aligned; long text answers shown below; `max-w-3xl` card
-- Question catalog (`/admin/questions`): table with category, label, type, option count; "+ Nytt spørsmål" button
-- Create question (`/admin/questions/new`): type picker (5 types), conditional fields (placeholder, prefix/suffix, options textarea)
+- Survey detail (`/admin/surveys/[id]`): two-column grid `"minmax(0,55%) minmax(0,45%)"` — all answer types right-aligned in display font; `NotAnsweredPill` in right column; `max-w-3xl` card
+- Question catalog (`/admin/questions`): create/edit/delete all in modals — no separate pages. `QuestionsClient` owns all three modal states (`creating`, `editing`, `deleting`). `deleteQuestion` action added to `actions.ts`.
 - Active sidebar shows answered/total progress (x/y) per active survey (`SurveyItem.answeredCount` / `.totalQuestions`)
 - Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`
 - Template edit (`/admin/templates/[id]/edit`): drag-and-drop reorder + remove questions, manual save via `setTemplateQuestions`
@@ -217,7 +220,7 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 10. `/admin/templates/[id]/edit` — edit template questions ✅ (done)
 11. `/admin/questions` — question catalog ✅ (done)
 12. `/admin/questions/new` — create question ✅ (done)
-13. `/admin/questions/[id]/edit` — edit question
+13. ~~`/admin/questions/[id]/edit`~~ — ikke nødvendig, redigering skjer i popup
 
 ### Waiting on George 🔒
 
@@ -253,22 +256,22 @@ Identified duplications to clean up, in priority order. Strike through + ✅ whe
    ~~`statusStyle`/`statusLabel`-maps gjenskapt i customers/page, surveys/page, customers/[id]/page.~~
    ~~→ `lib/constants.ts` med `SURVEY_STATUS` + `SurveyStatus` type. `components/ui/StatusBadge.tsx`.~~
 
-7. **`EmptyState` — tomt-kort-mønster på 4 list-sider**
-   Customers, surveys, templates, questions har identisk tom-tilstand-card.
-   → Lag `EmptyState` med `{ title, description }` props.
+7. ✅ ~~**`EmptyState` — tomt-kort-mønster på 4 list-sider**~~
+   ~~Customers, surveys, templates, questions har identisk tom-tilstand-card.~~
+   ~~→ `components/admin/EmptyState.tsx` med `{ title?, children }` props.~~
 
-8. **`FormSubmitButton` — submit-knapp med pending-state, 4 skjemaer**
-   Identisk disabled+opacity-knapp i alle new-skjemaer.
-   → Lag `components/form/FormSubmitButton.tsx` med `{ isPending, label }` props.
+8. ✅ ~~**`FormSubmitButton` — submit-knapp med pending-state, 4 skjemaer**~~
+   ~~Identisk disabled+opacity-knapp i alle new-skjemaer.~~
+   ~~→ `components/form/FormSubmitButton.tsx` med `{ label, isPending, disabled?, fullWidth? }` props.~~
 
 ### Lav prioritet
 
-9. **`NotAnsweredPill` — definert på feil sted**
-   Laget i `surveys/[id]/page.tsx`, men `Summary.tsx` gjenskaper det inline.
-   → Flytt til `components/survey/NotAnsweredPill.tsx`.
+9. ✅ ~~**`NotAnsweredPill` — definert på feil sted**~~
+   ~~Laget i `surveys/[id]/page.tsx`, men `Summary.tsx` gjenskaper det inline.~~
+   ~~→ `components/survey/NotAnsweredPill.tsx` med `{ skipped? }` prop.~~
 
-10. **`validateNumber()` — lokal util i QuestionCard**
-    → Flytt til `lib/validation.ts` om det trengs andre steder.
+10. ✅ ~~**`validateNumber()` — lokal util i QuestionCard**~~
+    ~~→ `lib/validation.ts`.~~
 
 ## Dev Workflow
 

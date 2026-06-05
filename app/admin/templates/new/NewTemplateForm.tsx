@@ -4,6 +4,7 @@ import { createTemplate } from "@/app/actions";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import FormField from "@/components/form/FormField";
+import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 
@@ -47,9 +48,7 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
         </div>
       </div>
 
-      <button type="submit" disabled={isPending || selected.length === 0} className="rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition">
-        {isPending ? "Oppretter…" : "Opprett mal"}
-      </button>
+      <FormSubmitButton label="Opprett mal" isPending={isPending} disabled={selected.length === 0} fullWidth={false} />
     </form>
   );
 }
