@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { SurveyStatus } from "@/lib/constants";
+import SectionHeader from "@/components/admin/SectionHeader";
 
 export default async function CustomerDetailPage({
   params,
@@ -30,7 +31,7 @@ export default async function CustomerDetailPage({
 
         <AdminButton href={`/admin/surveys/new?customerId=${id}`}>+ Ny undersøkelse</AdminButton>
       </div>
-
+      <SectionHeader label="Undersøkelser" count={customer.surveys.length} />
       {customer.surveys.length === 0 ? (
         <p className="text-sm text-mist">Ingen undersøkelser ennå.</p>
       ) : (
@@ -58,7 +59,7 @@ export default async function CustomerDetailPage({
                     {s.status === "draft" && (
                       <>
                         <Link href={`/admin/surveys/${s.id}/edit`} className="text-mist hover:text-cloud text-xs font-medium">Rediger</Link>
-                        <form action={async () => { "use server"; await activateSurvey(s.id); redirect("/admin"); }}>
+                        <form action={async () => { "use server"; await activateSurvey(s.id); redirect(`/admin/surveys/${s.id}`); }}>
                           <button type="submit" className="text-accent hover:underline text-xs font-medium">Aktiver →</button>
                         </form>
                       </>

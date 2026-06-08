@@ -13,18 +13,21 @@ export function CopyLinkButton({ token }: { token: string }) {
   }
 
   return (
-    <div className="flex items-center gap-0 rounded-xl border border-line bg-navy overflow-hidden">
-      <span className="font-mono text-[12px] text-mist select-all px-4 py-2.5 flex-1 truncate min-w-0">
-        {url}
-      </span>
-      <button
-        onClick={handleCopy}
-        className={`shrink-0 px-4 py-2.5 text-[12.5px] font-medium border-l border-line transition-colors ${
-          copied ? "text-accent bg-accent/5" : "text-muted hover:text-cloud hover:bg-black/[0.03]"
-        }`}
-      >
-        {copied ? "Kopiert ✓" : "Kopier"}
-      </button>
+    <div className="space-y-1.5">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Kundes lenke</p>
+      <div className="flex items-center gap-0 rounded-xl border border-line bg-navy overflow-hidden">
+        <span className="font-mono text-[12px] text-mist select-all px-4 py-2.5 flex-1 truncate min-w-0">
+          {url}
+        </span>
+        <button
+          onClick={handleCopy}
+          className={`shrink-0 px-4 py-2.5 text-[12.5px] font-medium border-l border-line transition-colors ${
+            copied ? "text-accent bg-accent/5" : "text-muted hover:text-cloud hover:bg-black/[0.03]"
+          }`}
+        >
+          {copied ? "Kopiert ✓" : "Kopier"}
+        </button>
+      </div>
     </div>
   );
 }

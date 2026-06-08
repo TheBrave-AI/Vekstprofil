@@ -44,7 +44,7 @@ export default async function SurveyDetailPage({
               ` · Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 items-end">
           {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
           <a
             href={`/api/export/${survey.token}`}

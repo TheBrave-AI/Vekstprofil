@@ -109,7 +109,7 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **Grid two-column rows:** Use `minmax(0,X%) minmax(0,Y%)` (not `auto`) for both columns to avoid collapse. `auto` on the right column can collapse or overflow with long text content. Survey detail uses `"minmax(0,55%) minmax(0,45%)"`.
 - **deleteQuestion cascade:** `SurveyQuestion` and `Answer` lack `onDelete: Cascade` from the question side — must manually delete both before `db.question.delete`. `TemplateQuestion` has cascade, so it's handled automatically.
 - **Middleware file is `proxy.ts`** (not `middleware.ts`) — same behaviour, just named differently. Protects `/admin/:path*`, redirects unauthenticated to `/login`.
-- **`revalidateTag` takes ONE argument** — `revalidateTag("surveys")` only. Do not pass a second argument (e.g. `{ expire: 0 }`) — it is silently ignored and is incorrect.
+- **`revalidateTag` requires TWO arguments in Next.js 16** — always call as `revalidateTag("surveys", {})`. The second argument is `CacheLifeConfig`; passing `{}` means purge immediately with no override.
 - **`getTemplate(id)`** — cached action exists in `actions.ts`. Use it instead of querying `db.template.findUnique` directly.
 - **`getCustomer(id)`** — cached with `unstable_cache` per ID, tagged `customers`. Use it in admin pages.
 
