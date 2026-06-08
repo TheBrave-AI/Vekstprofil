@@ -78,7 +78,7 @@ export function EditSurveyClient({
       
       {/* Current questions */}
       <div className="space-y-3">
-        <h2 className="font-display text-lg text-cloud">Spørsmål i surveyen ({current.length})</h2>
+        <h2 className="font-display text-xl text-cloud">Spørsmål i surveyen ({current.length})</h2>
         {current.length === 0 ? (
           <p className="text-sm text-mist">Ingen spørsmål ennå.</p>
         ) : (

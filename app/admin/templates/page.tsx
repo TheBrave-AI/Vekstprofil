@@ -10,7 +10,7 @@ export default async function TemplatesPage() {
   return (
     <div className="space-y-8">
 
-      <PageHeader title="Maler" href="/admin/templates/new" cta="+ Ny mal" />
+      <PageHeader title="Ferdige undersøkelses-maler" href="/admin/templates/new" cta="+ Ny mal" />
 
       {/* Empty state */}
       {templates.length === 0 && (

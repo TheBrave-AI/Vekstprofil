@@ -43,14 +43,14 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
 
         <Section label="Ubesvarte" count={active.length}>
           {active.length > 0
-            ? active.map(s => <SurveyRow key={s.id} survey={s} />)
+            ? active.map((s, i) => <SurveyRow key={s.id} survey={s} isLast={i === active.length - 1} />)
             : <EmptyRow text="Ingen ubesvarte" />
           }
         </Section>
 
         <Section label="Besvarte" count={submitted.length} bordered>
           {submitted.length > 0
-            ? submitted.map(s => <SurveyRow key={s.id} survey={s} />)
+            ? submitted.map((s, i) => <SurveyRow key={s.id} survey={s} isLast={i === submitted.length - 1} />)
             : <EmptyRow text="Ingen besvarte" />
           }
         </Section>
@@ -92,7 +92,7 @@ function EmptyRow({ text }: { text: string }) {
   return <p className="px-4 py-2 pb-3 text-[12.5px] text-muted italic">{text}</p>;
 }
 
-function SurveyRow({ survey }: { survey: SurveyItem }) {
+function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) {
   const showProgress = survey.status === "active"
     && survey.answeredCount !== undefined
     && survey.totalQuestions !== undefined;
@@ -100,11 +100,11 @@ function SurveyRow({ survey }: { survey: SurveyItem }) {
   return (
     <Link
       href={`/admin/surveys/${survey.id}`}
-      className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-black/[0.04] transition-colors group"
+      className={`flex items-start gap-2.5 px-4 py-2.5 hover:bg-black/[0.04] transition-colors group ${!isLast ? "border-b border-line" : ""}`}
     >
       <span className={`w-2 h-2 rounded-full shrink-0 mt-[5px] ${SURVEY_STATUS[survey.status].dot}`} />
       <div className="min-w-0">
-        <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-brand transition-colors">
+        <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-accent transition-colors">
           {survey.companyName}
         </p>
         <p className="text-[11.5px] text-muted mt-0.5">

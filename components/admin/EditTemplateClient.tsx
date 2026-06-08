@@ -46,6 +46,7 @@ export function EditTemplateClient({
   const [active,      setActive]      = useState(initialActive);
   const [questions,   setQuestions]   = useState(initialQuestions);
   const [saved,       setSaved]       = useState(false);
+  const [showInfo,    setShowInfo]    = useState(false);
   const [isPending,   startTransition] = useTransition();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -99,13 +100,32 @@ export function EditTemplateClient({
 
   return (
     <div className="space-y-8">
+
+      {/* Header */}
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Rediger mal</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <h1 className="font-display text-2xl text-cloud leading-tight">{name}</h1>
+          <button
+            type="button"
+            onClick={() => setShowInfo((v) => !v)}
+            className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors ${showInfo ? "text-cloud bg-black/[0.08]" : "text-muted hover:text-cloud hover:bg-black/[0.06]"}`}
+            title="Rediger malinformasjon"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 1.5a1.5 1.5 0 0 1 3 0v.086a1.5 1.5 0 0 1-.44 1.06L4.5 10.207V12.5h2.293l7.56-7.56A1.5 1.5 0 0 1 9.5 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+              <path d="M1 13h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       {isPending && <p className="text-xs text-accent">Lagrer…</p>}
       {saved    && <p className="text-xs text-accent">✓ Lagret</p>}
 
-      {/* Info */}
+      {/* Info card — shown on pencil click */}
+      {showInfo && (
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <h2 className="font-display text-lg text-cloud">Malinformasjon</h2>
-
         <FormField label="Navn"        value={name}        onChange={(e) => setName(e.target.value)} />
         <FormField label="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Valgfri" />
 
@@ -125,8 +145,7 @@ export function EditTemplateClient({
           <AdminButton onClick={saveInfo} disabled={isPending}>Lagre</AdminButton>
         </div>
       </div>
-
-      <AddQuestionsPanel available={available} onAdd={addQuestion} />
+      )}
 
       {/* Questions */}
       <div className="space-y-3">
@@ -163,6 +182,8 @@ export function EditTemplateClient({
           </button>
         </div>
       </div>
+
+      <AddQuestionsPanel available={available} onAdd={addQuestion} />
     </div>
   );
 }

@@ -145,7 +145,7 @@ components/
       AdminShell.tsx        — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
       AdminShellContext.tsx — createContext({ collapsed, onOpen }); useSidebar() hook
       AdminSidebar.tsx      — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
-      AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål
+      AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål; Kunder has customer count badge
       SidebarToggle.tsx     — 'use client', consumes useSidebar(); renders › arrow only when collapsed
     ActivityFeed.tsx        — (unused, commented out)
     AddQuestionsPanel.tsx   — slide-in panel for adding questions to surveys/templates
@@ -168,10 +168,11 @@ components/
     AdminButton.tsx       — admin primary button: supports href (Link), type="submit", disabled, size sm/md
     QuestionRow.tsx       — question + answer row with category eyebrow and `right` slot; used in Summary + survey detail + (future) comparison view
     BrandBar.tsx
+    BraveLogo.tsx         — SVG Brave logo component; `className` sets size + color via currentColor
     Arrow.tsx
     SortableQuestion.tsx  — drag-and-drop question row used in survey/template edit pages
     StatusBadge.tsx       — survey status pill (draft/active/submitted)
-    NotAnsweredPill.tsx   — "ikke besvart" / "hoppet over" pill
+    NotAnsweredPill.tsx   — "ikke besvart" pill (skipped or unanswered, same label)
   form/
     FormField.tsx         — label + input wrapper for admin forms
     FormSubmitButton.tsx  — submit button with pending state
@@ -218,17 +219,17 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 - Progress bar, debug dev nav (bottom-left), DevNav (bottom-right)
 
 **Admin UI:**
-- Layout: topbar (h-12, AdminTopNav with active route highlighting) + collapsible sidebar + main content
-- Sidebar: sticky card, lists active + submitted surveys, status dot summary, animated collapse/expand (Framer Motion)
+- Layout: topbar (h-14, BraveLogo as /admin link, AdminTopNav with active route highlighting + customer count badge) + collapsible sidebar + main content
+- Sidebar: sticky card w-[222px], lists active + submitted surveys with section counts; rows have border separators; animated collapse/expand (Framer Motion)
 - Sidebar toggle: absolute top-left in `AdminShell` main area — do not add to individual pages
 - Main content centered: `mx-auto max-w-5xl` wrapper in `AdminShell`
-- Dashboard (`/admin`): 4 stat cards, "Trenger oppfølging", "Nylig mottatt", "Siste kunder"
+- Dashboard (`/admin`): survey lists only — no stat cards (counts live in nav/sidebar)
 - Customer list at `/admin/customers`
 - Survey detail (`/admin/surveys/[id]`): two-column grid `"minmax(0,55%) minmax(0,45%)"` — all answer types right-aligned in display font; `NotAnsweredPill` in right column; `max-w-3xl` card
-- Question catalog (`/admin/questions`): create/edit/delete all in modals — no separate pages. `QuestionsClient` owns all three modal states (`creating`, `editing`, `deleting`). `deleteQuestion` action added to `actions.ts`.
+- Question catalog (`/admin/questions`): create/edit/delete all in modals — no separate pages. `QuestionsClient` owns all three modal states (`creating`, `editing`, `deleting`). `deleteQuestion` action added to `actions.ts`. Question labels are clickable to open edit modal.
 - Active sidebar shows answered/total progress (x/y) per active survey (`SurveyItem.answeredCount` / `.totalQuestions`)
-- Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`
-- Template edit (`/admin/templates/[id]/edit`): drag-and-drop reorder + remove questions, manual save via `setTemplateQuestions`
+- Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`. Activating redirects to survey detail.
+- Template edit (`/admin/templates/[id]/edit`): template name shown as h1 with pencil icon — clicking pencil toggles an inline info card (Navn, Beskrivelse, Aktiv toggle). Questions list first, then "Legg til spørsmål" panel below.
 
 **Backend (George):**
 - Full Prisma schema (7 tables)
