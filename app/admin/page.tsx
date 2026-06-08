@@ -1,14 +1,11 @@
-import { listCustomers, listSurveys } from "@/app/actions";
+import { listSurveys } from "@/app/actions";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [customers, surveys] = await Promise.all([listCustomers(), listSurveys()]);
+  const surveys = await listSurveys();
 
-  const customerCount   = customers.length;
-  const activeCount     = surveys.filter(s => s.status === "active").length;
-  const submittedCount  = surveys.filter(s => s.status === "submitted").length;
   const needsFollowUp   = surveys
     .filter(s => s.status === "active" && s.sentAt && new Date(s.sentAt) < sevenDaysAgo)
     .sort((a, b) => new Date(a.sentAt!).getTime() - new Date(b.sentAt!).getTime());
@@ -17,27 +14,9 @@ export default async function AdminDashboard() {
     .sort((a, b) => new Date(b.submittedAt!).getTime() - new Date(a.submittedAt!).getTime())
     .slice(0, 5);
 
-  const totalSent    = activeCount + submittedCount;
-  const responseRate = totalSent > 0 ? Math.round((submittedCount / totalSent) * 100) : 0;
-
   return (
     <div className="space-y-8">
       <h1 className="font-display text-2xl text-cloud">Dashboard</h1>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Kunder",       value: customerCount,  },
-          { label: "Ubesvarte",    value: activeCount,    },
-          { label: "Besvarte",     value: submittedCount, },
-          { label: "Svarprosent",  value: `${responseRate} %`, },
-        ].map(s => (
-          <div key={s.label} className="rounded-card bg-midnight px-6 py-5 shadow-card">
-            <p className="text-3xl font-display text-cloud tabular-nums">{s.value}</p>
-            <p className="text-sm text-mist mt-1">{s.label}</p>
-          </div>
-        ))}
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Trenger oppfølging */}

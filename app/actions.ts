@@ -93,7 +93,7 @@ const cachedSurveys = unstable_cache(
 // Sidebar data — loaded on every admin page via layout.tsx
 const cachedSidebarData = unstable_cache(
   async () => {
-    const [active, submitted, draftCount] = await Promise.all([
+    const [active, submitted, draftCount, customerCount] = await Promise.all([
       db.survey.findMany({
         where:   { status: "active" },
         include: {
@@ -109,11 +109,12 @@ const cachedSidebarData = unstable_cache(
         take:    8,
       }),
       db.survey.count({ where: { status: "draft" } }),
+      db.customer.count(),
     ]);
-    return { active, submitted, draftCount };
+    return { active, submitted, draftCount, customerCount };
   },
   ["sidebar"],
-  { tags: ["surveys"] }
+  { tags: ["surveys", "customers"] }
 );
 
 // ── Customer-facing ───────────────────────────────────────────────────────────

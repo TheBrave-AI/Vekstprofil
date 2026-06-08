@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth();
   if (!session) redirect("/login");
 
-  const { active: activeSurveys, submitted: submittedSurveys, draftCount } = await getSidebarData();
+  const { active: activeSurveys, submitted: submittedSurveys, draftCount, customerCount } = await getSidebarData();
 
   const active: SurveyItem[] = activeSurveys.map(s => ({
     id: s.id,
@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <path d="M2 3 A11 11 0 0 1 13 14" stroke="#bf4d27" strokeWidth="1.8" strokeLinecap="round"/>
             </svg>
           </div>
-          <AdminTopNav />
+          <AdminTopNav customerCount={customerCount} />
         </div>
         <div className="flex items-center gap-5 text-[13px]">
           {session.user?.email && (

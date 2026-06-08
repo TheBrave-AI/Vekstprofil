@@ -322,3 +322,4 @@ Identified duplications to clean up, in priority order. Strike through + ✅ whe
 - **DevNav:** fixed bottom-right on all pages in dev — links to all routes
 - **Debug nav:** fixed bottom-left on survey pages in dev — jump between stages
 - **Jira project:** braveaiteam.atlassian.net
+- **Storybook:** `npm run storybook` — use when building new reusable components. Write a `ComponentName.stories.tsx` alongside the component file. Stories live in `components/` (colocated). Pages and views that depend on server actions are not suited for Storybook — test those by running the app normally.

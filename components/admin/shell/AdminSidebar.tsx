@@ -41,14 +41,14 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
           </button>
         </div>
 
-        <Section label="Ubesvarte">
+        <Section label="Ubesvarte" count={active.length}>
           {active.length > 0
             ? active.map(s => <SurveyRow key={s.id} survey={s} />)
             : <EmptyRow text="Ingen ubesvarte" />
           }
         </Section>
 
-        <Section label="Besvarte" bordered>
+        <Section label="Besvarte" count={submitted.length} bordered>
           {submitted.length > 0
             ? submitted.map(s => <SurveyRow key={s.id} survey={s} />)
             : <EmptyRow text="Ingen besvarte" />
@@ -59,14 +59,18 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
   );
 }
 
-function Section({ label, bordered = false, children }: {
+function Section({ label, count, bordered = false, children }: {
   label: string;
+  count: number;
   bordered?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className={bordered ? "border-t border-line" : ""}>
-      <p className="px-4 pt-4 pb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
+        <span className="text-[11px] font-semibold tabular-nums text-muted/70">{count}</span>
+      </div>
       <div className="flex flex-col pb-2">{children}</div>
     </div>
   );
