@@ -2,9 +2,7 @@ import { listCustomers } from "@/app/actions";
 import Link from "next/link";
 import PageHeader from "@/components/admin/PageHeader";
 import SectionHeader from "@/components/admin/SectionHeader";
-import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/admin/EmptyState";
-import type { SurveyStatus } from "@/lib/constants";
 
 export default async function CustomersPage() {
   const customers = await listCustomers();
@@ -26,7 +24,8 @@ export default async function CustomersPage() {
 
           <div className="rounded-card bg-midnight shadow-card overflow-hidden">
             {customers.map((c, i) => {
-              const latest = c.surveys[0];
+              const total = c.surveys.length;
+              const submitted = c.surveys.filter(s => s.status === "submitted").length;
               const isLast = i === customers.length - 1;
 
               return (
@@ -42,18 +41,16 @@ export default async function CustomersPage() {
                     <p className="text-[12px] text-muted mt-0.5 truncate">{c.contactName}</p>
                   </div>
 
-                  {/* Survey count */}
-                  <div className="text-center shrink-0 w-12">
-                    <p className="text-[15px] font-semibold text-cloud tabular-nums">{c.surveys.length}</p>
-                    <p className="text-[10.5px] text-muted uppercase tracking-wide">surveys</p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="shrink-0 w-28 text-right">
-                    {latest
-                      ? <StatusBadge status={latest.status as SurveyStatus} />
-                      : <span className="text-[12px] text-muted">—</span>
-                    }
+                  {/* Response summary */}
+                  <div className="shrink-0 text-center">
+                    {total > 0 ? (
+                      <>
+                        <p className="text-[15px] font-semibold text-cloud tabular-nums leading-snug">{submitted}/{total}</p>
+                        <p className="text-[10.5px] text-muted uppercase tracking-wide">undersøkelser besvart</p>
+                      </>
+                    ) : (
+                      <span className="text-[13px] text-muted">Ingen undersøkelser</span>
+                    )}
                   </div>
 
                   {/* Action */}

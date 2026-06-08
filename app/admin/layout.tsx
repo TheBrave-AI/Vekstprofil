@@ -1,4 +1,6 @@
 import { auth, signOut } from "@/auth";
+import Link from "next/link";
+import BraveLogo from "@/components/ui/BraveLogo";
 import { redirect } from "next/navigation";
 import { getSidebarData } from "@/app/actions";
 import AdminTopNav from "@/components/admin/shell/AdminTopNav";
@@ -30,17 +32,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-ink flex flex-col">
       {/* Top bar */}
-      <header className="h-12 shrink-0 flex items-center justify-between px-5 bg-midnight border-b border-line">
+      <header className="h-10 shrink-0 flex items-center justify-between px-5 bg-midnight border-b border-line">
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-1.5 mr-2">
-            <span className="font-display font-semibold text-brand text-[24px] tracking-tight">Brave</span>
-            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="2" cy="14" r="1.8" fill="#bf4d27"/>
-              <path d="M2 10 A4 4 0 0 1 6 14"  stroke="#bf4d27" strokeWidth="1.8" strokeLinecap="round"/>
-              <path d="M2 6.5 A7.5 7.5 0 0 1 9.5 14"  stroke="#bf4d27" strokeWidth="1.8" strokeLinecap="round"/>
-              <path d="M2 3 A11 11 0 0 1 13 14" stroke="#bf4d27" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </div>
+          <Link href="/admin" className="mr-0">
+            <BraveLogo className="h-7 text-brand" />
+          </Link>
           <AdminTopNav customerCount={customerCount} />
         </div>
         <div className="flex items-center gap-5 text-[13px]">
