@@ -50,7 +50,7 @@ export default async function CustomerDetailPage({
               {customer.surveys.map((s) => (
                 <tr key={s.id} className="border-b border-line last:border-0">
                   <td className="px-5 py-4 text-mist">{s.template?.name ?? "—"}</td>
-                  <td className="px-5 py-4 text-mist">{new Date(s.createdAt).toLocaleDateString("nb-NO")}</td>
+                  <td className="px-5 py-4 text-mist">{new Date(s.createdAt).toLocaleString("nb-NO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
                   <td className="px-5 py-4">
                     <StatusBadge status={s.status as SurveyStatus} />
                   </td>

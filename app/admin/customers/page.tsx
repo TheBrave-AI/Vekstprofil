@@ -35,10 +35,12 @@ export default async function CustomersPage() {
                 >
                   {/* Left: company + contact */}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-semibold text-cloud truncate leading-snug">
+                    <Link href={`/admin/customers/${c.id}`} className="text-[14px] font-semibold text-cloud hover:text-accent transition-colors truncate leading-snug block">
                       {c.companyName}
+                    </Link>
+                    <p className="text-[12px] text-muted mt-0.5 truncate">
+                      {c.contactName}{c.contactEmail && <span className="text-muted/60"> · {c.contactEmail}</span>}
                     </p>
-                    <p className="text-[12px] text-muted mt-0.5 truncate">{c.contactName}</p>
                   </div>
 
                   {/* Response summary */}

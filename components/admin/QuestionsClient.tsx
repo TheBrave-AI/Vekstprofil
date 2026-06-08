@@ -95,7 +95,9 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
                     {q.category ?? "—"}
                   </td>
                   <td className="px-5 py-3 text-[13.5px] text-cloud max-w-sm">
-                    {q.label}
+                    <button type="button" onClick={() => setEditing(q)} className="hover:text-accent transition-colors text-left">
+                      {q.label}
+                    </button>
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-mist whitespace-nowrap">{q.type}</td>
                   <td className="px-3 py-3 flex items-center gap-2">

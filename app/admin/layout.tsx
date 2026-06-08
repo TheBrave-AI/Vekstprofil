@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-ink flex flex-col">
       {/* Top bar */}
-      <header className="h-10 shrink-0 flex items-center justify-between px-5 bg-midnight border-b border-line">
+      <header className="h-14 shrink-0 flex items-center justify-between px-5 bg-midnight border-b border-line">
         <div className="flex items-center gap-5">
           <Link href="/admin" className="mr-0">
             <BraveLogo className="h-7 text-brand" />

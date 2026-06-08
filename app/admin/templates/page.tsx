@@ -34,7 +34,7 @@ export default async function TemplatesPage() {
                 >
                   {/* Left: name + description */}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-semibold text-cloud truncate leading-snug">{t.name}</p>
+                    <Link href={`/admin/templates/${t.id}/edit`} className="text-[14px] font-semibold text-cloud hover:text-accent transition-colors truncate leading-snug block">{t.name}</Link>
                     {t.description && (
                       <p className="text-[12px] text-muted mt-0.5 truncate">{t.description}</p>
                     )}

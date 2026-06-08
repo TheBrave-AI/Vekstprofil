@@ -7,7 +7,10 @@ import EmptyState from "@/components/admin/EmptyState";
 import { SURVEY_STATUS, type SurveyStatus } from "@/lib/constants";
 
 function fmt(d: Date | string) {
-  return new Date(d).toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric" });
+  const date = new Date(d);
+  const isToday = new Date().toDateString() === date.toDateString();
+  if (isToday) return date.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default async function SurveysPage() {

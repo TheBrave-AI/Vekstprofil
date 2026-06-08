@@ -22,7 +22,7 @@ interface Props {
 export default function AdminSidebar({ active, submitted, draftCount, onCollapse }: Props) {
   return (
     <aside
-      className="w-[210px] shrink-0 sticky top-5 bg-midnight rounded-card shadow-card overflow-hidden"
+      className="w-[222px] shrink-0 sticky top-5 bg-midnight rounded-card shadow-card overflow-hidden"
       style={{ height: "calc(100vh - 5.5rem)" }}
     >
       <div className="overflow-y-auto h-full">
