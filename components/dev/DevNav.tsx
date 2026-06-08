@@ -6,7 +6,7 @@ const LINKS = [
   { label: "Survey",        href: "/k/test-onboarding-demo" },
   null,
   { label: "Dashboard",     href: "/admin" },
-  { label: "Login",         href: "/admin/login" },
+  { label: "Login",         href: "/login" },
   null,
   { label: "+ Ny kunde",    href: "/admin/customers/new" },
   { label: "Testkunde",     href: "/admin/customers/test-customer-001" },
