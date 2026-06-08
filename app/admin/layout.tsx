@@ -7,7 +7,7 @@ import type { SurveyItem } from "@/components/admin/AdminSidebar";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session) redirect("/admin/login");
+  if (!session) redirect("/login");
 
   const { active: activeSurveys, submitted: submittedSurveys, draftCount } = await getSidebarData();
 
@@ -47,7 +47,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {session.user?.email && (
             <span className="text-muted hidden sm:block">{session.user.email}</span>
           )}
-          <form action={async () => { "use server"; await signOut({ redirectTo: "/admin/login" }); }}>
+          <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button type="submit" className="text-muted hover:text-cloud transition-colors">
               Logg ut
             </button>
