@@ -1,5 +1,4 @@
-import { db } from "@/lib/db";
-import { listTemplates } from "@/app/actions";
+import { listCustomers, listTemplates } from "@/app/actions";
 import { NewSurveyForm } from "@/components/admin/NewSurveyForm";
 import Link from "next/link";
 
@@ -10,10 +9,13 @@ export default async function NewSurveyPage({
 }) {
   const { customerId } = await searchParams;
 
-  const [customers, templates] = await Promise.all([
-    db.customer.findMany({ orderBy: { companyName: "asc" }, select: { id: true, companyName: true } }),
+  const [allCustomers, templates] = await Promise.all([
+    listCustomers(),
     listTemplates(),
   ]);
+  const customers = allCustomers
+    .map(c => ({ id: c.id, companyName: c.companyName }))
+    .sort((a, b) => a.companyName.localeCompare(b.companyName));
 
   return (
     <div className="space-y-6">

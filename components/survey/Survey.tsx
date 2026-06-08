@@ -157,6 +157,7 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
             )}
             {stage === "summary" && (
               <Summary
+                questions={questions}
                 answers={answers}
                 onSubmit={handleSubmit}
                 onGoToQuestion={goToQuestion}

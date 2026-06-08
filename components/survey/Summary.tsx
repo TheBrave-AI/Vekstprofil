@@ -1,24 +1,23 @@
 "use client";
-import { QUESTIONS } from "@/lib/questions";
 import { SKIPPED } from "@/lib/types";
-import type { AnswerMap } from "@/lib/types";
+import type { AnswerMap, Question } from "@/lib/types";
 import { formatAnswer } from "@/lib/formatAnswer";
 import BrandBar from "../ui/BrandBar";
 import PrimaryButton from "../ui/PrimaryButton";
 import GhostButton from "../ui/GhostButton";
 import Eyebrow from "../ui/Eyebrow";
 import NotAnsweredPill from "./NotAnsweredPill";
+import QuestionRow from "../ui/QuestionRow";
 
 interface Props {
+  questions: Question[];
   answers: AnswerMap;
   onSubmit: () => void;
-  // Called when the user clicks a row — jumps back to that question
   onGoToQuestion: (index: number) => void;
 }
 
-export default function Summary({ answers, onSubmit, onGoToQuestion }: Props) {
-  // Count questions that are actually answered (not skipped and not empty)
-  const filledCount = QUESTIONS.filter((q) => {
+export default function Summary({ questions, answers, onSubmit, onGoToQuestion }: Props) {
+  const filledCount = questions.filter((q) => {
     const a = answers[q.id];
     return a !== undefined && a !== SKIPPED && a !== "";
   }).length;
@@ -37,47 +36,33 @@ export default function Summary({ answers, onSubmit, onGoToQuestion }: Props) {
       </h1>
 
       <p className="text-muted text-[15px] mt-3">
-        {filledCount} av {QUESTIONS.length} besvart
+        {filledCount} av {questions.length} besvart
       </p>
 
       {/* Answer list */}
       <div className="mt-8">
-        {QUESTIONS.map((q, i) => {
+        {questions.map((q, i) => {
           const raw = answers[q.id];
           // formatAnswer returns null if the answer is empty or SKIPPED
           const formatted = formatAnswer(q, raw);
           const isUnanswered = formatted === null;
 
           return (
-            // The entire row is clickable — sends the user back to that question for editing
-            <button
+            <QuestionRow
               key={q.id}
-              type="button"
-              onClick={() => onGoToQuestion(i)}
-              className="w-full grid gap-5 py-[18px] border-b border-line text-left transition-colors hover:bg-black/[0.03] rounded-sm"
-              style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}
-            >
-              {/* Left: category + question text */}
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-muted text-[11px] font-bold uppercase tracking-[0.12em]">
-                  {q.category}
-                </span>
-                <span className="text-cloud text-[16px] font-medium leading-snug">
-                  {q.label}
-                </span>
-              </div>
-
-              {/* Right: formatted answer or "Ikke oppgitt" pill */}
-              <div className="flex items-center justify-end pl-4 shrink-0">
-                {isUnanswered ? (
+              category={q.category}
+              label={q.label}
+              right={
+                isUnanswered ? (
                   <NotAnsweredPill />
                 ) : (
                   <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[180px] leading-tight">
                     {formatted}
                   </span>
-                )}
-              </div>
-            </button>
+                )
+              }
+              onClick={() => onGoToQuestion(i)}
+            />
           );
         })}
       </div>

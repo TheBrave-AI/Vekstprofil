@@ -1,6 +1,7 @@
 "use client";
 
 import { updateTemplate, setTemplateQuestions } from "@/app/actions";
+import AdminButton from "@/components/ui/AdminButton";
 import { useState, useTransition } from "react";
 import FormField from "@/components/form/FormField";
 import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
@@ -121,14 +122,7 @@ export function EditTemplateClient({
             <span className="text-xs text-mist">{active ? "Vises ved oppretting av survey" : "Arkivert"}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={saveInfo}
-            disabled={isPending}
-            className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition"
-          >
-            Lagre
-          </button>
+          <AdminButton onClick={saveInfo} disabled={isPending}>Lagre</AdminButton>
         </div>
       </div>
 
@@ -156,14 +150,9 @@ export function EditTemplateClient({
           )}
         </div>
         <div className="flex items-center gap-3 relative z-10">
-          <button
-            type="button"
-            onClick={handleSaveQuestions}
-            disabled={isPending || !isDirty}
-            className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-40 transition"
-          >
+          <AdminButton onClick={handleSaveQuestions} disabled={isPending || !isDirty}>
             {isPending ? "Lagrer…" : "Lagre"}
-          </button>
+          </AdminButton>
           <button
             type="button"
             onClick={handleResetQuestions}

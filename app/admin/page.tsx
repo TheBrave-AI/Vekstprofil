@@ -1,39 +1,23 @@
-import { db } from "@/lib/db";
+import { listCustomers, listSurveys } from "@/app/actions";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [
-    customerCount,
-    activeCount,
-    submittedCount,
-    needsFollowUp,
-    recentSubmitted,
-    recentCustomers,
-  ] = await Promise.all([
-    db.customer.count(),
-    db.survey.count({ where: { status: "active" } }),
-    db.survey.count({ where: { status: "submitted" } }),
-    db.survey.findMany({
-      where: { status: "active", sentAt: { lt: sevenDaysAgo } },
-      include: { customer: { select: { id: true, companyName: true } } },
-      orderBy: { sentAt: "asc" },
-    }),
-    db.survey.findMany({
-      where: { status: "submitted" },
-      include: { customer: { select: { id: true, companyName: true } } },
-      orderBy: { submittedAt: "desc" },
-      take: 5,
-    }),
-    db.customer.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: { _count: { select: { surveys: true } } },
-    }),
-  ]);
+  const [customers, surveys] = await Promise.all([listCustomers(), listSurveys()]);
 
-  const totalSent = activeCount + submittedCount;
+  const customerCount   = customers.length;
+  const activeCount     = surveys.filter(s => s.status === "active").length;
+  const submittedCount  = surveys.filter(s => s.status === "submitted").length;
+  const needsFollowUp   = surveys
+    .filter(s => s.status === "active" && s.sentAt && new Date(s.sentAt) < sevenDaysAgo)
+    .sort((a, b) => new Date(a.sentAt!).getTime() - new Date(b.sentAt!).getTime());
+  const recentSubmitted = surveys
+    .filter(s => s.status === "submitted")
+    .sort((a, b) => new Date(b.submittedAt!).getTime() - new Date(a.submittedAt!).getTime())
+    .slice(0, 5);
+
+  const totalSent    = activeCount + submittedCount;
   const responseRate = totalSent > 0 ? Math.round((submittedCount / totalSent) * 100) : 0;
 
   return (
@@ -127,13 +111,14 @@ export default async function AdminDashboard() {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(date: Date | null | undefined): string {
+function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "—";
-  const days = Math.floor((Date.now() - date.getTime()) / 86400000);
+  const d = new Date(date);
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
   if (days === 0) return "i dag";
   if (days === 1) return "i går";
   if (days < 7)  return `${days} d siden`;
-  return date.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
+  return d.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
 }
 
 function Section({ title, subtitle, cta, children }: {

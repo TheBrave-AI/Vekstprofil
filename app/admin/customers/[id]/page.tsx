@@ -1,7 +1,7 @@
-import { db } from "@/lib/db";
+import { getCustomer, activateSurvey } from "@/app/actions";
 import { redirect } from "next/navigation";
-import { listTemplates, createSurvey, activateSurvey } from "@/app/actions";
 import { DeleteCustomerButton } from "@/components/admin/DeleteCustomerButton";
+import AdminButton from "@/components/ui/AdminButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -14,18 +14,7 @@ export default async function CustomerDetailPage({
 }) {
   const { id } = await params;
 
-  const [customer, templates] = await Promise.all([
-    db.customer.findUnique({
-      where:   { id },
-      include: {
-        surveys: {
-          orderBy: { createdAt: "desc" },
-          include: { template: { select: { name: true } }, _count: { select: { answers: true } } },
-        },
-      },
-    }),
-    listTemplates(),
-  ]);
+  const customer = await getCustomer(id);
 
   if (!customer) notFound();
 
@@ -39,23 +28,7 @@ export default async function CustomerDetailPage({
           <p className="text-sm text-mist">{customer.contactName}{customer.contactEmail && ` · ${customer.contactEmail}`}</p>
         </div>
 
-        {templates.length > 0 && (
-          <form action={async (fd: FormData) => {
-            "use server";
-            const tid = fd.get("templateId") as string;
-            await createSurvey(id, tid || undefined);
-            redirect(`/admin/customers/${id}`);
-          }}>
-            <div className="flex gap-2">
-              <select name="templateId" className="rounded-xl border border-line bg-navy px-3 py-2 text-sm text-cloud focus:border-accent focus:outline-none">
-                {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-              <button type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-onbrand hover:bg-brand-deep transition">
-                + Ny undersøkelse
-              </button>
-            </div>
-          </form>
-        )}
+        <AdminButton href={`/admin/surveys/new?customerId=${id}`}>+ Ny undersøkelse</AdminButton>
       </div>
 
       {customer.surveys.length === 0 ? (
@@ -76,7 +49,7 @@ export default async function CustomerDetailPage({
               {customer.surveys.map((s) => (
                 <tr key={s.id} className="border-b border-line last:border-0">
                   <td className="px-5 py-4 text-mist">{s.template?.name ?? "—"}</td>
-                  <td className="px-5 py-4 text-mist">{s.createdAt.toLocaleDateString("nb-NO")}</td>
+                  <td className="px-5 py-4 text-mist">{new Date(s.createdAt).toLocaleDateString("nb-NO")}</td>
                   <td className="px-5 py-4">
                     <StatusBadge status={s.status as SurveyStatus} />
                   </td>

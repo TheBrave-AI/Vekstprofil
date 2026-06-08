@@ -1,5 +1,4 @@
-import { db } from "@/lib/db";
-import { listQuestions } from "@/app/actions";
+import { listQuestions, getTemplate } from "@/app/actions";
 import { EditTemplateClient } from "@/components/admin/EditTemplateClient";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,15 +11,7 @@ export default async function EditTemplatePage({
   const { id } = await params;
 
   const [template, allQuestions] = await Promise.all([
-    db.template.findUnique({
-      where:   { id },
-      include: {
-        questions: {
-          orderBy: { order: "asc" },
-          include: { question: { select: { id: true, label: true, category: true } } },
-        },
-      },
-    }),
+    getTemplate(id),
     listQuestions(),
   ]);
 

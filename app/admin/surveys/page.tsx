@@ -44,7 +44,6 @@ export default async function SurveysPage() {
             {/* Rows */}
             <div className="rounded-card bg-midnight shadow-card overflow-hidden">
               {group.surveys.map((s, i) => {
-                const total     = s._count.answers + (s.status === "submitted" ? 0 : 0);
                 const dateField = s.status === "submitted" ? s.submittedAt : s.status === "active" ? s.sentAt : s.createdAt;
                 const isLast    = i === group.surveys.length - 1;
 

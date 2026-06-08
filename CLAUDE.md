@@ -40,7 +40,8 @@ Key entities:
 
 - **Client route:** `/k/[token]` — public questionnaire, token-gated
 - **Admin routes:** `/admin/*` — protected by Auth.js (Google OAuth, @thebrave.no accounts only)
-- **Root `/`** — smart redirect: logged in → `/admin`, not logged in → `/admin/login`
+- **Root `/`** — smart redirect: logged in → `/admin`, not logged in → `/login`
+- **Login page:** `/login` (NOT `/admin/login` — login lives outside admin layout to avoid redirect loop)
 - **Database:** PostgreSQL via Prisma
 - **No auth for clients** — unguessable token in URL is the only gate
 
@@ -107,6 +108,24 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **Modal confirm pattern:** Use `deleting` / `creating` state (Question | null or boolean) — show inline modal, Escape closes via `useEffect`. See `QuestionsClient.tsx` for reference implementation with all three modals (create, edit, delete).
 - **Grid two-column rows:** Use `minmax(0,X%) minmax(0,Y%)` (not `auto`) for both columns to avoid collapse. `auto` on the right column can collapse or overflow with long text content. Survey detail uses `"minmax(0,55%) minmax(0,45%)"`.
 - **deleteQuestion cascade:** `SurveyQuestion` and `Answer` lack `onDelete: Cascade` from the question side — must manually delete both before `db.question.delete`. `TemplateQuestion` has cascade, so it's handled automatically.
+- **Middleware file is `proxy.ts`** (not `middleware.ts`) — same behaviour, just named differently. Protects `/admin/:path*`, redirects unauthenticated to `/login`.
+- **`revalidateTag` takes ONE argument** — `revalidateTag("surveys")` only. Do not pass a second argument (e.g. `{ expire: 0 }`) — it is silently ignored and is incorrect.
+- **`getTemplate(id)`** — cached action exists in `actions.ts`. Use it instead of querying `db.template.findUnique` directly.
+- **`getCustomer(id)`** — cached with `unstable_cache` per ID, tagged `customers`. Use it in admin pages.
+
+## Component Reuse Principle
+
+Before writing any new HTML/JSX markup, ask: **could this become a component?**
+
+Specifically:
+- If you're writing a button with `bg-brand` styling → use `AdminButton` (admin) or `PrimaryButton` / `GhostButton` (survey flow)
+- If you're writing a question + answer row → use `QuestionRow`
+- If you're writing a page header with overline + h1 + CTA → use `PageHeader`
+- If you're writing a section header with dot + divider → use `SectionHeader`
+- If you're writing an empty state card → use `EmptyState`
+- If you're writing a submit button with pending state → use `FormSubmitButton`
+
+**General rule:** If similar markup will plausibly appear in two or more places, extract a component before writing it the second time. When in doubt, flag it and ask.
 
 ## Component Structure (current)
 
@@ -144,11 +163,15 @@ components/
     QuestionsClient.tsx     — 'use client', owns create/edit/delete modal states for questions page
     SectionHeader.tsx       — colored dot + divider + count used on list pages
   ui/
-    PrimaryButton.tsx
-    GhostButton.tsx
+    PrimaryButton.tsx     — large CTA with Arrow icon, customer survey flow only
+    GhostButton.tsx       — secondary action, customer survey flow only
+    AdminButton.tsx       — admin primary button: supports href (Link), type="submit", disabled, size sm/md
+    QuestionRow.tsx       — question + answer row with category eyebrow and `right` slot; used in Summary + survey detail + (future) comparison view
     BrandBar.tsx
     Arrow.tsx
     SortableQuestion.tsx  — drag-and-drop question row used in survey/template edit pages
+    StatusBadge.tsx       — survey status pill (draft/active/submitted)
+    NotAnsweredPill.tsx   — "ikke besvart" / "hoppet over" pill
   form/
     FormField.tsx         — label + input wrapper for admin forms
     FormSubmitButton.tsx  — submit button with pending state
@@ -229,14 +252,14 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 
 **Admin pages to build:**
 1. `/admin/customers` — customer list ✅ (done)
-2. `/admin/customers/[id]` — customer detail + survey history
+2. `/admin/customers/[id]` — customer detail + survey history ✅ (done)
 3. `/admin/customers/new` — create customer form ✅ (done)
-4. `/admin/surveys` — survey list overview
+4. `/admin/surveys` — survey list overview ✅ (done)
 5. `/admin/surveys/[id]` — view survey + answers ✅ (done)
 6. `/admin/surveys/[id]/edit` — edit survey questions ✅ (done)
-7. `/admin/surveys/new` — create survey (pick customer + template)
-8. `/admin/templates` — list templates
-9. `/admin/templates/new` — create template
+7. `/admin/surveys/new` — create survey (pick customer + template) ✅ (done)
+8. `/admin/templates` — list templates ✅ (done)
+9. `/admin/templates/new` — create template ✅ (done)
 10. `/admin/templates/[id]/edit` — edit template questions ✅ (done)
 11. `/admin/questions` — question catalog ✅ (done)
 12. `/admin/questions/new` — create question ✅ (done)

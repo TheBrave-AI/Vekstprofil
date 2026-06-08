@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 
-const BASE = "https://vekstprofil.thebrave.no";
-
 export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `${BASE}/k/${token}`;
+  const url = `${window.location.origin}/k/${token}`;
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);

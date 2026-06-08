@@ -2,8 +2,7 @@
 import { useSidebar } from "./AdminShellContext";
 
 export default function SidebarToggle() {
-  const { collapsed, onOpen } = useSidebar();
-  if (!collapsed) return null;
+  const { onOpen } = useSidebar();
 
   return (
     <button

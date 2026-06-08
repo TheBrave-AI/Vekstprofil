@@ -1,6 +1,7 @@
 "use client";
 
 import { setSurveyQuestions, activateSurvey } from "@/app/actions";
+import AdminButton from "@/components/ui/AdminButton";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
@@ -105,14 +106,9 @@ export function EditSurveyClient({
 
       {/* Actions */}
       <div className="flex items-center gap-3 relative z-10">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isPending || !isDirty}
-          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-40 transition"
-        >
+        <AdminButton onClick={handleSave} disabled={isPending || !isDirty}>
           {isPending ? "Lagrer…" : "Lagre"}
-        </button>
+        </AdminButton>
         <button
           type="button"
           onClick={handleReset}

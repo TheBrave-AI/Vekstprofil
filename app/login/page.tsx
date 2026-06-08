@@ -1,4 +1,5 @@
 import { signIn } from "@/auth";
+import AdminButton from "@/components/ui/AdminButton";
 
 export default function LoginPage() {
   return (
@@ -15,12 +16,7 @@ export default function LoginPage() {
             await signIn("google", { redirectTo: "/admin" });
           }}
         >
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand transition hover:bg-brand-deep"
-          >
-            Logg inn med Google
-          </button>
+          <AdminButton type="submit" size="md" fullWidth>Logg inn med Google</AdminButton>
         </form>
       </div>
     </main>
