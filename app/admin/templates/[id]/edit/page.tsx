@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { listQuestions } from "@/app/actions";
-import { EditTemplateClient } from "./EditTemplateClient";
+import { EditTemplateClient } from "@/components/admin/EditTemplateClient";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 

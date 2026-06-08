@@ -1,4 +1,4 @@
-import { NewCustomerForm } from "./NewCustomerForm";
+import { NewCustomerForm } from "@/components/admin/NewCustomerForm";
 
 export default function NewCustomerPage() {
   return (

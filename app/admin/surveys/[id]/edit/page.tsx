@@ -1,5 +1,5 @@
 import { getSurveyAdmin, listQuestions } from "@/app/actions";
-import { EditSurveyClient } from "./EditSurveyClient";
+import { EditSurveyClient } from "@/components/admin/EditSurveyClient";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -29,8 +29,6 @@ export default async function EditSurveyPage({
           ← {survey.customer.companyName}
         </Link>
         <h1 className="font-display text-2xl text-cloud mt-1">Rediger survey (utkast)</h1>
-        <p className="text-[12.5px] text-muted mt-1 mb-3">Lenke sendes til kunde etter aktivering</p>
-        <CopyLinkButton token={survey.token} />
       </div>
 
       <EditSurveyClient

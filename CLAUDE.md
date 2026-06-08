@@ -72,7 +72,7 @@ Key entities:
 | `design_handoff_onboarding/reference/Brave Onboarding.html` | Working HTML prototype — open in browser to see intended UX |
 | `BACKEND.md` | Backend setup guide for George |
 | `components/ui/SortableQuestion.tsx` | Reusable drag-and-drop question row — accepts `item`, `index`, optional `action` slot |
-| `app/admin/questions/new/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
+| `components/admin/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
 
 ## Design System
 
@@ -110,6 +110,8 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 
 ## Component Structure (current)
 
+**Convention:** `app/` contains only Next.js route files (`page.tsx`, `layout.tsx`, `route.ts`). All components live in `components/`.
+
 ```
 components/
   survey/
@@ -120,18 +122,36 @@ components/
     Submitted.tsx     — confirmation screen
     Progressbar.tsx   — animated progress bar (visible on question stages only)
   admin/
-    AdminShell.tsx        — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
-    AdminShellContext.tsx — createContext({ collapsed, onOpen }); useSidebar() hook
-    AdminSidebar.tsx      — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
-    AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål
-    SidebarToggle.tsx     — 'use client', consumes useSidebar(); renders › arrow only when collapsed
-    ActivityFeed.tsx      — (unused, commented out)
+    shell/                  — admin layout infrastructure (always loaded together)
+      AdminShell.tsx        — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
+      AdminShellContext.tsx — createContext({ collapsed, onOpen }); useSidebar() hook
+      AdminSidebar.tsx      — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
+      AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål
+      SidebarToggle.tsx     — 'use client', consumes useSidebar(); renders › arrow only when collapsed
+    ActivityFeed.tsx        — (unused, commented out)
+    AddQuestionsPanel.tsx   — slide-in panel for adding questions to surveys/templates
+    CopyLinkButton.tsx      — copies survey link to clipboard
+    DeleteCustomerButton.tsx
+    EditQuestionForm.tsx    — edit question form (used in modal in QuestionsClient)
+    EditSurveyClient.tsx    — 'use client' wrapper for survey edit page
+    EditTemplateClient.tsx  — 'use client' wrapper for template edit page
+    EmptyState.tsx          — empty state card
+    NewCustomerForm.tsx
+    NewQuestionForm.tsx     — accepts optional onCreated() callback for modal embedding
+    NewSurveyForm.tsx
+    NewTemplateForm.tsx
+    PageHeader.tsx          — overline + h1 + CTA button used on list pages
+    QuestionsClient.tsx     — 'use client', owns create/edit/delete modal states for questions page
+    SectionHeader.tsx       — colored dot + divider + count used on list pages
   ui/
     PrimaryButton.tsx
     GhostButton.tsx
     BrandBar.tsx
     Arrow.tsx
     SortableQuestion.tsx  — drag-and-drop question row used in survey/template edit pages
+  form/
+    FormField.tsx         — label + input wrapper for admin forms
+    FormSubmitButton.tsx  — submit button with pending state
   dev/
     DevNav.tsx        — fixed bottom-right nav (dev only), links to all routes + seed data
 ```

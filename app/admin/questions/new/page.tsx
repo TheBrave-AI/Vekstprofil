@@ -1,4 +1,4 @@
-import { NewQuestionForm } from "./NewQuestionForm";
+import { NewQuestionForm } from "@/components/admin/NewQuestionForm";
 
 export default function NewQuestionPage() {
   return (

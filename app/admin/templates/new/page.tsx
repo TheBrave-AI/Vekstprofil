@@ -1,5 +1,5 @@
 import { listQuestions } from "@/app/actions";
-import { NewTemplateForm } from "./NewTemplateForm";
+import { NewTemplateForm } from "@/components/admin/NewTemplateForm";
 import Link from "next/link";
 
 export default async function NewTemplatePage() {

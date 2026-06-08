@@ -1,9 +1,9 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { getSidebarData } from "@/app/actions";
-import AdminTopNav from "@/components/admin/AdminTopNav";
-import AdminShell from "@/components/admin/AdminShell";
-import type { SurveyItem } from "@/components/admin/AdminSidebar";
+import AdminTopNav from "@/components/admin/shell/AdminTopNav";
+import AdminShell from "@/components/admin/shell/AdminShell";
+import type { SurveyItem } from "@/components/admin/shell/AdminSidebar";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();

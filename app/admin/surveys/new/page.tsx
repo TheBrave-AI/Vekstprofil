@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { listTemplates } from "@/app/actions";
-import { NewSurveyForm } from "./NewSurveyForm";
+import { NewSurveyForm } from "@/components/admin/NewSurveyForm";
 import Link from "next/link";
 
 export default async function NewSurveyPage({

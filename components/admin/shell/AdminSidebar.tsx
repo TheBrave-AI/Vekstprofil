@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ActivityFeed from "./ActivityFeed";
+import ActivityFeed from "../ActivityFeed";
 import { relativeTime } from "@/lib/formatTime";
 import { SURVEY_STATUS } from "@/lib/constants";
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EditQuestionForm } from "./EditQuestionForm";
-import { NewQuestionForm } from "./new/NewQuestionForm";
+import { NewQuestionForm } from "./NewQuestionForm";
 import EmptyState from "@/components/admin/EmptyState";
 import { deleteQuestion } from "@/app/actions";
 
