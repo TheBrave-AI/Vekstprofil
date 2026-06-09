@@ -15,6 +15,9 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion } from "@/components/ui/SortableQuestion";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { deleteTemplate } from "@/app/actions";
+import { useRouter } from "next/navigation";
 
 interface TemplateQuestion {
   id:         string; // TemplateQuestion id
@@ -48,6 +51,7 @@ export function EditTemplateClient({
   const [saved,       setSaved]       = useState(false);
   const [showInfo,    setShowInfo]    = useState(false);
   const [isPending,   startTransition] = useTransition();
+  const router = useRouter();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const isDirty = JSON.stringify(questions.map(q => q.questionId)) !== JSON.stringify(initialQuestions.map(q => q.questionId));
@@ -97,6 +101,9 @@ export function EditTemplateClient({
     setActive(next);
     startTransition(() => updateTemplate(templateId, { active: next }));
   }
+  
+ 
+
 
   return (
     <div className="space-y-8">
@@ -184,6 +191,15 @@ export function EditTemplateClient({
       </div>
 
       <AddQuestionsPanel available={available} onAdd={addQuestion} />
+      <ConfirmDeleteButton
+      
+        label="Slett mal"
+        description="Malen vil bli permanent slettet. Dette kan ikke angres."
+        onConfirm={async () => {
+          await deleteTemplate(templateId);
+          router.push("/admin/templates");
+        }}
+      />
     </div>
   );
 }

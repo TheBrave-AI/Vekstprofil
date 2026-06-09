@@ -1,6 +1,5 @@
 import { listSurveys } from "@/app/actions";
 import Link from "next/link";
-import { relativeTime } from "@/lib/formatTime";
 import PageHeader from "@/components/admin/PageHeader";
 import SectionHeader from "@/components/admin/SectionHeader";
 import EmptyState from "@/components/admin/EmptyState";
@@ -33,7 +32,7 @@ export default async function SurveysPage() {
 
       {/* Empty state */}
       {surveys.length === 0 && (
-        <EmptyState title="Ingen undersøkelser ennå">Opprett en undersøkelse fra en kundes side.</EmptyState>
+        <EmptyState title="Ingen undersøkelser ennå">Trykk "Ny undersøkelse" for å opprette en</EmptyState>
       )}
 
       {/* Grouped list */}
@@ -58,7 +57,7 @@ export default async function SurveysPage() {
                     {/* Left: company + template */}
                     <div className="min-w-0 flex-1">
                       <Link
-                        href={`/admin/customers/${s.customer.id}`}
+                        href={`/admin/surveys/${group.key === "draft" ? `${s.id}/edit` : s.id}`}
                         className="text-[14px] font-semibold text-cloud hover:text-accent transition-colors truncate block leading-snug"
                       >
                         {s.customer.companyName}
@@ -81,10 +80,7 @@ export default async function SurveysPage() {
                     {/* Date */}
                     <div className="text-right shrink-0 w-28">
                       {dateField && (
-                        <>
-                          <p className="text-[12.5px] font-medium text-cloud">{relativeTime(dateField)}</p>
-                          <p className="text-[11px] text-muted mt-0.5">{fmt(dateField)}</p>
-                        </>
+                        <p className="text-[12.5px] font-medium text-cloud">{fmt(dateField)}</p>
                       )}
                     </div>
 

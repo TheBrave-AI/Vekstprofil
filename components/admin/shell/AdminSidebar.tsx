@@ -40,6 +40,13 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
             </svg>
           </button>
         </div>
+        
+        <Section label="Besvarte" count={submitted.length} bordered>
+          {submitted.length > 0
+            ? submitted.map((s, i) => <SurveyRow key={s.id} survey={s} isLast={i === submitted.length - 1} />)
+            : <EmptyRow text="Ingen besvarte" />
+          }
+        </Section>
 
         <Section label="Ubesvarte" count={active.length}>
           {active.length > 0
@@ -48,12 +55,6 @@ export default function AdminSidebar({ active, submitted, draftCount, onCollapse
           }
         </Section>
 
-        <Section label="Besvarte" count={submitted.length} bordered>
-          {submitted.length > 0
-            ? submitted.map((s, i) => <SurveyRow key={s.id} survey={s} isLast={i === submitted.length - 1} />)
-            : <EmptyRow text="Ingen besvarte" />
-          }
-        </Section>
       </div>
     </aside>
   );

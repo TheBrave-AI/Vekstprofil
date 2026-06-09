@@ -1,6 +1,8 @@
 import { getSurveyAdmin } from "@/app/actions";
 import { formatAnswer } from "@/lib/formatAnswer";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { DeleteSurveyButton } from "@/components/admin/DeleteSurveyButton";
+import AdminButton from "@/components/ui/AdminButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Question } from "@/lib/types";
@@ -46,12 +48,9 @@ export default async function SurveyDetailPage({
         </div>
         <div className="flex gap-2 shrink-0 items-end">
           {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
-          <a
-            href={`/api/export/${survey.token}`}
-            className="rounded-xl border border-line px-4 py-2 text-sm font-medium text-cloud hover:bg-black/[0.04] transition"
-          >
+          <AdminButton variant="ghost" href={`/api/export/${survey.token}`}>
             Last ned CSV
-          </a>
+          </AdminButton>
         </div>
       </div>
 
@@ -108,6 +107,8 @@ export default async function SurveyDetailPage({
           </div>
         </div>
       )}
+
+      <DeleteSurveyButton surveyId={survey.id} />
     </div>
   );
 }

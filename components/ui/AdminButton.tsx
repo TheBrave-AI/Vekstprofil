@@ -9,11 +9,18 @@ interface Props {
   disabled?: boolean;
   size?: "sm" | "md";
   fullWidth?: boolean;
+  variant?: "solid" | "ghost" | "danger";
 }
 
 const sizes = {
   sm: "px-4 py-2 text-sm",
   md: "px-6 py-3 text-sm",
+};
+
+const variants = {
+  solid: "bg-brand text-onbrand hover:bg-brand-deep",
+  ghost: "border border-line text-cloud hover:bg-black/[0.04]",
+  danger: "border border-line text-muted hover:text-coral hover:border-coral/40",
 };
 
 export default function AdminButton({
@@ -24,8 +31,9 @@ export default function AdminButton({
   disabled,
   size = "sm",
   fullWidth = false,
+  variant = "solid",
 }: Props) {
-  const base = `rounded-xl bg-brand font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition ${sizes[size]} ${fullWidth ? "w-full" : ""}`;
+  const base = `rounded-xl font-medium disabled:opacity-50 transition ${sizes[size]} ${variants[variant]} ${fullWidth ? "w-full" : ""}`;
 
   if (href) {
     return (

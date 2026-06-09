@@ -540,6 +540,20 @@ export async function listSurveys() {
   return cachedSurveys();
 }
 
+export async function deleteSurvey(id: string): Promise<void> {
+  await requireAuth();
+  await db.survey.delete({ where: { id } });
+  revalidateTag("surveys", {});
+  revalidatePath("/admin/surveys");
+}
+
+export async function deleteTemplate (id: string): Promise<void> {
+  await requireAuth();
+  await db.template.delete({ where: { id } });
+  revalidateTag("templates", {});
+  revalidatePath("/admin/templates");
+}
+
 // ── Admin: comparison ─────────────────────────────────────────────────────────
 
 type SurveySnapshot = {

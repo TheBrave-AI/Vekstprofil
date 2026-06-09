@@ -15,6 +15,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion } from "@/components/ui/SortableQuestion";
+import { DeleteSurveyButton } from "./DeleteSurveyButton";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 
@@ -117,6 +118,7 @@ export function EditSurveyClient({
         >
           Tilbakestill
         </button>
+        <DeleteSurveyButton surveyId={surveyId} />
         <div className="flex-1" />
         <button
           type="button"
