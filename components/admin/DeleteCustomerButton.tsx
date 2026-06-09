@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteCustomer } from "@/app/actions";
+import { DeleteButton } from "@/components/ui/buttons/DeleteButton";
+import Button from "@/components/ui/Button";
 
 export function DeleteCustomerButton({
   customerId,
@@ -35,14 +37,7 @@ export function DeleteCustomerButton({
   }
 
   if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-[13px] font-medium text-coral hover:text-coral/70 transition-colors"
-      >
-        Slett kunde
-      </button>
-    );
+    return <DeleteButton onClick={() => setOpen(true)}>Slett kunde</DeleteButton>;
   }
 
   return (
@@ -72,14 +67,16 @@ export function DeleteCustomerButton({
       {error && <p className="text-[12px] text-coral">{error}</p>}
 
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="coral"
           onClick={handleDelete}
           disabled={!confirmed || isPending}
-          className="flex-1 rounded-xl px-4 py-2 text-[13px] font-medium transition-colors disabled:cursor-not-allowed bg-coral/15 text-coral border border-coral/30 enabled:bg-coral enabled:text-white enabled:border-transparent enabled:hover:bg-coral/90"
+          fullWidth
         >
           {isPending ? "Sletter…" : "Slett permanent"}
-        </button>
+        </Button>
         <button
+          type="button"
           onClick={() => { setOpen(false); setInput(""); setError(""); }}
           disabled={isPending}
           className="px-4 py-2 text-[13px] font-medium text-muted hover:text-cloud transition-colors"

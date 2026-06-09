@@ -1,8 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type { Question } from "@/lib/types";
-import PrimaryButton from "../ui/PrimaryButton";
-import GhostButton from "../ui/GhostButton";
+import Button from "../ui/Button";
+import Arrow from "../ui/Arrow";
 import BrandBar from "../ui/BrandBar";
 import ProgressBar from "./Progressbar";
 import Eyebrow from "../ui/Eyebrow";
@@ -241,8 +241,8 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
 
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-7">
-        <PrimaryButton label={index === 0 ? "Start" : "Lagre og fortsett"} onClick={handleNext} disabled={hasError} />
-        <GhostButton label="Vet ikke / Har ikke tall på det" onClick={onSkip} />
+        <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>{index === 0 ? "Start" : "Lagre og fortsett"}</Button>
+        <Button variant="ghost" size="lg" onClick={onSkip}>Vet ikke / Har ikke tall på det</Button>
         <button
           type="button"
           onClick={onBack}

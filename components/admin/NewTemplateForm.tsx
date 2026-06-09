@@ -18,10 +18,12 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
   }
 
   function handleSubmit(fd: FormData) {
-    const name        = (fd.get("name") as string).trim();
-    const description = (fd.get("description") as string).trim();
+    const name       = (fd.get("name") as string).trim();
+    const shortName  = (fd.get("shortName") as string).trim();
+    const introTitle = (fd.get("introTitle") as string).trim();
+    const introText  = (fd.get("introText") as string).trim();
     startTransition(async () => {
-      await createTemplate({ name, description: description || undefined, questionIds: selected });
+      await createTemplate({ name, shortName: shortName || undefined, introTitle: introTitle || undefined, introText: introText || undefined, questionIds: selected });
       router.push("/admin/templates");
     });
   }
@@ -29,8 +31,10 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
   return (
     <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <FormField name="name"        label="Navn"                  placeholder="f.eks. Ny-kunde Skjema" required />
-        <FormField name="description" label="Beskrivelse (valgfri)" placeholder="Kort beskrivelse" />
+        <FormField name="shortName"  label="Kort navn (intern)"              placeholder="F.eks. START" />
+        <FormField name="name"       label="Navn (synlig for kunde)"         placeholder="f.eks. Brave Nullpunkt" required />
+        <FormField name="introTitle" label="Intro-tittel (synlig for kunde)" placeholder="F.eks. La oss kartlegge der dere står i dag." />
+        <FormField name="introText"  label="Intro-tekst (synlig for kunde)"  placeholder="Valgfri brødtekst på intro-kortet" />
       </div>
 
       <div className="space-y-2">

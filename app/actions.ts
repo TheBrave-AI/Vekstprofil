@@ -123,6 +123,9 @@ export async function getSurvey(token: string): Promise<{
   status: "not_found" | "draft" | "submitted" | "ok";
   survey?: {
     id: string;
+    name: string | null;
+    introTitle: string | null;
+    introText: string | null;
     questions: Array<Question & { order: number }>;
     answers: Record<string, { value: string | null; skipped: boolean }>;
   };
@@ -132,6 +135,7 @@ export async function getSurvey(token: string): Promise<{
     include: {
       questions: { orderBy: { order: "asc" }, include: { question: true } },
       answers:   true,
+      template:  { select: { name: true, introTitle: true, introText: true } },
     },
   });
 
@@ -148,7 +152,17 @@ export async function getSurvey(token: string): Promise<{
     survey.answers.map((a) => [a.questionId, { value: a.value, skipped: a.skipped }])
   );
 
-  return { status: "ok", survey: { id: survey.id, questions, answers } };
+  return {
+    status: "ok",
+    survey: {
+      id:         survey.id,
+      name:       survey.name       ?? survey.template?.name       ?? null,
+      introTitle: survey.introTitle ?? survey.template?.introTitle ?? null,
+      introText:  survey.introText  ?? survey.template?.introText  ?? null,
+      questions,
+      answers,
+    },
+  };
 }
 
 export async function saveAnswer(
@@ -253,7 +267,8 @@ export async function getCustomer(id: string) {
 
 export async function createSurvey(
   customerId: string,
-  templateId?: string
+  templateId?: string,
+  introData?: { shortName?: string; name?: string; introTitle?: string; introText?: string }
 ): Promise<{ token: string; id: string }> {
   await requireAuth();
   const token = nanoid(10);
@@ -261,7 +276,16 @@ export async function createSurvey(
 
   await db.$transaction(async (tx) => {
     const survey = await tx.survey.create({
-      data: { customerId, templateId: templateId ?? null, token, status: "draft" },
+      data: {
+        customerId,
+        templateId:  templateId ?? null,
+        token,
+        status:      "draft",
+        shortName:   introData?.shortName?.trim()  ?? null,
+        name:        introData?.name?.trim()        ?? null,
+        introTitle:  introData?.introTitle?.trim()  ?? null,
+        introText:   introData?.introText?.trim()   ?? null,
+      },
     });
     surveyId = survey.id;
 
@@ -284,6 +308,15 @@ export async function createSurvey(
   revalidateTag("customers", {});
   revalidatePath("/admin/customers");
   return { token, id: surveyId };
+}
+
+export async function updateSurvey(
+  id: string,
+  data: Partial<{ shortName: string | null; name: string | null; introTitle: string | null; introText: string | null }>
+): Promise<void> {
+  await requireAuth();
+  await db.survey.update({ where: { id }, data });
+  revalidateTag("surveys", {});
 }
 
 export async function activateSurvey(surveyId: string): Promise<{ activated: boolean }> {
@@ -394,7 +427,7 @@ export async function getTemplate(id: string) {
       include: {
         questions: {
           orderBy: { order: "asc" },
-          include: { question: { select: { id: true, label: true, category: true } } },
+          include: { question: true },
         },
       },
     }),
@@ -405,7 +438,9 @@ export async function getTemplate(id: string) {
 
 export async function createTemplate(data: {
   name:         string;
-  description?: string;
+  shortName?:   string;
+  introTitle?:  string;
+  introText?:   string;
   questionIds:  string[];
 }): Promise<{ id: string }> {
   await requireAuth();
@@ -413,7 +448,12 @@ export async function createTemplate(data: {
 
   const t = await db.$transaction(async (tx) => {
     const template = await tx.template.create({
-      data: { name: data.name.trim(), description: data.description?.trim() ?? null },
+      data: {
+        name:       data.name.trim(),
+        shortName:  data.shortName?.trim()  ?? null,
+        introTitle: data.introTitle?.trim() ?? null,
+        introText:  data.introText?.trim()  ?? null,
+      },
     });
     await tx.templateQuestion.createMany({
       data: data.questionIds.map((questionId, i) => ({
@@ -429,7 +469,7 @@ export async function createTemplate(data: {
 
 export async function updateTemplate(
   id: string,
-  data: Partial<{ name: string; description: string | null; active: boolean }>
+  data: Partial<{ name: string; shortName: string | null; introTitle: string | null; introText: string | null; active: boolean }>
 ): Promise<void> {
   await requireAuth();
   await db.template.update({ where: { id }, data });

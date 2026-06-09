@@ -1,8 +1,10 @@
 "use client";
 
-import { setSurveyQuestions, activateSurvey } from "@/app/actions";
-import AdminButton from "@/components/ui/AdminButton";
-import { useTransition, useState } from "react";
+import { setSurveyQuestions, activateSurvey, updateSurvey } from "@/app/actions";
+import { IntroFormFields } from "@/components/admin/IntroFormFields";
+import Button from "@/components/ui/Button";
+import { SaveButton } from "@/components/ui/buttons/SaveButton";
+import { useTransition, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
 import {
@@ -14,23 +16,39 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
-import { SortableQuestion } from "@/components/ui/SortableQuestion";
+import { SortableQuestion, type SortableQuestionItem } from "@/components/ui/SortableQuestion";
 import { DeleteSurveyButton } from "./DeleteSurveyButton";
+import { EditQuestionForm } from "./EditQuestionForm";
 
-interface QuestionRow { id: string; label: string; category: string | null; }
+interface QuestionRow extends SortableQuestionItem {}
 
 export function EditSurveyClient({
   surveyId,
   surveyQuestions,
   allQuestions,
+  initialShortName,
+  initialName,
+  initialIntroTitle,
+  initialIntroText,
 }: {
-  surveyId:        string;
-  surveyQuestions: QuestionRow[];
-  allQuestions:    QuestionRow[];
+  surveyId:          string;
+  surveyQuestions:   QuestionRow[];
+  allQuestions:      QuestionRow[];
+  initialShortName:  string | null;
+  initialName:       string | null;
+  initialIntroTitle: string | null;
+  initialIntroText:  string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [current, setCurrent] = useState(surveyQuestions);
+  const [current,    setCurrent]    = useState(surveyQuestions);
+  const [editing,    setEditing]    = useState<QuestionRow | null>(null);
+  const [showInfo,   setShowInfo]   = useState(false);
+  const [saved,      setSaved]      = useState(false);
+  const [shortName,  setShortName]  = useState(initialShortName  ?? "");
+  const [name,       setName]       = useState(initialName       ?? "");
+  const [introTitle, setIntroTitle] = useState(initialIntroTitle ?? "");
+  const [introText,  setIntroText]  = useState(initialIntroText  ?? "");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -62,6 +80,27 @@ export function EditSurveyClient({
     setCurrent(surveyQuestions);
   }
 
+  useEffect(() => {
+    if (!editing) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setEditing(null); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
+
+  function flash() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
+
+  function saveInfo() {
+    startTransition(async () => {
+      await updateSurvey(surveyId, {
+        shortName:  shortName  || null,
+        name:       name       || null,
+        introTitle: introTitle || null,
+        introText:  introText  || null,
+      });
+      flash();
+    });
+  }
+
   function handleActivate() {
     startTransition(async () => {
       try {
@@ -76,7 +115,32 @@ export function EditSurveyClient({
 
   return (
     <div className="space-y-8">
-      
+
+      {/* Intro info toggle */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowInfo((v) => !v)}
+          className="text-[12px] font-medium text-muted hover:text-cloud transition flex items-center gap-1.5"
+        >
+          <span>{showInfo ? "▾" : "▸"}</span> Intro-innhold
+        </button>
+
+        {saved && <p className="text-xs text-accent mt-1">✓ Lagret</p>}
+
+        {showInfo && (
+          <div className="rounded-card bg-midnight p-6 shadow-card space-y-4 mt-3">
+            <IntroFormFields
+              shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+              onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+            />
+            <div className="flex justify-end">
+              <SaveButton type="button" onClick={saveInfo} loading={isPending} />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Current questions */}
       <div className="space-y-3">
         <h2 className="font-display text-xl text-cloud">Spørsmål i surveyen ({current.length})</h2>
@@ -92,6 +156,7 @@ export function EditSurveyClient({
                     item={q}
                     index={i}
                     onRemove={() => remove(q.id)}
+                    onEdit={(item) => setEditing(item as QuestionRow)}
                   />
                 ))}
               </SortableContext>
@@ -105,29 +170,42 @@ export function EditSurveyClient({
 
       
 
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setEditing(null)}
+        >
+          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setEditing(null)}
+              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
+              aria-label="Lukk"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <EditQuestionForm
+              question={{ id: editing.id, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options }}
+              onSaved={() => setEditing(null)}
+              onClose={() => setEditing(null)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex items-center gap-3 relative z-10">
-        <AdminButton onClick={handleSave} disabled={isPending || !isDirty}>
-          {isPending ? "Lagrer…" : "Lagre"}
-        </AdminButton>
-        <button
-          type="button"
-          onClick={handleReset}
-          disabled={isPending || !isDirty}
-          className="rounded-xl border border-line px-5 py-2.5 text-sm font-medium text-mist hover:text-cloud disabled:opacity-40 transition"
-        >
+        <SaveButton type="button" onClick={handleSave} loading={isPending} disabled={!isDirty} />
+        <Button variant="ghost" onClick={handleReset} disabled={isPending || !isDirty}>
           Tilbakestill
-        </button>
+        </Button>
         <DeleteSurveyButton surveyId={surveyId} />
         <div className="flex-1" />
-        <button
-          type="button"
-          onClick={handleActivate}
-          disabled={isPending || current.length === 0}
-          className="rounded-xl bg-accent/10 px-5 py-2.5 text-sm font-medium text-accent hover:bg-accent/20 disabled:opacity-40 transition"
-        >
+        <Button variant="accent" onClick={handleActivate} disabled={isPending || current.length === 0}>
           Aktiver skjema
-        </button>
+        </Button>
       </div>
     </div>
   );

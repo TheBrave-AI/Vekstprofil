@@ -24,13 +24,16 @@ export default async function ClientQuestionnairePage({
     );
   }
 
-  const { questions, answers } = result.survey!;
+  const { questions, answers, name, introTitle, introText } = result.survey!;
 
   return (
     <Survey
       token={token}
       questions={questions}
       existingAnswers={answers}
+      name={name}
+      introTitle={introTitle}
+      introText={introText}
     />
   );
 }

@@ -1,7 +1,7 @@
 import { getCustomer, activateSurvey } from "@/app/actions";
 import { redirect } from "next/navigation";
 import { DeleteCustomerButton } from "@/components/admin/DeleteCustomerButton";
-import AdminButton from "@/components/ui/AdminButton";
+import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -29,7 +29,7 @@ export default async function CustomerDetailPage({
           <p className="text-sm text-mist">{customer.contactName}{customer.contactEmail && ` · ${customer.contactEmail}`}</p>
         </div>
 
-        <AdminButton href={`/admin/surveys/new?customerId=${id}`}>+ Ny undersøkelse</AdminButton>
+        <Button href={`/admin/surveys/new?customerId=${id}`}>+ Ny undersøkelse</Button>
       </div>
       <SectionHeader label="Undersøkelser" count={customer.surveys.length} />
       {customer.surveys.length === 0 ? (

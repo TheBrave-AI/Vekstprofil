@@ -1,5 +1,5 @@
 import BrandBar from "../ui/BrandBar";
-import GhostButton from "../ui/GhostButton";
+import Button from "../ui/Button";
 
 interface Props {
   onReset: () => void;
@@ -37,7 +37,7 @@ export default function Submitted({ onReset }: Props) {
       </p>
 
       <div className="mt-8">
-        <GhostButton label="Start på nytt" onClick={onReset} />
+        <Button variant="ghost" size="lg" onClick={onReset}>Start på nytt</Button>
       </div>
     </div>
   );

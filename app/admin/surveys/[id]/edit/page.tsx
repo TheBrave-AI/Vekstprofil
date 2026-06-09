@@ -34,11 +34,31 @@ export default async function EditSurveyPage({
       <EditSurveyClient
         surveyId={id}
         surveyQuestions={survey.questions.map((sq) => ({
-          id: sq.question.id, label: sq.question.label, category: sq.question.category,
+          id:          sq.question.id,
+          label:       sq.question.label,
+          category:    sq.question.category,
+          type:        sq.question.type,
+          help:        sq.question.help,
+          placeholder: sq.question.placeholder,
+          prefix:      sq.question.prefix,
+          suffix:      sq.question.suffix,
+          options:     sq.question.options,
         }))}
         allQuestions={allQuestions.map((q) => ({
-          id: q.id, label: q.label, category: q.category,
+          id:          q.id,
+          label:       q.label,
+          category:    q.category,
+          type:        q.type,
+          help:        q.help,
+          placeholder: q.placeholder,
+          prefix:      q.prefix,
+          suffix:      q.suffix,
+          options:     q.options,
         }))}
+        initialShortName={survey.shortName}
+        initialName={survey.name}
+        initialIntroTitle={survey.introTitle}
+        initialIntroText={survey.introText}
       />
     </div>
   );

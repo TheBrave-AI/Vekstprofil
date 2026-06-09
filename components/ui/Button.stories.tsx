@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect } from 'storybook/test';
-import AdminButton from './AdminButton';
+import Button from './Button';
 
 const meta = {
-  component: AdminButton,
+  component: Button,
   tags: ['ai-generated'],
-} satisfies Meta<typeof AdminButton>;
+} satisfies Meta<typeof Button>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -46,4 +46,16 @@ export const FullWidth: Story = {
 
 export const AsLink: Story = {
   args: { children: 'Gå til kunder', href: '/admin/customers' },
+};
+
+export const GhostVariant: Story = {
+  args: { children: 'Tilbakestill', variant: 'ghost' },
+};
+
+export const DangerVariant: Story = {
+  args: { children: 'Slett', variant: 'danger' },
+};
+
+export const CoralVariant: Story = {
+  args: { children: 'Slett permanent', variant: 'coral' },
 };

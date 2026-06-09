@@ -1,9 +1,10 @@
 "use client";
 
 import { updateTemplate, setTemplateQuestions } from "@/app/actions";
-import AdminButton from "@/components/ui/AdminButton";
-import { useState, useTransition } from "react";
-import FormField from "@/components/form/FormField";
+import Button from "@/components/ui/Button";
+import { SaveButton } from "@/components/ui/buttons/SaveButton";
+import { useState, useTransition, useEffect } from "react";
+import { IntroFormFields } from "@/components/admin/IntroFormFields";
 import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
 import {
   DndContext,
@@ -17,41 +18,72 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-ki
 import { SortableQuestion } from "@/components/ui/SortableQuestion";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { deleteTemplate } from "@/app/actions";
+import { EditQuestionForm } from "./EditQuestionForm";
 import { useRouter } from "next/navigation";
 
 interface TemplateQuestion {
-  id:         string; // TemplateQuestion id
-  questionId: string;
-  label:      string;
-  category:   string | null;
-  order:      number;
+  id:          string; // TemplateQuestion id
+  questionId:  string;
+  label:       string;
+  category:    string | null;
+  order:       number;
+  type?:       string;
+  help?:       string | null;
+  placeholder?: string | null;
+  prefix?:     string | null;
+  suffix?:     string | null;
+  options?:    unknown;
 }
 
-interface QuestionRow { id: string; label: string; category: string | null; }
+interface QuestionRow {
+  id:          string;
+  label:       string;
+  category:    string | null;
+  type?:       string;
+  help?:       string | null;
+  placeholder?: string | null;
+  prefix?:     string | null;
+  suffix?:     string | null;
+  options?:    unknown;
+}
 
 export function EditTemplateClient({
   templateId,
   initialName,
-  initialDescription,
+  initialShortName,
+  initialIntroTitle,
+  initialIntroText,
   initialActive,
   initialQuestions,
   allQuestions,
 }: {
   templateId:          string;
   initialName:         string;
-  initialDescription:  string | null;
+  initialShortName:    string | null;
+  initialIntroTitle:   string | null;
+  initialIntroText:    string | null;
   initialActive:       boolean;
   initialQuestions:    TemplateQuestion[];
   allQuestions:        QuestionRow[];
 }) {
   const [name,        setName]        = useState(initialName);
-  const [description, setDescription] = useState(initialDescription ?? "");
+  const [shortName,   setShortName]   = useState(initialShortName   ?? "");
+  const [introTitle,  setIntroTitle]  = useState(initialIntroTitle  ?? "");
+  const [introText,   setIntroText]   = useState(initialIntroText   ?? "");
   const [active,      setActive]      = useState(initialActive);
   const [questions,   setQuestions]   = useState(initialQuestions);
   const [saved,       setSaved]       = useState(false);
   const [showInfo,    setShowInfo]    = useState(false);
+  const [editing,     setEditing]     = useState<TemplateQuestion | null>(null);
   const [isPending,   startTransition] = useTransition();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!editing) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setEditing(null); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const isDirty = JSON.stringify(questions.map(q => q.questionId)) !== JSON.stringify(initialQuestions.map(q => q.questionId));
@@ -62,7 +94,7 @@ export function EditTemplateClient({
   function addQuestion(q: QuestionRow) {
     setQuestions((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), questionId: q.id, label: q.label, category: q.category, order: prev.length },
+      { id: crypto.randomUUID(), questionId: q.id, label: q.label, category: q.category, order: prev.length, type: q.type, help: q.help, placeholder: q.placeholder, prefix: q.prefix, suffix: q.suffix, options: q.options },
     ]);
   }
 
@@ -70,7 +102,13 @@ export function EditTemplateClient({
 
   function saveInfo() {
     startTransition(async () => {
-      await updateTemplate(templateId, { name, description: description || null, active });
+      await updateTemplate(templateId, {
+        name,
+        shortName:  shortName  || null,
+        introTitle: introTitle || null,
+        introText:  introText  || null,
+        active,
+      });
       flash();
     });
   }
@@ -130,27 +168,27 @@ export function EditTemplateClient({
       {isPending && <p className="text-xs text-accent">Lagrer…</p>}
       {saved    && <p className="text-xs text-accent">✓ Lagret</p>}
 
+      {/* Aktiv-toggle — alltid synlig */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-cloud">Aktiv</span>
+        <button
+          type="button"
+          onClick={toggleActive}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${active ? "bg-accent" : "bg-steel"}`}
+        >
+          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${active ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
+        </button>
+        <span className="text-xs text-mist">{active ? "Vises ved oppretting av survey" : "Arkivert"}</span>
+      </div>
+
       {/* Info card — shown on pencil click */}
       {showInfo && (
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <FormField label="Navn"        value={name}        onChange={(e) => setName(e.target.value)} />
-        <FormField label="Beskrivelse" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Valgfri" />
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-cloud">Aktiv</span>
-            <button
-              type="button"
-              onClick={toggleActive}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${active ? "bg-accent" : "bg-steel"}`}
-            >
-              <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${active ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
-            </button>
-            <span className="text-xs text-mist">{active ? "Vises ved oppretting av survey" : "Arkivert"}</span>
-          </div>
-
-          <AdminButton onClick={saveInfo} disabled={isPending}>Lagre</AdminButton>
-        </div>
+        <IntroFormFields
+          shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+          onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        />
+        <SaveButton type="button" onClick={saveInfo} loading={isPending} />
       </div>
       )}
 
@@ -166,9 +204,10 @@ export function EditTemplateClient({
                 {questions.map((q, i) => (
                   <SortableQuestion
                     key={q.id}
-                    item={{ id: q.questionId, label: q.label, category: q.category }}
+                    item={{ id: q.questionId, label: q.label, category: q.category, type: q.type, help: q.help, placeholder: q.placeholder, prefix: q.prefix, suffix: q.suffix, options: q.options }}
                     index={i}
                     onRemove={() => removeQuestion(q.questionId)}
+                    onEdit={() => setEditing(q)}
                   />
                 ))}
               </SortableContext>
@@ -176,21 +215,40 @@ export function EditTemplateClient({
           )}
         </div>
         <div className="flex items-center gap-3 relative z-10">
-          <AdminButton onClick={handleSaveQuestions} disabled={isPending || !isDirty}>
-            {isPending ? "Lagrer…" : "Lagre"}
-          </AdminButton>
-          <button
-            type="button"
-            onClick={handleResetQuestions}
-            disabled={isPending || !isDirty}
-            className="rounded-xl border border-line px-5 py-2.5 text-sm font-medium text-mist hover:text-cloud disabled:opacity-40 transition"
-          >
+          <SaveButton type="button" onClick={handleSaveQuestions} loading={isPending} disabled={!isDirty} />
+          <Button variant="ghost" onClick={handleResetQuestions} disabled={isPending || !isDirty}>
             Tilbakestill
-          </button>
+          </Button>
         </div>
       </div>
 
       <AddQuestionsPanel available={available} onAdd={addQuestion} />
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setEditing(null)}
+        >
+          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setEditing(null)}
+              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
+              aria-label="Lukk"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <EditQuestionForm
+              question={{ id: editing.questionId, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options }}
+              onSaved={() => setEditing(null)}
+              onClose={() => setEditing(null)}
+            />
+          </div>
+        </div>
+      )}
+
       <ConfirmDeleteButton
       
         label="Slett mal"

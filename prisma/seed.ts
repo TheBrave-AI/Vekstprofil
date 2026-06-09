@@ -31,10 +31,16 @@ async function main() {
   console.log(`Seeded ${created.length} questions.`);
 
   // 2. Default Template
+  const templateData = {
+    name:       "Nullpunkt",
+    shortName:  "START",
+    introTitle: "La oss kartlegge der dere står i dag.",
+    introText:  "Vi stiller korte spørsmål om salg og marked. Svarene danner et utgangspunkt vi kommer tilbake til senere — slik at vi sammen kan se nøyaktig hvor mye dere har vokst. Har dere ikke tallet? Hopp videre, og evt. kom tilbake til det senere.",
+  };
   const template = await db.template.upsert({
     where:  { id: "default-template" },
-    update: {},
-    create: { id: "default-template", name: "Brave Nullpunkt", description: "Kartlegging av salgs- og markedssituasjon" },
+    update: templateData,
+    create: { id: "default-template", ...templateData },
   });
   for (const q of created) {
     await db.templateQuestion.upsert({

@@ -1,5 +1,5 @@
 import { signIn } from "@/auth";
-import AdminButton from "@/components/ui/AdminButton";
+import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   return (
@@ -16,7 +16,7 @@ export default function LoginPage() {
             await signIn("google", { redirectTo: "/admin" });
           }}
         >
-          <AdminButton type="submit" size="md" fullWidth>Logg inn med Google</AdminButton>
+          <Button type="submit" size="md" fullWidth>Logg inn med Google</Button>
         </form>
       </div>
     </main>

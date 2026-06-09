@@ -22,8 +22,10 @@ model Customer {
 
 model Template {
   id          String             @id @default(cuid())
+  shortName   String?
   name        String
-  description String?
+  introTitle  String?
+  introText   String?
   active      Boolean            @default(true)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
@@ -70,6 +72,10 @@ model Survey {
   templateId  String?
   token       String           @unique
   status      String           @default("draft") // "draft" | "active" | "submitted"
+  shortName   String?
+  name        String?
+  introTitle  String?
+  introText   String?
   createdAt   DateTime         @default(now())
   sentAt      DateTime?        // set when admin activates
   submittedAt DateTime?        // set when customer submits

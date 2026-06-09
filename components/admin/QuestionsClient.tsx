@@ -7,6 +7,7 @@ import { EditQuestionForm } from "./EditQuestionForm";
 import { NewQuestionForm } from "./NewQuestionForm";
 import EmptyState from "@/components/admin/EmptyState";
 import { deleteQuestion } from "@/app/actions";
+import Button from "@/components/ui/Button";
 
 interface Question {
   id:          string;
@@ -59,13 +60,7 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
             Alle spørsmål deles på tvers av maler og undersøkelser. Endringer gjelder retroaktivt.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setCreating(true)}
-          className="shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-onbrand hover:bg-brand-deep transition"
-        >
-          + Nytt spørsmål
-        </button>
+        <Button onClick={() => setCreating(true)}>+ Nytt spørsmål</Button>
       </div>
 
       {questions.length === 0 ? (
@@ -174,14 +169,9 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
               <span className="text-cloud">"{deleting.label}"</span> vil bli permanent slettet — inkludert alle svar knyttet til spørsmålet.
             </p>
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={isPending}
-                className="rounded-xl bg-coral/90 px-5 py-2.5 text-sm font-medium text-white hover:bg-coral disabled:opacity-50 transition"
-              >
+              <Button variant="coral" onClick={confirmDelete} disabled={isPending}>
                 {isPending ? "Sletter…" : "Slett"}
-              </button>
+              </Button>
               <button
                 type="button"
                 onClick={() => setDeleting(null)}

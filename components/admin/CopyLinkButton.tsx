@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buttonVariants } from "@/components/ui/Button";
 
 export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
@@ -20,10 +21,13 @@ export function CopyLinkButton({ token }: { token: string }) {
           {url}
         </span>
         <button
+          type="button"
           onClick={handleCopy}
-          className={`shrink-0 px-4 py-2.5 text-[12.5px] font-medium border-l border-line transition-colors ${
-            copied ? "text-accent bg-accent/5" : "text-muted hover:text-cloud hover:bg-black/[0.03]"
-          }`}
+          className={[
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "rounded-none border-0 border-l border-line text-[12.5px]",
+            copied ? "text-accent bg-accent/5 hover:text-accent hover:bg-accent/5" : "",
+          ].filter(Boolean).join(" ")}
         >
           {copied ? "Kopiert ✓" : "Kopier"}
         </button>

@@ -13,8 +13,10 @@ import type { AnimationDefinition } from "framer-motion";
 interface Props {
   token: string;
   questions: Question[];
-  // George's DB format: { value: string | null; skipped: boolean }
   existingAnswers: Record<string, { value: string | null; skipped: boolean }>;
+  name?: string | null;
+  introTitle?: string | null;
+  introText?: string | null;
 }
 
 // Converts the DB format to the frontend-friendly AnswerMap format
@@ -39,7 +41,7 @@ const reducedVariants = {
 };
 
 
-export default function Survey({ token, questions, existingAnswers }: Props) {
+export default function Survey({ token, questions, existingAnswers, name, introTitle, introText }: Props) {
   const [stage, setStage] = useState<Stage>("intro");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
@@ -141,7 +143,7 @@ export default function Survey({ token, questions, existingAnswers }: Props) {
               if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);
             }}
           >
-            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} />}
+            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} name={name} introTitle={introTitle} introText={introText} />}
             {typeof stage === "number" && (
               <QuestionCard
                 question={questions[stage]}

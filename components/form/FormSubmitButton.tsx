@@ -1,3 +1,5 @@
+import { SaveButton } from "@/components/ui/buttons/SaveButton";
+
 interface Props {
   label: string;
   isPending: boolean;
@@ -7,12 +9,8 @@ interface Props {
 
 export default function FormSubmitButton({ label, isPending, disabled, fullWidth = true }: Props) {
   return (
-    <button
-      type="submit"
-      disabled={isPending || disabled}
-      className={`${fullWidth ? "w-full " : ""}rounded-xl bg-brand px-6 py-3 text-sm font-medium text-onbrand hover:bg-brand-deep disabled:opacity-50 transition`}
-    >
+    <SaveButton type="submit" loading={isPending} disabled={disabled} fullWidth={fullWidth}>
       {isPending ? "Oppretter…" : label}
-    </button>
+    </SaveButton>
   );
 }

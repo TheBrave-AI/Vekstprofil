@@ -24,19 +24,33 @@ export default async function EditTemplatePage({
       <EditTemplateClient
         templateId={template.id}
         initialName={template.name}
-        initialDescription={template.description}
+        initialShortName={template.shortName}
+        initialIntroTitle={template.introTitle}
+        initialIntroText={template.introText}
         initialActive={template.active}
         initialQuestions={template.questions.map((tq) => ({
-          id:         tq.id,
-          questionId: tq.questionId,
-          label:      tq.question.label,
-          category:   tq.question.category,
-          order:      tq.order,
+          id:          tq.id,
+          questionId:  tq.questionId,
+          label:       tq.question.label,
+          category:    tq.question.category,
+          order:       tq.order,
+          type:        tq.question.type,
+          help:        tq.question.help,
+          placeholder: tq.question.placeholder,
+          prefix:      tq.question.prefix,
+          suffix:      tq.question.suffix,
+          options:     tq.question.options,
         }))}
         allQuestions={allQuestions.map((q) => ({
-          id:       q.id,
-          label:    q.label,
-          category: q.category,
+          id:          q.id,
+          label:       q.label,
+          category:    q.category,
+          type:        q.type,
+          help:        q.help,
+          placeholder: q.placeholder,
+          prefix:      q.prefix,
+          suffix:      q.suffix,
+          options:     q.options,
         }))}
       />
     </div>

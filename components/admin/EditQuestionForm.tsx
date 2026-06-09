@@ -1,7 +1,7 @@
 "use client";
 
 import { updateQuestion } from "@/app/actions";
-import AdminButton from "@/components/ui/AdminButton";
+import { SaveButton } from "@/components/ui/buttons/SaveButton";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import FormField from "@/components/form/FormField";
@@ -144,9 +144,7 @@ export function EditQuestionForm({ question, onSaved, onClose }: Props) {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="flex items-center gap-3 pt-2">
-        <AdminButton type="submit" disabled={isPending}>
-          {isPending ? "Lagrer…" : "Lagre endringer"}
-        </AdminButton>
+        <SaveButton loading={isPending}>Lagre endringer</SaveButton>
         <button type="button" onClick={onClose} className="text-sm text-muted hover:text-cloud transition">
           Avbryt
         </button>

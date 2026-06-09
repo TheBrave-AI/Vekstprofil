@@ -3,8 +3,8 @@ import { SKIPPED } from "@/lib/types";
 import type { AnswerMap, Question } from "@/lib/types";
 import { formatAnswer } from "@/lib/formatAnswer";
 import BrandBar from "../ui/BrandBar";
-import PrimaryButton from "../ui/PrimaryButton";
-import GhostButton from "../ui/GhostButton";
+import Button from "../ui/Button";
+import Arrow from "../ui/Arrow";
 import Eyebrow from "../ui/Eyebrow";
 import NotAnsweredPill from "./NotAnsweredPill";
 import QuestionRow from "../ui/QuestionRow";
@@ -69,9 +69,9 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
 
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-8">
-        <PrimaryButton label="Send inn kartlegging" onClick={onSubmit} />
+        <Button size="lg" onClick={onSubmit} icon={<Arrow />}>Send inn kartlegging</Button>
         {/* "Gå gjennom på nytt" sends the user to question 1 (index 0) */}
-        <GhostButton label="Gå gjennom på nytt" onClick={() => onGoToQuestion(0)} />
+        <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Gå gjennom på nytt</Button>
       </div>
     </div>
   );

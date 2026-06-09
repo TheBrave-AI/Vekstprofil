@@ -1,8 +1,9 @@
 "use client";
 
 import { createSurvey } from "@/app/actions";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { IntroFormFields } from "@/components/admin/IntroFormFields";
 import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 interface CustomerRow { id: string; companyName: string; }
@@ -13,18 +14,30 @@ export function NewSurveyForm({
   templates,
   preselectedCustomerId,
 }: {
-  customers: CustomerRow[];
-  templates: TemplateRow[];
+  customers:              CustomerRow[];
+  templates:              TemplateRow[];
   preselectedCustomerId?: string;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [templateId, setTemplateId]  = useState("");
+  const [shortName,  setShortName]   = useState("");
+  const [name,       setName]        = useState("");
+  const [introTitle, setIntroTitle]  = useState("");
+  const [introText,  setIntroText]   = useState("");
   const router = useRouter();
+
+  const hasTemplate = templateId !== "";
 
   function handleSubmit(fd: FormData) {
     const customerId = fd.get("customerId") as string;
-    const templateId = (fd.get("templateId") as string) || undefined;
+    const introData = hasTemplate ? undefined : {
+      shortName:  shortName  || undefined,
+      name:       name       || undefined,
+      introTitle: introTitle || undefined,
+      introText:  introText  || undefined,
+    };
     startTransition(async () => {
-      const { id } = await createSurvey(customerId, templateId);
+      const { id } = await createSurvey(customerId, templateId || undefined, introData);
       router.push(`/admin/surveys/${id}/edit`);
     });
   }
@@ -59,6 +72,8 @@ export function NewSurveyForm({
           <span className="text-sm font-medium text-cloud">Mal (valgfri)</span>
           <select
             name="templateId"
+            value={templateId}
+            onChange={(e) => setTemplateId(e.target.value)}
             className="w-full rounded-xl border border-line bg-navy px-4 py-2.5 text-sm text-cloud focus:border-accent focus:outline-none transition"
           >
             <option value="">— Ingen mal, legg til spørsmål manuelt —</option>
@@ -68,6 +83,16 @@ export function NewSurveyForm({
           </select>
           <p className="text-xs text-muted">Velger du en mal kopieres spørsmålene automatisk inn.</p>
         </label>
+
+        {!hasTemplate && (
+          <div className="space-y-3 border-t border-line pt-4">
+            <p className="text-xs text-muted">Intro-innhold (synlig for kunde)</p>
+            <IntroFormFields
+              shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+              onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+            />
+          </div>
+        )}
       </div>
 
       <FormSubmitButton label="Opprett undersøkelse (utkast)" isPending={isPending} />

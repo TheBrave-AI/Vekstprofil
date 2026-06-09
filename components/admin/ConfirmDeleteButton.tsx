@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import AdminButton from "@/components/ui/AdminButton";
+import { DeleteButton } from "@/components/ui/buttons/DeleteButton";
+import Button from "@/components/ui/Button";
 
 interface Props {
   label: string;
@@ -30,9 +31,7 @@ export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
 
   return (
     <>
-      <AdminButton variant="danger" onClick={() => setConfirming(true)}>
-        {label}
-      </AdminButton>
+      <DeleteButton onClick={() => setConfirming(true)}>{label}</DeleteButton>
 
       {confirming && (
         <div
@@ -49,14 +48,9 @@ export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
             </div>
             <p className="text-sm text-muted leading-relaxed">{description}</p>
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={isPending}
-                className="rounded-xl bg-coral/90 px-5 py-2.5 text-sm font-medium text-white hover:bg-coral disabled:opacity-50 transition"
-              >
+              <Button variant="coral" onClick={confirmDelete} disabled={isPending}>
                 {isPending ? "Sletter…" : "Slett"}
-              </button>
+              </Button>
               <button
                 type="button"
                 onClick={() => setConfirming(false)}

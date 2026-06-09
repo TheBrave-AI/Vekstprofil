@@ -2,7 +2,7 @@ import { getSurveyAdmin } from "@/app/actions";
 import { formatAnswer } from "@/lib/formatAnswer";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import { DeleteSurveyButton } from "@/components/admin/DeleteSurveyButton";
-import AdminButton from "@/components/ui/AdminButton";
+import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Question } from "@/lib/types";
@@ -48,9 +48,9 @@ export default async function SurveyDetailPage({
         </div>
         <div className="flex gap-2 shrink-0 items-end">
           {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
-          <AdminButton variant="ghost" href={`/api/export/${survey.token}`}>
+          <Button variant="ghost" href={`/api/export/${survey.token}`}>
             Last ned CSV
-          </AdminButton>
+          </Button>
         </div>
       </div>
 
