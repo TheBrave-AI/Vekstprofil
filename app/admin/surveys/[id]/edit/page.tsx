@@ -1,6 +1,6 @@
 import { getSurveyAdmin, listQuestions } from "@/app/actions";
-import { EditSurveyClient } from "@/components/admin/EditSurveyClient";
-import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { EditSurveyClient } from "@/components/admin/surveys/EditSurveyClient";
+import { CopyLinkButton } from "@/components/admin/shared/CopyLinkButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 

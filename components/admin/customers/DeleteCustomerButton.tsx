@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteCustomer } from "@/app/actions";
 import { DeleteButton } from "@/components/ui/buttons/DeleteButton";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 
 export function DeleteCustomerButton({
   customerId,

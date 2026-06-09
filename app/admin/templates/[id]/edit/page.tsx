@@ -1,5 +1,5 @@
 import { listQuestions, getTemplate } from "@/app/actions";
-import { EditTemplateClient } from "@/components/admin/EditTemplateClient";
+import { EditTemplateClient } from "@/components/admin/templates/EditTemplateClient";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 

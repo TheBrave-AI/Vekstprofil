@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 
 interface Props {
   title: string;

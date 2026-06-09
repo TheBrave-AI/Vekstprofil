@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EditQuestionForm } from "./EditQuestionForm";
 import { NewQuestionForm } from "./NewQuestionForm";
-import EmptyState from "@/components/admin/EmptyState";
+import EmptyState from "@/components/layout/EmptyState";
 import { deleteQuestion } from "@/app/actions";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 
 interface Question {
   id:          string;

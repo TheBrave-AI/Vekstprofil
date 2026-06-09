@@ -2,12 +2,12 @@
 import { SKIPPED } from "@/lib/types";
 import type { AnswerMap, Question } from "@/lib/types";
 import { formatAnswer } from "@/lib/formatAnswer";
-import BrandBar from "../ui/BrandBar";
-import Button from "../ui/Button";
-import Arrow from "../ui/Arrow";
-import Eyebrow from "../ui/Eyebrow";
-import NotAnsweredPill from "./NotAnsweredPill";
-import QuestionRow from "../ui/QuestionRow";
+import BrandBar from "../ui/brand/BrandBar";
+import Button from "../ui/primitives/Button";
+import Arrow from "../ui/primitives/Arrow";
+import Eyebrow from "../ui/primitives/Eyebrow";
+import NotAnsweredPill from "../ui/primitives/NotAnsweredPill";
+import QuestionRow from "../ui/primitives/QuestionRow";
 
 interface Props {
   questions: Question[];

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { DeleteButton } from "@/components/ui/buttons/DeleteButton";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 
 interface Props {
   label: string;

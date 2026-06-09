@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 import { Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 

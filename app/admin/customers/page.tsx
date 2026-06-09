@@ -1,8 +1,8 @@
 import { listCustomers } from "@/app/actions";
 import Link from "next/link";
-import PageHeader from "@/components/admin/PageHeader";
-import SectionHeader from "@/components/admin/SectionHeader";
-import EmptyState from "@/components/admin/EmptyState";
+import PageHeader from "@/components/layout/PageHeader";
+import SectionHeader from "@/components/layout/SectionHeader";
+import EmptyState from "@/components/layout/EmptyState";
 
 export default async function CustomersPage() {
   const customers = await listCustomers();

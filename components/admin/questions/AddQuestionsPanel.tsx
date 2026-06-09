@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NewQuestionForm } from "@/components/admin/NewQuestionForm";
+import { NewQuestionForm } from "@/components/admin/questions/NewQuestionForm";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 

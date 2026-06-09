@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { deleteSurvey } from "@/app/actions";
-import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
+import { ConfirmDeleteButton } from "@/components/admin/shared/ConfirmDeleteButton";
 
 export function DeleteSurveyButton({ surveyId }: { surveyId: string }) {
   const router = useRouter();

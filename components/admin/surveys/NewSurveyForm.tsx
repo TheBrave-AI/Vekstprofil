@@ -3,7 +3,7 @@
 import { createSurvey } from "@/app/actions";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { IntroFormFields } from "@/components/admin/IntroFormFields";
+import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
 import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 interface CustomerRow { id: string; companyName: string; }

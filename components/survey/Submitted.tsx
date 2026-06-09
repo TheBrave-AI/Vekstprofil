@@ -1,5 +1,5 @@
-import BrandBar from "../ui/BrandBar";
-import Button from "../ui/Button";
+import BrandBar from "../ui/brand/BrandBar";
+import Button from "../ui/primitives/Button";
 
 interface Props {
   onReset: () => void;

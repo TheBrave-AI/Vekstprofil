@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { buttonVariants } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/primitives/Button";
 
 export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);

@@ -1,8 +1,8 @@
 import { listSurveys } from "@/app/actions";
 import Link from "next/link";
-import PageHeader from "@/components/admin/PageHeader";
-import SectionHeader from "@/components/admin/SectionHeader";
-import EmptyState from "@/components/admin/EmptyState";
+import PageHeader from "@/components/layout/PageHeader";
+import SectionHeader from "@/components/layout/SectionHeader";
+import EmptyState from "@/components/layout/EmptyState";
 import { SURVEY_STATUS, type SurveyStatus } from "@/lib/constants";
 
 function fmt(d: Date | string) {

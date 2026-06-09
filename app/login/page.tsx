@@ -1,5 +1,5 @@
 import { signIn } from "@/auth";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 
 export default function LoginPage() {
   return (

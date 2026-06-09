@@ -1,11 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type { Question } from "@/lib/types";
-import Button from "../ui/Button";
-import Arrow from "../ui/Arrow";
-import BrandBar from "../ui/BrandBar";
-import ProgressBar from "./Progressbar";
-import Eyebrow from "../ui/Eyebrow";
+import Button from "../ui/primitives/Button";
+import Arrow from "../ui/primitives/Arrow";
+import BrandBar from "../ui/brand/BrandBar";
+import ProgressBar from "../ui/primitives/Progressbar";
+import Eyebrow from "../ui/primitives/Eyebrow";
 import { validateNumber } from "@/lib/validation";
 
 interface Props {

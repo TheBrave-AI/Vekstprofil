@@ -1,12 +1,12 @@
 "use client";
 
 import { setSurveyQuestions, activateSurvey, updateSurvey } from "@/app/actions";
-import { IntroFormFields } from "@/components/admin/IntroFormFields";
-import Button from "@/components/ui/Button";
+import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
+import Button from "@/components/ui/primitives/Button";
 import { SaveButton } from "@/components/ui/buttons/SaveButton";
 import { useTransition, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
+import { AddQuestionsPanel } from "@/components/admin/questions/AddQuestionsPanel";
 import {
   DndContext,
   closestCenter,
@@ -16,9 +16,9 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
-import { SortableQuestion, type SortableQuestionItem } from "@/components/ui/SortableQuestion";
+import { SortableQuestion, type SortableQuestionItem } from "@/components/admin/questions/SortableQuestion";
 import { DeleteSurveyButton } from "./DeleteSurveyButton";
-import { EditQuestionForm } from "./EditQuestionForm";
+import { EditQuestionForm } from "../questions/EditQuestionForm";
 
 interface QuestionRow extends SortableQuestionItem {}
 

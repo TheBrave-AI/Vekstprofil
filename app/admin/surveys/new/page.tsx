@@ -1,5 +1,5 @@
 import { listCustomers, listTemplates } from "@/app/actions";
-import { NewSurveyForm } from "@/components/admin/NewSurveyForm";
+import { NewSurveyForm } from "@/components/admin/surveys/NewSurveyForm";
 import Link from "next/link";
 
 export default async function NewSurveyPage({

@@ -1,11 +1,11 @@
 "use client";
 
 import { updateTemplate, setTemplateQuestions } from "@/app/actions";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/primitives/Button";
 import { SaveButton } from "@/components/ui/buttons/SaveButton";
 import { useState, useTransition, useEffect } from "react";
-import { IntroFormFields } from "@/components/admin/IntroFormFields";
-import { AddQuestionsPanel } from "@/components/admin/AddQuestionsPanel";
+import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
+import { AddQuestionsPanel } from "@/components/admin/questions/AddQuestionsPanel";
 import {
   DndContext,
   closestCenter,
@@ -15,10 +15,10 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
-import { SortableQuestion } from "@/components/ui/SortableQuestion";
-import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { SortableQuestion } from "@/components/admin/questions/SortableQuestion";
+import { ConfirmDeleteButton } from "../shared/ConfirmDeleteButton";
 import { deleteTemplate } from "@/app/actions";
-import { EditQuestionForm } from "./EditQuestionForm";
+import { EditQuestionForm } from "../questions/EditQuestionForm";
 import { useRouter } from "next/navigation";
 
 interface TemplateQuestion {

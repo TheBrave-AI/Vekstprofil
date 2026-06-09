@@ -1,13 +1,13 @@
 import { getSurveyAdmin } from "@/app/actions";
 import { formatAnswer } from "@/lib/formatAnswer";
-import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
-import { DeleteSurveyButton } from "@/components/admin/DeleteSurveyButton";
-import Button from "@/components/ui/Button";
+import { CopyLinkButton } from "@/components/admin/shared/CopyLinkButton";
+import { DeleteSurveyButton } from "@/components/admin/surveys/DeleteSurveyButton";
+import Button from "@/components/ui/primitives/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Question } from "@/lib/types";
-import NotAnsweredPill from "@/components/survey/NotAnsweredPill";
-import QuestionRow from "@/components/ui/QuestionRow";
+import NotAnsweredPill from "@/components/ui/primitives/NotAnsweredPill";
+import QuestionRow from "@/components/ui/primitives/QuestionRow";
 
 export default async function SurveyDetailPage({
   params,

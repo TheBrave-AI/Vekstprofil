@@ -1,6 +1,6 @@
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
-import BraveLogo from "@/components/ui/BraveLogo";
+import BraveLogo from "@/components/ui/brand/BraveLogo";
 import { redirect } from "next/navigation";
 import { getSidebarData } from "@/app/actions";
 import AdminTopNav from "@/components/admin/shell/AdminTopNav";

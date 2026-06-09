@@ -1,5 +1,5 @@
 import { listQuestions } from "@/app/actions";
-import { QuestionsClient } from "@/components/admin/QuestionsClient";
+import { QuestionsClient } from "@/components/admin/questions/QuestionsClient";
 
 export default async function QuestionsPage() {
   const questions = await listQuestions();

@@ -1,7 +1,7 @@
-import BrandBar from "../ui/BrandBar";
-import Button from "../ui/Button";
-import Arrow from "../ui/Arrow";
-import Eyebrow from "../ui/Eyebrow";
+import BrandBar from "../ui/brand/BrandBar";
+import Button from "../ui/primitives/Button";
+import Arrow from "../ui/primitives/Arrow";
+import Eyebrow from "../ui/primitives/Eyebrow";
 
 interface Props {
   onStart: () => void;
