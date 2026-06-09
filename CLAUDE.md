@@ -72,8 +72,9 @@ Key entities:
 | `design_handoff_onboarding/README.md` | Full UI spec — screens, interactions, copy, tokens. Source of truth for UI. |
 | `design_handoff_onboarding/reference/Brave Onboarding.html` | Working HTML prototype — open in browser to see intended UX |
 | `BACKEND.md` | Backend setup guide for George |
-| `components/ui/SortableQuestion.tsx` | Reusable drag-and-drop question row — accepts `item`, `index`, optional `action` slot |
-| `components/admin/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
+| `components/admin/questions/SortableQuestion.tsx` | Drag-and-drop question row — accepts `item`, `index`, `onRemove`, optional `onEdit` |
+| `components/admin/questions/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
+| `components/ui/primitives/Button.tsx` | CVA primitive — all variants, `buttonVariants` helper exported for class-only usage |
 
 ## Design System
 
@@ -105,7 +106,8 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **shadow-card z-index:** `shadow-card` is 40px deep — elements directly below a card get visually covered. Fix: `relative z-0` on the card, `relative z-10` on the element below.
 - **Centering form pages:** Content containers with `max-w-*` need `mx-auto` to be centered within `AdminShell`'s `max-w-5xl` wrapper.
 - **Modal backdrop:** Never add `overflow-y-auto` to `fixed inset-0 flex items-center justify-center` — it breaks backdrop coverage. Use the plain version; the form fits the viewport.
-- **Modal confirm pattern:** Use `deleting` / `creating` state (Question | null or boolean) — show inline modal, Escape closes via `useEffect`. See `QuestionsClient.tsx` for reference implementation with all three modals (create, edit, delete).
+- **Modal confirm pattern:** Use `deleting` / `creating` state (Question | null or boolean) — show inline modal, Escape closes via `useEffect`. See `components/admin/questions/QuestionsClient.tsx` for reference implementation with all three modals (create, edit, delete).
+- **Button heights:** All `Button` variants include `border` (transparent or visible) so every size renders identically tall. Never apply ad-hoc `py-*` to a button — use the `size` prop (`sm` / `md` / `lg`). Mixing `border` and `border-transparent` was the root cause of the old 36px/42px/38px drift.
 - **Grid two-column rows:** Use `minmax(0,X%) minmax(0,Y%)` (not `auto`) for both columns to avoid collapse. `auto` on the right column can collapse or overflow with long text content. Survey detail uses `"minmax(0,55%) minmax(0,45%)"`.
 - **deleteQuestion cascade:** `SurveyQuestion` and `Answer` lack `onDelete: Cascade` from the question side — must manually delete both before `db.question.delete`. `TemplateQuestion` has cascade, so it's handled automatically.
 - **Middleware file is `proxy.ts`** (not `middleware.ts`) — same behaviour, just named differently. Protects `/admin/:path*`, redirects unauthenticated to `/login`.
@@ -118,12 +120,19 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 Before writing any new HTML/JSX markup, ask: **could this become a component?**
 
 Specifically:
-- If you're writing a button with `bg-brand` styling → use `AdminButton` (admin) or `PrimaryButton` / `GhostButton` (survey flow)
+- If you're writing any button → use the button system (see below)
 - If you're writing a question + answer row → use `QuestionRow`
-- If you're writing a page header with overline + h1 + CTA → use `PageHeader`
-- If you're writing a section header with dot + divider → use `SectionHeader`
-- If you're writing an empty state card → use `EmptyState`
+- If you're writing a page header with overline + h1 + CTA → use `PageHeader` (`components/layout/`)
+- If you're writing a section header with dot + divider → use `SectionHeader` (`components/layout/`)
+- If you're writing an empty state card → use `EmptyState` (`components/layout/`)
 - If you're writing a submit button with pending state → use `FormSubmitButton`
+
+**Button system (3 layers):**
+1. **Primitive** — `components/ui/primitives/Button.tsx` (CVA, variants: `solid`, `ghost`, `danger`, `coral`, `accent`; sizes: `sm`, `md`, `lg`; also exports `buttonVariants` for class-only usage). Supports `href` (renders as `<Link>`), `loading`, `icon`, `fullWidth`.
+2. **Semantic wrappers** — `components/ui/buttons/`: `SaveButton` (default `type="submit"`, variant solid), `DeleteButton` (variant danger, Trash2 icon), `CancelButton` (variant ghost). Pass `type="button"` to `SaveButton` when used with `onClick` outside a `<form>`.
+3. **Domain** — `FormSubmitButton` in `components/form/` wraps `SaveButton` with loading/pending state for new-entity forms.
+
+All variants have `border` (transparent or visible) — do NOT add ad-hoc padding or height classes to buttons. Use `size` prop instead.
 
 **General rule:** If similar markup will plausibly appear in two or more places, extract a component before writing it the second time. When in doubt, flag it and ask.
 
@@ -133,51 +142,69 @@ Specifically:
 
 ```
 components/
-  survey/
-    Survey.tsx        — stateful orchestrator ('use client'), direction + focusTrigger state, Framer Motion variants
-    Intro.tsx         — intro card
-    QuestionCard.tsx  — all 5 input types: text, number, boolean, select, multiselect
-    Summary.tsx       — review all answers, click row to jump back
-    Submitted.tsx     — confirmation screen
-    Progressbar.tsx   — animated progress bar (visible on question stages only)
+  survey/                          — customer-facing questionnaire flow
+    Survey.tsx                     — stateful orchestrator ('use client'), direction + focusTrigger state, Framer Motion variants
+    Intro.tsx                      — intro card
+    QuestionCard.tsx               — all 5 input types: text, number, boolean, select, multiselect
+    Summary.tsx                    — review all answers, click row to jump back
+    Submitted.tsx                  — confirmation screen
+
   admin/
-    shell/                  — admin layout infrastructure (always loaded together)
-      AdminShell.tsx        — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
-      AdminShellContext.tsx — createContext({ collapsed, onOpen }); useSidebar() hook
-      AdminSidebar.tsx      — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
-      AdminTopNav.tsx       — 'use client', usePathname active state, nav: Dashboard/Kunder/Surveys/Maler/Spørsmål; Kunder has customer count badge
-      SidebarToggle.tsx     — 'use client', consumes useSidebar(); renders › arrow only when collapsed
-    ActivityFeed.tsx        — (unused, commented out)
-    AddQuestionsPanel.tsx   — slide-in panel for adding questions to surveys/templates
-    CopyLinkButton.tsx      — copies survey link to clipboard
-    DeleteCustomerButton.tsx
-    EditQuestionForm.tsx    — edit question form (used in modal in QuestionsClient)
-    EditSurveyClient.tsx    — 'use client' wrapper for survey edit page
-    EditTemplateClient.tsx  — 'use client' wrapper for template edit page
-    EmptyState.tsx          — empty state card
-    NewCustomerForm.tsx
-    NewQuestionForm.tsx     — accepts optional onCreated() callback for modal embedding
-    NewSurveyForm.tsx
-    NewTemplateForm.tsx
-    PageHeader.tsx          — overline + h1 + CTA button used on list pages
-    QuestionsClient.tsx     — 'use client', owns create/edit/delete modal states for questions page
-    SectionHeader.tsx       — colored dot + divider + count used on list pages
+    shell/                         — admin layout infrastructure (always loaded together)
+      AdminShell.tsx               — 'use client', collapsed state, AnimatePresence sidebar, provides AdminShellContext
+      AdminShellContext.tsx        — createContext({ collapsed, onOpen }); useSidebar() hook
+      AdminSidebar.tsx             — sticky sidebar card: active/submitted survey lists + status dots; onCollapse prop
+      AdminTopNav.tsx              — 'use client', usePathname active state; Kunder has customer count badge
+      SidebarToggle.tsx            — 'use client', consumes useSidebar(); renders › arrow only when collapsed
+    customers/
+      DeleteCustomerButton.tsx
+      NewCustomerForm.tsx
+    surveys/
+      DeleteSurveyButton.tsx
+      EditSurveyClient.tsx         — 'use client' wrapper for survey edit page; owns editing modal state
+      NewSurveyForm.tsx
+    templates/
+      EditTemplateClient.tsx       — 'use client' wrapper for template edit page; owns editing modal state
+      NewTemplateForm.tsx
+    questions/
+      AddQuestionsPanel.tsx        — slide-in panel for adding questions to surveys/templates
+      EditQuestionForm.tsx         — edit question form (used in modal in QuestionsClient + edit clients)
+      NewQuestionForm.tsx          — accepts optional onCreated() callback for modal embedding
+      QuestionsClient.tsx          — 'use client', owns create/edit/delete modal states for questions page
+      SortableQuestion.tsx         — drag-and-drop row: item, index, onRemove, optional onEdit (shows pencil)
+    shared/
+      ActivityFeed.tsx             — (unused, commented out)
+      ConfirmDeleteButton.tsx      — confirm-before-delete pattern with inline confirmation step
+      CopyLinkButton.tsx           — copies survey link to clipboard
+
+  layout/                          — structural page-level components used across admin
+    EmptyState.tsx                 — empty state card
+    PageHeader.tsx                 — overline + h1 + CTA button used on list pages
+    SectionHeader.tsx              — colored dot + divider + count used on list pages
+
   ui/
-    PrimaryButton.tsx     — large CTA with Arrow icon, customer survey flow only
-    GhostButton.tsx       — secondary action, customer survey flow only
-    AdminButton.tsx       — admin primary button: supports href (Link), type="submit", disabled, size sm/md
-    QuestionRow.tsx       — question + answer row with category eyebrow and `right` slot; used in Summary + survey detail + (future) comparison view
-    BrandBar.tsx
-    BraveLogo.tsx         — SVG Brave logo component; `className` sets size + color via currentColor
-    Arrow.tsx
-    SortableQuestion.tsx  — drag-and-drop question row used in survey/template edit pages
-    StatusBadge.tsx       — survey status pill (draft/active/submitted)
-    NotAnsweredPill.tsx   — "ikke besvart" pill (skipped or unanswered, same label)
+    primitives/                    — atomic, unstyled-ish building blocks
+      Button.tsx                   — CVA primitive; exports buttonVariants for class-only usage
+      Arrow.tsx
+      Eyebrow.tsx                  — teal strek + uppercase label
+      NotAnsweredPill.tsx          — "ikke besvart" pill; used in both survey Summary and admin detail
+      Progressbar.tsx              — animated progress bar (survey flow)
+      QuestionRow.tsx              — question + answer row with category eyebrow and `right` slot
+      StatusBadge.tsx              — survey status pill (draft/active/submitted)
+    brand/                         — Brave identity components
+      BrandBar.tsx
+      BraveLogo.tsx                — SVG logo; className sets size + color via currentColor
+    buttons/                       — semantic wrappers around Button primitive
+      SaveButton.tsx               — variant solid; default type="submit"; pass type="button" with onClick outside form
+      DeleteButton.tsx             — variant danger; Trash2 icon
+      CancelButton.tsx             — variant ghost
+
   form/
-    FormField.tsx         — label + input wrapper for admin forms
-    FormSubmitButton.tsx  — submit button with pending state
+    FormField.tsx                  — label + input wrapper for admin forms
+    FormSubmitButton.tsx           — wraps SaveButton with loading/pending state for new-entity forms
+
   dev/
-    DevNav.tsx        — fixed bottom-right nav (dev only), links to all routes + seed data
+    DevNav.tsx                     — fixed bottom-right nav (dev only), links to all routes + seed data
 ```
 
 `Survey.tsx` and `AdminShell.tsx` are the stateful components. Everything else is presentational.
@@ -316,6 +343,14 @@ Identified duplications to clean up, in priority order. Strike through + ✅ whe
 
 10. ✅ ~~**`validateNumber()` — lokal util i QuestionCard**~~
     ~~→ `lib/validation.ts`.~~
+
+11. ✅ ~~**Button system — ad-hoc `bg-brand` buttons overalt, ingen felles høyde**~~
+    ~~`AdminButton`, `PrimaryButton`, `GhostButton` + inline `<button className="bg-brand ...">` gjenskapt overalt.~~
+    ~~→ CVA-primitiv `components/ui/primitives/Button.tsx` + semantiske wrappers `SaveButton` / `DeleteButton` / `CancelButton` i `components/ui/buttons/`. Alle varianter har `border` (transparent eller synlig) for uniform høyde.~~
+
+12. ✅ ~~**Komponentmappe-restrukturering**~~
+    ~~Flat `components/admin/` + flat `components/ui/` uten tydeleg grupering.~~
+    ~~→ `admin/{customers,surveys,templates,questions,shared,shell}`, `ui/{primitives,brand,buttons}`, `layout/` for PageHeader/SectionHeader/EmptyState.~~
 
 ## Dev Workflow
 

@@ -1,4 +1,5 @@
 import { listSurveys } from "@/app/actions";
+import PageHeader from "@/components/layout/PageHeader";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -16,8 +17,8 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-display text-2xl text-cloud">Dashboard</h1>
-
+      
+      <PageHeader title="Dashboard" label="Admin" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Trenger oppfølging */}
         <Section

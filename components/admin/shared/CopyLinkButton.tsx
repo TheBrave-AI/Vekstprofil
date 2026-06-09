@@ -5,7 +5,7 @@ import { buttonVariants } from "@/components/ui/primitives/Button";
 
 export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/k/${token}`;
+  const url = typeof window !== "undefined" ? `${window.location.origin}/k/${token}` : `/k/${token}`;
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);
