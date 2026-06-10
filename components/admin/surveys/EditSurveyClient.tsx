@@ -1,10 +1,11 @@
 "use client";
 
 import { setSurveyQuestions, activateSurvey, updateSurvey } from "@/app/actions";
-import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
+import { EditEntityHeader } from "@/components/admin/shared/EditEntityHeader";
+import { EditQuestionModal } from "@/components/admin/questions/EditQuestionModal";
 import Button from "@/components/ui/primitives/Button";
 import { SaveButton } from "@/components/ui/buttons/SaveButton";
-import { useTransition, useState, useEffect } from "react";
+import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddQuestionsPanel } from "@/components/admin/questions/AddQuestionsPanel";
 import {
@@ -18,12 +19,12 @@ import {
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion, type SortableQuestionItem } from "@/components/admin/questions/SortableQuestion";
 import { DeleteSurveyButton } from "./DeleteSurveyButton";
-import { EditQuestionForm } from "../questions/EditQuestionForm";
 
 interface QuestionRow extends SortableQuestionItem {}
 
 export function EditSurveyClient({
   surveyId,
+  title,
   surveyQuestions,
   allQuestions,
   initialShortName,
@@ -32,6 +33,7 @@ export function EditSurveyClient({
   initialIntroText,
 }: {
   surveyId:          string;
+  title:             string;
   surveyQuestions:   QuestionRow[];
   allQuestions:      QuestionRow[];
   initialShortName:  string | null;
@@ -80,13 +82,6 @@ export function EditSurveyClient({
     setCurrent(surveyQuestions);
   }
 
-  useEffect(() => {
-    if (!editing) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setEditing(null); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [editing]);
-
   function flash() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
 
   function saveInfo() {
@@ -116,38 +111,25 @@ export function EditSurveyClient({
   return (
     <div className="space-y-8">
 
-      {/* Intro info toggle */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowInfo((v) => !v)}
-          className="text-[14px] font-medium text-muted hover:text-cloud transition flex items-center gap-1.5"
-        >
-          <span>{showInfo ? "▾" : "▸"}</span> Intro-innhold
-        </button>
-
-        {saved && <p className="text-xs text-accent mt-1">✓ Lagret</p>}
-
-        {showInfo && (
-          <div className="rounded-card bg-midnight p-6 shadow-card space-y-4 mt-3">
-            <IntroFormFields
-              shortName={shortName} name={name} introTitle={introTitle} introText={introText}
-              onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
-            />
-            <div className="flex justify-end">
-              <SaveButton type="button" onClick={saveInfo} loading={isPending} />
-            </div>
-          </div>
-        )}
-      </div>
+      <EditEntityHeader
+        overline="Rediger undersøkelse"
+        title={title}
+        showInfo={showInfo}
+        onToggleInfo={() => setShowInfo((v) => !v)}
+        isPending={isPending}
+        saved={saved}
+        shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+        onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        onSaveInfo={saveInfo}
+      />
 
       {/* Current questions */}
       <div className="space-y-3">
-        <h2 className="font-display text-xl text-cloud">Spørsmål i surveyen ({current.length})</h2>
-        {current.length === 0 ? (
-          <p className="text-sm text-mist">Ingen spørsmål ennå.</p>
-        ) : (
-          <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
+        <h2 className="font-display text-xl text-cloud">Spørsmål ({current.length})</h2>
+        <div className="rounded-card bg-midnight shadow-card overflow-hidden relative z-0">
+          {current.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-mist">Ingen spørsmål ennå.</p>
+          ) : (
             <DndContext id="survey-questions" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={current.map((q) => q.id)} strategy={verticalListSortingStrategy}>
                 {current.map((q, i) => (
@@ -161,8 +143,8 @@ export function EditSurveyClient({
                 ))}
               </SortableContext>
             </DndContext>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
 
@@ -170,30 +152,10 @@ export function EditSurveyClient({
 
       
 
-      {editing && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setEditing(null)}
-        >
-          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setEditing(null)}
-              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
-              aria-label="Lukk"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <EditQuestionForm
-              question={{ id: editing.id, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options }}
-              onSaved={() => setEditing(null)}
-              onClose={() => setEditing(null)}
-            />
-          </div>
-        </div>
-      )}
+      <EditQuestionModal
+        question={editing ? { id: editing.id, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options } : null}
+        onClose={() => setEditing(null)}
+      />
 
       {/* Actions */}
       <div className="flex items-center gap-3 relative z-10">

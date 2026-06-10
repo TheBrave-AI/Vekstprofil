@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import NotAnsweredPill from "@/components/ui/primitives/NotAnsweredPill";
 import QuestionRow from "@/components/ui/primitives/QuestionRow";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default async function SurveyDetailPage({
   params,
@@ -26,19 +27,18 @@ export default async function SurveyDetailPage({
   }).length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <Link
             href={`/admin/customers/${survey.customerId}`}
-            className="text-xs text-muted hover:text-accent transition"
+            className="text-xs text-mist hover:text-accent transition"
           >
             ← {survey.customer.companyName}
           </Link>
-          <h1 className="font-display text-2xl text-cloud">
-            {survey.template?.name ?? "Undersøkelse"}
-          </h1>
+          <PageHeader title={survey.template?.name ?? "Undersøkelse"} />
+          
           <p className="text-[16px] text-muted">
             {survey.submittedAt &&
               `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
@@ -56,7 +56,7 @@ export default async function SurveyDetailPage({
       {survey.questions.length === 0 ? (
         <p className="text-sm text-muted">Ingen spørsmål i denne undersøkelsen.</p>
       ) : (
-        <div className="rounded-card bg-midnight shadow-card overflow-hidden max-w-3xl">
+        <div className="rounded-card bg-midnight shadow-card overflow-hidden">
           {/* Count */}
           <div className="px-6 py-4 border-b border-line">
             <p className="text-[12.5px] text-muted">

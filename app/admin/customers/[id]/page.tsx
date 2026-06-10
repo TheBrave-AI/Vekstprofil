@@ -21,7 +21,7 @@ export default async function CustomerDetailPage({
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-3xl mx-auto">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <Link href="/admin/customers" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>

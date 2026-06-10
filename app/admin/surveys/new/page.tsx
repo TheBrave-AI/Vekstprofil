@@ -18,7 +18,7 @@ export default async function NewSurveyPage({
     .sort((a, b) => a.companyName.localeCompare(b.companyName));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div>
         <Link href="/admin" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>
         <h1 className="font-display text-2xl text-cloud mt-1">Ny undersøkelse</h1>

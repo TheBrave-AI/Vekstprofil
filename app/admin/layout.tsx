@@ -40,8 +40,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminTopNav customerCount={customerCount} />
         </div>
         <div className="flex items-center gap-5 text-[13px]">
-          {session.user?.email && (
-            <span className="text-muted hidden sm:block">{session.user.email}</span>
+          {(session.user?.name || session.user?.email) && (
+            <span className="text-muted hidden sm:block">{session.user.name ?? session.user.email}</span>
           )}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button type="submit" className="text-muted hover:text-cloud transition-colors">

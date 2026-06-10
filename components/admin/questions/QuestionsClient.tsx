@@ -8,6 +8,7 @@ import { NewQuestionForm } from "./NewQuestionForm";
 import EmptyState from "@/components/layout/EmptyState";
 import { deleteQuestion } from "@/app/actions";
 import Button from "@/components/ui/primitives/Button";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface Question {
   id:          string;
@@ -55,8 +56,8 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
     <>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="font-display text-2xl text-cloud">Spørsmålskatalog</h1>
-          <p className="text-[12.5px] text-muted mt-0.5">
+          <PageHeader title="Spørsmålskatalog" />
+          <p className="text-[12.5px] text-muted mt-1.5">
             Alle spørsmål deles på tvers av maler og undersøkelser. Endringer gjelder retroaktivt.
           </p>
         </div>

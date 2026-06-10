@@ -1,10 +1,11 @@
 "use client";
 
-import { updateTemplate, setTemplateQuestions } from "@/app/actions";
+import { updateTemplate, setTemplateQuestions, deleteTemplate } from "@/app/actions";
+import { EditEntityHeader } from "@/components/admin/shared/EditEntityHeader";
+import { EditQuestionModal } from "@/components/admin/questions/EditQuestionModal";
 import Button from "@/components/ui/primitives/Button";
 import { SaveButton } from "@/components/ui/buttons/SaveButton";
-import { useState, useTransition, useEffect } from "react";
-import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
+import { useState, useTransition } from "react";
 import { AddQuestionsPanel } from "@/components/admin/questions/AddQuestionsPanel";
 import {
   DndContext,
@@ -17,8 +18,6 @@ import {
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { SortableQuestion } from "@/components/admin/questions/SortableQuestion";
 import { ConfirmDeleteButton } from "../shared/ConfirmDeleteButton";
-import { deleteTemplate } from "@/app/actions";
-import { EditQuestionForm } from "../questions/EditQuestionForm";
 import { useRouter } from "next/navigation";
 
 interface TemplateQuestion {
@@ -77,13 +76,6 @@ export function EditTemplateClient({
   const [editing,     setEditing]     = useState<TemplateQuestion | null>(null);
   const [isPending,   startTransition] = useTransition();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!editing) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setEditing(null); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [editing]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const isDirty = JSON.stringify(questions.map(q => q.questionId)) !== JSON.stringify(initialQuestions.map(q => q.questionId));
@@ -146,51 +138,30 @@ export function EditTemplateClient({
   return (
     <div className="space-y-8">
 
-      {/* Header */}
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Rediger mal</p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <h1 className="font-display text-2xl text-cloud leading-tight">{name}</h1>
+      <EditEntityHeader
+        overline="Rediger mal"
+        title={name}
+        showInfo={showInfo}
+        onToggleInfo={() => setShowInfo((v) => !v)}
+        isPending={isPending}
+        saved={saved}
+        shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+        onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        onSaveInfo={saveInfo}
+      >
+        {/* Aktiv-toggle — alltid synlig */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-cloud">Aktiv</span>
           <button
             type="button"
-            onClick={() => setShowInfo((v) => !v)}
-            className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors ${showInfo ? "text-cloud bg-black/[0.08]" : "text-muted hover:text-cloud hover:bg-black/[0.06]"}`}
-            title="Rediger malinformasjon"
+            onClick={toggleActive}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${active ? "bg-accent" : "bg-steel"}`}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9.5 1.5a1.5 1.5 0 0 1 3 0v.086a1.5 1.5 0 0 1-.44 1.06L4.5 10.207V12.5h2.293l7.56-7.56A1.5 1.5 0 0 1 9.5 1.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-              <path d="M1 13h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-            </svg>
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${active ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
           </button>
+          <span className="text-xs text-mist">{active ? "Vises ved oppretting av undersøkelse" : "Arkivert"}</span>
         </div>
-      </div>
-
-      {isPending && <p className="text-xs text-accent">Lagrer…</p>}
-      {saved    && <p className="text-xs text-accent">✓ Lagret</p>}
-
-      {/* Aktiv-toggle — alltid synlig */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-cloud">Aktiv</span>
-        <button
-          type="button"
-          onClick={toggleActive}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${active ? "bg-accent" : "bg-steel"}`}
-        >
-          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${active ? "translate-x-[18px]" : "translate-x-[3px]"}`} />
-        </button>
-        <span className="text-xs text-mist">{active ? "Vises ved oppretting av survey" : "Arkivert"}</span>
-      </div>
-
-      {/* Info card — shown on pencil click */}
-      {showInfo && (
-      <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <IntroFormFields
-          shortName={shortName} name={name} introTitle={introTitle} introText={introText}
-          onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
-        />
-        <SaveButton type="button" onClick={saveInfo} loading={isPending} />
-      </div>
-      )}
+      </EditEntityHeader>
 
       {/* Questions */}
       <div className="space-y-3">
@@ -214,43 +185,24 @@ export function EditTemplateClient({
             </DndContext>
           )}
         </div>
-        <div className="flex items-center gap-3 relative z-10">
-          <SaveButton type="button" onClick={handleSaveQuestions} loading={isPending} disabled={!isDirty} />
-          <Button variant="ghost" onClick={handleResetQuestions} disabled={isPending || !isDirty}>
-            Tilbakestill
-          </Button>
-        </div>
       </div>
 
       <AddQuestionsPanel available={available} onAdd={addQuestion} />
 
-      {editing && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setEditing(null)}
-        >
-          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setEditing(null)}
-              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
-              aria-label="Lukk"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <EditQuestionForm
-              question={{ id: editing.questionId, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options }}
-              onSaved={() => setEditing(null)}
-              onClose={() => setEditing(null)}
-            />
-          </div>
-        </div>
-      )}
+      <EditQuestionModal
+        question={editing ? { id: editing.questionId, label: editing.label, category: editing.category, type: editing.type ?? "text", help: editing.help ?? null, placeholder: editing.placeholder ?? null, prefix: editing.prefix ?? null, suffix: editing.suffix ?? null, options: editing.options } : null}
+        onClose={() => setEditing(null)}
+      />
+
+      {/* Actions */}
+      <div className="flex items-center gap-3 relative z-10">
+        <SaveButton type="button" onClick={handleSaveQuestions} loading={isPending} disabled={!isDirty} />
+        <Button variant="ghost" onClick={handleResetQuestions} disabled={isPending || !isDirty}>
+          Tilbakestill
+        </Button>
+      </div>
 
       <ConfirmDeleteButton
-      
         label="Slett mal"
         description="Malen vil bli permanent slettet. Dette kan ikke angres."
         onConfirm={async () => {

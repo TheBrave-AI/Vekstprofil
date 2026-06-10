@@ -108,7 +108,7 @@ function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) 
         <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-accent transition-colors">
           {survey.companyName}
         </p>
-        <p className="text-[11.5px] text-muted mt-0.5">
+        <p className="text-[11.5px] text-muted mt-0.5" suppressHydrationWarning>
           {relativeTime(survey.date)}
           {showProgress && (
             <span className="ml-1.5 text-muted">

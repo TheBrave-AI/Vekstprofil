@@ -23,16 +23,13 @@ export default async function EditSurveyPage({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href={`/admin/customers/${survey.customerId}`} className="text-xs text-mist hover:text-accent transition">
-          ← {survey.customer.companyName}
-        </Link>
-        <h1 className="font-display text-2xl text-cloud mt-1">Rediger undersøkelse · {survey.template?.name ?? survey?.name ?? "Ingen mal"}</h1>
-        
-      </div>
+    <div className="space-y-6 max-w-2xl mx-auto">
+      <Link href={`/admin/customers/${survey.customerId}`} className="text-xs text-mist hover:text-accent transition">
+        ← {survey.customer.companyName}
+      </Link>
 
       <EditSurveyClient
+        title={survey.template?.name ?? survey.name ?? "Ingen mal"}
         surveyId={id}
         surveyQuestions={survey.questions.map((sq) => ({
           id:          sq.question.id,

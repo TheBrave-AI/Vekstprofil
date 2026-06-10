@@ -103,6 +103,7 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **Cache invalidation:** After mutations, call both `revalidateTag` AND `revalidatePath` for affected pages — `revalidateTag` alone doesn't bust the client-side router cache.
 - **Dates from `unstable_cache`:** Come out as strings, not `Date` objects. Always wrap with `new Date(...)` before calling `.toISOString()` or other date methods.
 - **DndContext hydration mismatch:** Always pass a stable `id` prop to `DndContext` (e.g. `id="survey-questions"`) — otherwise dnd-kit generates mismatched `aria-describedby` IDs between SSR and client.
+- **`relativeTime()` hydration mismatch:** Any element that renders `relativeTime()` (or other `Date.now()`-based output) in a client component will mismatch between SSR and hydration. Add `suppressHydrationWarning` to that element.
 - **shadow-card z-index:** `shadow-card` is 40px deep — elements directly below a card get visually covered. Fix: `relative z-0` on the card, `relative z-10` on the element below.
 - **Centering form pages:** Content containers with `max-w-*` need `mx-auto` to be centered within `AdminShell`'s `max-w-5xl` wrapper.
 - **Modal backdrop:** Never add `overflow-y-auto` to `fixed inset-0 flex items-center justify-center` — it breaks backdrop coverage. Use the plain version; the form fits the viewport.
@@ -122,7 +123,7 @@ Before writing any new HTML/JSX markup, ask: **could this become a component?**
 Specifically:
 - If you're writing any button → use the button system (see below)
 - If you're writing a question + answer row → use `QuestionRow`
-- If you're writing a page header with overline + h1 + CTA → use `PageHeader` (`components/layout/`)
+- If you're writing a page header with overline + h1 → use `PageHeader` (`components/layout/`). Both `href`/`cta` and the CTA button are optional — use without them for title-only headers.
 - If you're writing a section header with dot + divider → use `SectionHeader` (`components/layout/`)
 - If you're writing an empty state card → use `EmptyState` (`components/layout/`)
 - If you're writing a submit button with pending state → use `FormSubmitButton`
@@ -146,7 +147,7 @@ components/
     Survey.tsx                     — stateful orchestrator ('use client'), direction + focusTrigger state, Framer Motion variants
     Intro.tsx                      — intro card
     QuestionCard.tsx               — all 5 input types: text, number, boolean, select, multiselect
-    Summary.tsx                    — review all answers, click row to jump back
+    Summary.tsx                    — review all answers, click row to jump back; accepts `companyName` prop → passes to BrandBar
     Submitted.tsx                  — confirmation screen
 
   admin/
