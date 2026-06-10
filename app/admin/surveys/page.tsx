@@ -61,7 +61,7 @@ export default async function SurveysPage() {
                     <div className="text-center shrink-0 w-12">
                       <p className="text-[15px] text-muted tabular-nums">
                         {survey.status === "active"
-                          ? <>{survey._count.answers}<span className="text-[12px]">/{survey._count.questions}</span></>
+                          ? <>{survey._count.answers}/{survey._count.questions}</>
                           : survey._count.answers}
                       </p>
                       <p className="text-[10.5px] text-muted uppercase tracking-wide">svar</p>
@@ -69,7 +69,7 @@ export default async function SurveysPage() {
 
                     {/* Date */}
                     <div className="text-right shrink-0 w-28">
-                      <p className="text-[12.5px] font-medium text-muted">{timeOnly(dateField)}</p>
+                      <p className="text-[12.5px] text-muted">{timeOnly(dateField)}</p>
                       <p className="text-[11px] text-muted mt-0.5">{fullDate(dateField)}</p>
                     </div>
 
