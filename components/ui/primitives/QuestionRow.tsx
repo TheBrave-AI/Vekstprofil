@@ -16,7 +16,7 @@ export default function QuestionRow({
   right,
   sub,
   onClick,
-  columns = "minmax(0,1fr) auto",
+  columns = "1fr",
   className = "",
 }: Props) {
   const base = `grid gap-5 py-[18px] border-b border-line ${className}`;
@@ -30,7 +30,7 @@ export default function QuestionRow({
           </span>
         )}
         <span className="text-cloud text-[16px] font-semibold leading-snug">{label}</span>
-        {sub}
+        {sub && <div className="mt-1.5">{sub}</div>}
       </div>
       {right !== undefined && (
         <div className="flex items-center justify-end pl-4 shrink-0">{right}</div>

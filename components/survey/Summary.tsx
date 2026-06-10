@@ -52,8 +52,8 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
               columns="1fr"
               sub={
                 formatted
-                  ? <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
-                  : <div className="mt-1.5"><NotAnsweredPill /></div>
+                  ? <p className="text-mist text-[14px] leading-relaxed">{formatted}</p>
+                  : <NotAnsweredPill />
               }
               onClick={() => onGoToQuestion(i)}
             />

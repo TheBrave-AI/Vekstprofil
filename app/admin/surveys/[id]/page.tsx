@@ -74,6 +74,8 @@ export default async function SurveyDetailPage({
                 id: q.id, label: q.label, type: q.type as Question["type"],
                 category: q.category ?? "", help: q.help ?? "", placeholder: q.placeholder ?? "",
                 prefix: q.prefix ?? undefined, suffix: q.suffix ?? undefined,
+                options: q.options ? (q.options as string[]) : undefined,
+                slider:  q.slider  ? (q.slider  as Question["slider"])  : undefined,
               };
               const formatted = a && !a.skipped ? formatAnswer(qTyped, a.value ?? undefined) : null;
 
@@ -82,12 +84,11 @@ export default async function SurveyDetailPage({
                   key={q.id}
                   category={q.category}
                   label={q.label}
-                  columns="1fr"
                   className="px-6 last:border-0"
                   sub={
                     formatted
-                      ? <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
-                      : <div className="mt-1.5"><NotAnsweredPill skipped={!!a?.skipped} /></div>
+                      ? <p className="text-mist text-[14px] leading-relaxed">{formatted}</p>
+                      : <NotAnsweredPill skipped={!!a?.skipped} />
                   }
                 />
               );
