@@ -24,7 +24,6 @@ export default async function CustomersPage() {
 
           <div className="rounded-card bg-midnight shadow-card overflow-hidden">
             {customers.map((c, i) => {
-              const total = c.surveys.length;
               const submitted = c.surveys.filter(s => s.status === "submitted").length;
               const isLast = i === customers.length - 1;
 
@@ -45,9 +44,9 @@ export default async function CustomersPage() {
 
                   {/* Response summary */}
                   <div className="shrink-0 text-center">
-                    {total > 0 ? (
+                    {c.surveys.length > 0 ? (
                       <>
-                        <p className="text-[15px] font-semibold text-cloud tabular-nums leading-snug">{submitted}/{total}</p>
+                        <p className="text-[15px] text-muted tabular-nums leading-snug">{submitted}</p>
                         <p className="text-[10.5px] text-muted uppercase tracking-wide">undersøkelser besvart</p>
                       </>
                     ) : (
