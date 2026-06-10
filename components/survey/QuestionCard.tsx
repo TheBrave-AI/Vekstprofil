@@ -242,7 +242,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-7">
         <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>{index === 0 ? "Start" : "Lagre og fortsett"}</Button>
-        <Button variant="ghost" size="lg" onClick={onSkip}>Vet ikke / Har ikke tall på det</Button>
+        <Button variant="ghost" size="lg" onClick={onSkip}>Hoppe over</Button>
         <button
           type="button"
           onClick={onBack}

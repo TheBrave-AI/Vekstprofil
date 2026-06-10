@@ -39,7 +39,7 @@ export default async function CustomersPage() {
                       {c.companyName}
                     </Link>
                     <p className="text-[12px] text-muted mt-0.5 truncate">
-                      {c.contactName}{c.contactEmail && <span className="text-muted/60"> · {c.contactEmail}</span>}
+                      {c.contactName}{c.contactEmail && <> · {c.contactEmail}</>}
                     </p>
                   </div>
 
