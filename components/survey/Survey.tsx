@@ -18,6 +18,7 @@ interface Props {
   name?: string | null;
   introTitle?: string | null;
   introText?: string | null;
+  initiallySubmitted?: boolean;
 }
 
 // Converts the DB format to the frontend-friendly AnswerMap format
@@ -43,12 +44,18 @@ const reducedVariants = {
 };
 
 
+<<<<<<< Updated upstream
 export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText }: Props) {
   const [stage, setStage] = useState<Stage>("intro");
+=======
+export default function Survey({ token, questions, existingAnswers, name, introTitle, introText, initiallySubmitted }: Props) {
+  const [stage, setStage] = useState<Stage>(initiallySubmitted ? "summary" : "intro");
+>>>>>>> Stashed changes
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
   const [direction, setDirection] = useState(1);
   const [focusTrigger, setFocusTrigger] = useState(0);
+  const [submitted, setSubmitted] = useState(initiallySubmitted ?? false);
   const prefersReducedMotion = useReducedMotion();
 
   function goNext() {

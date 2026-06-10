@@ -13,6 +13,7 @@ export default async function ClientQuestionnairePage({
   if (result.status === "not_found") notFound();
   if (result.status === "draft")     notFound();
 
+<<<<<<< Updated upstream
   if (result.status === "submitted") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-ink px-4">
@@ -25,6 +26,9 @@ export default async function ClientQuestionnairePage({
   }
 
   const { questions, answers, companyName, name, introTitle, introText } = result.survey!;
+=======
+  const { questions, answers, name, introTitle, introText } = result.survey!;
+>>>>>>> Stashed changes
 
   return (
     <Survey
@@ -35,6 +39,7 @@ export default async function ClientQuestionnairePage({
       name={name}
       introTitle={introTitle}
       introText={introText}
+      initiallySubmitted={result.status === "submitted"}
     />
   );
 }

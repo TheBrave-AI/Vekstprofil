@@ -62,10 +62,14 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
       </div>
 
       {/* Action row */}
-      <div className="flex items-center gap-[14px] flex-wrap mt-8">
-        <Button size="lg" onClick={onSubmit} icon={<Arrow />}>Send inn kartlegging</Button>
+      
+      <div className="flex flex-col items-center gap-[14px] mt-8">
+        <h3 className="text-[15px]">Vi har lagret svarene dine. Vil du... </h3>  
+        <div className="flex gap-4">
+        <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
+        <Button size="lg" onClick={onSubmit}>Bekrefte og lukke{<Arrow />}</Button>
         {/* "Gå gjennom på nytt" sends the user to question 1 (index 0) */}
-        <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Gå gjennom på nytt</Button>
+        </div>
       </div>
     </div>
   );

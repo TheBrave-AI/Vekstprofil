@@ -141,9 +141,8 @@ export async function getSurvey(token: string): Promise<{
     },
   });
 
-  if (!survey)                        return { status: "not_found" };
-  if (survey.status === "draft")      return { status: "draft" };
-  if (survey.status === "submitted")  return { status: "submitted" };
+  if (!survey)                   return { status: "not_found" };
+  if (survey.status === "draft") return { status: "draft" };
 
   const questions = survey.questions.map((sq) => ({
     ...mapQuestion(sq.question),
@@ -155,7 +154,7 @@ export async function getSurvey(token: string): Promise<{
   );
 
   return {
-    status: "ok",
+    status: survey.status === "submitted" ? "submitted" : "ok",
     survey: {
       id:          survey.id,
       companyName: survey.customer.companyName,

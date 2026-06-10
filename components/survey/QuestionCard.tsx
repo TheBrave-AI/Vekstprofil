@@ -242,15 +242,21 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
 
       {/* Action row */}
       <div className="flex items-center gap-[14px] flex-wrap mt-7">
+<<<<<<< Updated upstream
         <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>{index === 0 ? "Start" : "Lagre og fortsett"}</Button>
         <Button variant="ghost" size="lg" onClick={onSkip}>Hoppe over</Button>
+=======
+>>>>>>> Stashed changes
         <button
           type="button"
           onClick={onBack}
-          className="ml-auto text-muted text-[15px] font-medium hover:text-mist transition-colors px-2"
+          className="mr-auto text-muted text-[15px] font-medium hover:text-mist transition-colors px-2"
         >
           ← {index === 0 ? "Avslutt" : "Tilbake"}
         </button>
+
+        <Button variant="ghost" size="lg" onClick={onSkip}>Hopp over</Button>
+        <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>{index === 0 ? "Start" : "Lagre og fortsett"}</Button>
       </div>
     </div>
   );

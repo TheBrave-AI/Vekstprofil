@@ -31,9 +31,7 @@ export default function Submitted({ onReset }: Props) {
       </h1>
 
       <p className="text-mist text-[18.5px] leading-[1.55] max-w-[48ch] mt-5">
-        Vi tar en gjennomgang av svarene og følger opp. Disse tallene blir
-        nullpunktet vi måler fremtidig vekst mot — slik at vi sammen kan se
-        nøyaktig hva Brave har bidratt med.
+        Vi tar en gjennomgang av svarene og følger opp. Du hører fra oss i Brave snart
       </p>
 
       <div className="mt-8">

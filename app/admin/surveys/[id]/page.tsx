@@ -38,7 +38,7 @@ export default async function SurveyDetailPage({
             ← {survey.customer.companyName}
           </Link>
           <h1 className="font-display text-2xl text-cloud">
-            Undersøkelse — {survey.createdAt.toLocaleDateString("nb-NO")}
+            {survey.template?.name ?? "Undersøkelse"} — {survey.createdAt.toLocaleDateString("nb-NO")}
           </h1>
           <p className="text-[12.5px] text-muted">
             {survey.template?.name ?? "Ingen mal"} · {statusLabel[survey.status]}
