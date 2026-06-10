@@ -50,7 +50,6 @@ export default function Survey({ token, questions, existingAnswers, companyName,
   const [draft, setDraft] = useState("");
   const [direction, setDirection] = useState(1);
   const [focusTrigger, setFocusTrigger] = useState(0);
-  const [submitted, setSubmitted] = useState(initiallySubmitted ?? false);
   const prefersReducedMotion = useReducedMotion();
 
   function goNext() {
@@ -169,6 +168,7 @@ export default function Survey({ token, questions, existingAnswers, companyName,
                 onSubmit={handleSubmit}
                 onGoToQuestion={goToQuestion}
                 companyName={companyName}
+                isAlreadySubmitted={initiallySubmitted ?? false}
               />
             )}
             {stage === "submitted" && <Submitted onReset={handleReset} />}

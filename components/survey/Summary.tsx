@@ -15,9 +15,10 @@ interface Props {
   onSubmit: () => void;
   onGoToQuestion: (index: number) => void;
   companyName?: string;
+  isAlreadySubmitted?: boolean;
 }
 
-export default function Summary({ questions, answers, onSubmit, onGoToQuestion, companyName }: Props) {
+export default function Summary({ questions, answers, onSubmit, onGoToQuestion, companyName, isAlreadySubmitted }: Props) {
   const filledCount = questions.filter((q) => {
     const a = answers[q.id];
     return a !== undefined && a !== SKIPPED && a !== "";
@@ -43,7 +44,9 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
       {/* Answer list */}
       <div className="mt-8">
         {questions.map((q, i) => {
-          const formatted = formatAnswer(q, answers[q.id]);
+          const raw       = answers[q.id];
+          const formatted = formatAnswer(q, raw);
+          const isSkipped = raw === SKIPPED;
 
           return (
             <QuestionRow
@@ -54,7 +57,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
               sub={
                 formatted
                   ? <p className="text-mist text-[14px] leading-relaxed">{formatted}</p>
-                  : <NotAnsweredPill />
+                  : <NotAnsweredPill skipped={isSkipped} />
               }
               onClick={() => onGoToQuestion(i)}
             />
@@ -65,11 +68,12 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
       {/* Action row */}
       
       <div className="flex flex-col items-center gap-[14px] mt-8">
-        <h3 className="text-[15px]">Vi har lagret svarene dine. Vil du... </h3>  
+        <h3 className="text-[15px]">Vi har lagret svarene dine. Vil du... </h3>
         <div className="flex gap-4">
-        <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
-        <Button size="lg" onClick={onSubmit} icon={<Arrow />}>Bekrefte og lukke</Button>
-        {/* "Gå gjennom på nytt" sends the user to question 1 (index 0) */}
+          <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
+          <Button size="lg" onClick={onSubmit} icon={<Arrow />} disabled={isAlreadySubmitted}>
+            {isAlreadySubmitted ? "Allerede innsendt" : "Bekrefte og lukke"}
+          </Button>
         </div>
       </div>
     </div>

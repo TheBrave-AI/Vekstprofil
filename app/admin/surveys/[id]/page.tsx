@@ -1,11 +1,11 @@
 import { getSurveyAdmin } from "@/app/actions";
+import { mapQuestion } from "@/lib/mapQuestion";
 import { formatAnswer } from "@/lib/formatAnswer";
 import { CopyLinkButton } from "@/components/admin/shared/CopyLinkButton";
 import { DeleteSurveyButton } from "@/components/admin/surveys/DeleteSurveyButton";
 import Button from "@/components/ui/primitives/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Question } from "@/lib/types";
 import NotAnsweredPill from "@/components/ui/primitives/NotAnsweredPill";
 import QuestionRow from "@/components/ui/primitives/QuestionRow";
 
@@ -20,7 +20,6 @@ export default async function SurveyDetailPage({
 
   const answerByQid = Object.fromEntries(survey.answers.map((a) => [a.questionId, a]));
 
-  const statusLabel: Record<string, string> = { draft: "Utkast", active: "Ubesvart", submitted: "Besvart" };
   const answeredCount = survey.questions.filter(({ question: q }) => {
     const a = answerByQid[q.id];
     return a && !a.skipped && a.value;
@@ -42,7 +41,7 @@ export default async function SurveyDetailPage({
           </h1>
           <p className="text-[16px] text-muted">
             {survey.submittedAt &&
-              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO") ?? statusLabel[survey.status]}`}
+              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
           </p>
         </div>
         <div className="flex gap-2 shrink-0 items-end">
@@ -68,15 +67,8 @@ export default async function SurveyDetailPage({
           {/* Rows */}
           <div>
             {survey.questions.map(({ question: q }) => {
-              const a = answerByQid[q.id];
-              const qTyped: Question = {
-                id: q.id, label: q.label, type: q.type as Question["type"],
-                category: q.category ?? "", help: q.help ?? "", placeholder: q.placeholder ?? "",
-                prefix: q.prefix ?? undefined, suffix: q.suffix ?? undefined,
-                options: q.options ? (q.options as string[]) : undefined,
-                slider:  q.slider  ? (q.slider  as Question["slider"])  : undefined,
-              };
-              const formatted = a && !a.skipped ? formatAnswer(qTyped, a.value ?? undefined) : null;
+              const a         = answerByQid[q.id];
+              const formatted = a && !a.skipped ? formatAnswer(mapQuestion(q), a.value ?? undefined) : null;
 
               return (
                 <QuestionRow

@@ -7,7 +7,7 @@ export function formatAnswer(q: Question, raw: AnswerMap[string] | undefined): s
   const out = String(raw).trim();
 
   if (q.type === "boolean") {
-    if (out === "Nei" || out === "false") return "(Nei)";
+    if (out === "Nei") return "(Nei)";
     if (out.startsWith("Ja\n")) return `(Ja)  ${out.slice(3).trim()}`;
     return "(Ja)";
   }

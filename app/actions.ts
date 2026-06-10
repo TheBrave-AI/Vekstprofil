@@ -7,27 +7,10 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { SKIPPED } from "@/lib/types";
 import type { Question } from "@/lib/types";
+import { mapQuestion } from "@/lib/mapQuestion";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function mapQuestion(q: {
-  id: string; label: string; type: string; category: string | null;
-  help: string | null; placeholder: string | null; prefix: string | null;
-  suffix: string | null; options: unknown; slider: unknown;
-}): Question {
-  return {
-    id:          q.id,
-    label:       q.label,
-    type:        q.type as Question["type"],
-    category:    q.category    ?? "",
-    help:        q.help        ?? "",
-    placeholder: q.placeholder ?? "",
-    prefix:      q.prefix      ?? undefined,
-    suffix:      q.suffix      ?? undefined,
-    options:     q.options ? (q.options as string[]) : undefined,
-    slider:      q.slider  ? (q.slider  as Question["slider"]) : undefined,
-  };
-}
 
 async function requireAuth() {
   const session = await auth();
@@ -335,7 +318,7 @@ export async function updateSurvey(
 ): Promise<void> {
   await requireAuth();
   await db.survey.update({ where: { id }, data });
-  revalidateTag("surveys", {});
+  invalidateSurveys();
 }
 
 export async function activateSurvey(surveyId: string): Promise<{ activated: boolean }> {
