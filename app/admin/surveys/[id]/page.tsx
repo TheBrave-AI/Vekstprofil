@@ -76,30 +76,18 @@ export default async function SurveyDetailPage({
                 prefix: q.prefix ?? undefined, suffix: q.suffix ?? undefined,
               };
               const formatted = a && !a.skipped ? formatAnswer(qTyped, a.value ?? undefined) : null;
-              const isLongText = q.type === "text";
-
-              // For boolean: extract optional description after "Ja\n"
-              const boolDesc =
-                q.type === "boolean" && a?.value?.startsWith("Ja\n")
-                  ? a.value.slice(3).trim()
-                  : null;
 
               return (
                 <QuestionRow
                   key={q.id}
                   category={q.category}
                   label={q.label}
-                  columns="minmax(0,55%) minmax(0,45%)"
+                  columns="1fr"
                   className="px-6 last:border-0"
-                  sub={boolDesc && <p className="text-mist text-[13px] mt-1 leading-relaxed">{boolDesc}</p>}
-                  right={
-                    formatted ? (
-                      <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[200px] leading-tight">
-                        {formatted}
-                      </span>
-                    ) : (
-                      <NotAnsweredPill skipped={!!a?.skipped} />
-                    )
+                  sub={
+                    formatted
+                      ? <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
+                      : <div className="mt-1.5"><NotAnsweredPill skipped={!!a?.skipped} /></div>
                   }
                 />
               );
