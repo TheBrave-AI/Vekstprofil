@@ -42,24 +42,18 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
       {/* Answer list */}
       <div className="mt-8">
         {questions.map((q, i) => {
-          const raw = answers[q.id];
-          // formatAnswer returns null if the answer is empty or SKIPPED
-          const formatted = formatAnswer(q, raw);
-          const isUnanswered = formatted === null;
+          const formatted = formatAnswer(q, answers[q.id]);
 
           return (
             <QuestionRow
               key={q.id}
               category={q.category}
               label={q.label}
-              right={
-                isUnanswered ? (
-                  <NotAnsweredPill />
-                ) : (
-                  <span className="font-display font-medium text-brand text-[21px] tabular-nums text-right max-w-[180px] leading-tight">
-                    {formatted}
-                  </span>
-                )
+              columns="1fr"
+              sub={
+                formatted
+                  ? <p className="text-mist text-[14px] mt-1.5 leading-relaxed">{formatted}</p>
+                  : <div className="mt-1.5"><NotAnsweredPill /></div>
               }
               onClick={() => onGoToQuestion(i)}
             />

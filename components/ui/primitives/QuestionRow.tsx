@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 interface Props {
   category?: string | null;
   label: string;
-  right: ReactNode;
+  right?: ReactNode;
   sub?: ReactNode;
   onClick?: () => void;
   columns?: string;
@@ -29,10 +29,12 @@ export default function QuestionRow({
             {category}
           </span>
         )}
-        <span className="text-cloud text-[16px] font-medium leading-snug">{label}</span>
+        <span className="text-cloud text-[16px] font-semibold leading-snug">{label}</span>
         {sub}
       </div>
-      <div className="flex items-center justify-end pl-4 shrink-0">{right}</div>
+      {right !== undefined && (
+        <div className="flex items-center justify-end pl-4 shrink-0">{right}</div>
+      )}
     </>
   );
 
