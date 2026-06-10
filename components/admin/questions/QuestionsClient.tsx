@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EditQuestionForm } from "./EditQuestionForm";
@@ -9,6 +9,7 @@ import EmptyState from "@/components/layout/EmptyState";
 import { deleteQuestion } from "@/app/actions";
 import Button from "@/components/ui/primitives/Button";
 import PageHeader from "@/components/layout/PageHeader";
+import { Modal } from "@/components/ui/Modal";
 
 interface Question {
   id:          string;
@@ -37,20 +38,6 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
       router.refresh();
     });
   }
-
-  useEffect(() => {
-    if (!editing) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setEditing(null); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [editing]);
-
-  useEffect(() => {
-    if (!deleting) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setDeleting(null); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [deleting]);
 
   return (
     <>
@@ -128,40 +115,19 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
       )}
 
       {creating && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setCreating(false)}
-        >
-          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setCreating(false)}
-              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
-              aria-label="Lukk"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <NewQuestionForm
-              onCreated={() => {
-                setCreating(false);
-                router.refresh();
-              }}
-            />
-          </div>
-        </div>
+        <Modal onClose={() => setCreating(false)}>
+          <NewQuestionForm
+            onCreated={() => {
+              setCreating(false);
+              router.refresh();
+            }}
+          />
+        </Modal>
       )}
 
       {deleting && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setDeleting(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-card bg-midnight p-7 shadow-card space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setDeleting(null)} maxWidth="sm" showClose={false}>
+          <div className="rounded-card bg-midnight p-7 shadow-card space-y-4">
             <div className="space-y-1">
               <p className="text-xs font-medium tracking-widest uppercase text-coral">Slett spørsmål</p>
               <h2 className="font-display text-lg text-cloud">Er du sikker?</h2>
@@ -182,32 +148,17 @@ export function QuestionsClient({ questions }: { questions: Question[] }) {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {editing && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setEditing(null)}
-        >
-          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setEditing(null)}
-              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
-              aria-label="Lukk"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <EditQuestionForm
-              question={editing}
-              onSaved={() => setEditing(null)}
-              onClose={() => setEditing(null)}
-            />
-          </div>
-        </div>
+        <Modal onClose={() => setEditing(null)}>
+          <EditQuestionForm
+            question={editing}
+            onSaved={() => setEditing(null)}
+            onClose={() => setEditing(null)}
+          />
+        </Modal>
       )}
     </>
   );

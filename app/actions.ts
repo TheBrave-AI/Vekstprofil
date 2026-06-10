@@ -26,6 +26,7 @@ function invalidateSurveys() {
   revalidateTag("surveys", {});
   revalidateTag("customers", {});
   revalidatePath("/admin/customers");
+  revalidatePath("/admin/surveys");
 }
 
 function invalidateCustomers() {
@@ -108,6 +109,7 @@ const cachedSidebarData = unstable_cache(
           _count:   { select: { answers: { where: { skipped: false, value: { not: null } } }, questions: true } },
         },
         orderBy: { sentAt: "desc" },
+        take:    20,
       }),
       db.survey.findMany({
         where:   { status: "submitted" },
@@ -250,21 +252,23 @@ export async function getSidebarData() {
   return cachedSidebarData();
 }
 
+const cachedGetCustomer = unstable_cache(
+  (id: string) => db.customer.findUnique({
+    where:   { id },
+    include: {
+      surveys: {
+        orderBy: { createdAt: "desc" },
+        include: { template: { select: { name: true } }, _count: { select: { answers: true } } },
+      },
+    },
+  }),
+  ["customer"],
+  { tags: ["customers"] }
+);
+
 export async function getCustomer(id: string) {
   await requireAuth();
-  return unstable_cache(
-    () => db.customer.findUnique({
-      where:   { id },
-      include: {
-        surveys: {
-          orderBy: { createdAt: "desc" },
-          include: { template: { select: { name: true } }, _count: { select: { answers: true } } },
-        },
-      },
-    }),
-    [`customer-${id}`],
-    { tags: ["customers"] }
-  )();
+  return cachedGetCustomer(id);
 }
 
 // ── Admin: surveys ────────────────────────────────────────────────────────────
@@ -415,21 +419,23 @@ export async function listTemplates() {
   return cachedTemplates();
 }
 
+const cachedGetTemplate = unstable_cache(
+  (id: string) => db.template.findUnique({
+    where:   { id },
+    include: {
+      questions: {
+        orderBy: { order: "asc" },
+        include: { question: true },
+      },
+    },
+  }),
+  ["template"],
+  { tags: ["templates"] }
+);
+
 export async function getTemplate(id: string) {
   await requireAuth();
-  return unstable_cache(
-    () => db.template.findUnique({
-      where:   { id },
-      include: {
-        questions: {
-          orderBy: { order: "asc" },
-          include: { question: true },
-        },
-      },
-    }),
-    [`template-${id}`],
-    { tags: ["templates"] }
-  )();
+  return cachedGetTemplate(id);
 }
 
 export async function createTemplate(data: {
@@ -574,6 +580,25 @@ export async function deleteQuestion(id: string): Promise<void> {
 export async function listSurveys() {
   await requireAuth();
   return cachedSurveys();
+}
+
+export async function getDashboardData() {
+  await requireAuth();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [needsFollowUp, recentSubmitted] = await Promise.all([
+    db.survey.findMany({
+      where:   { status: "active", sentAt: { not: null, lt: sevenDaysAgo } },
+      orderBy: { sentAt: "asc" },
+      include: { customer: { select: { companyName: true } } },
+    }),
+    db.survey.findMany({
+      where:   { status: "submitted" },
+      orderBy: { submittedAt: "desc" },
+      take:    5,
+      include: { customer: { select: { companyName: true } } },
+    }),
+  ]);
+  return { needsFollowUp, recentSubmitted };
 }
 
 export async function deleteSurvey(id: string): Promise<void> {

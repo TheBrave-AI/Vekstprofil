@@ -8,6 +8,7 @@ import { SaveButton } from "@/components/ui/buttons/SaveButton";
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddQuestionsPanel } from "@/components/admin/questions/AddQuestionsPanel";
+import { Modal } from "@/components/ui/Modal";
 import {
   DndContext,
   closestCenter,

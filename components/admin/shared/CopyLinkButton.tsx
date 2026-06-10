@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { buttonVariants } from "@/components/ui/primitives/Button";
 
 export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? `${window.location.origin}/k/${token}` : `/k/${token}`;
+  const [url, setUrl] = useState(`/k/${token}`);
+
+  useEffect(() => {
+    setUrl(`${window.location.origin}/k/${token}`);
+  }, [token]);
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);

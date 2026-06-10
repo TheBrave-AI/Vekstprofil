@@ -1,19 +1,9 @@
-import { listSurveys } from "@/app/actions";
+import { getDashboardData } from "@/app/actions";
 import PageHeader from "@/components/layout/PageHeader";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-  const surveys = await listSurveys();
-
-  const needsFollowUp   = surveys
-    .filter(s => s.status === "active" && s.sentAt && new Date(s.sentAt) < sevenDaysAgo)
-    .sort((a, b) => new Date(a.sentAt!).getTime() - new Date(b.sentAt!).getTime());
-  const recentSubmitted = surveys
-    .filter(s => s.status === "submitted")
-    .sort((a, b) => new Date(b.submittedAt!).getTime() - new Date(a.submittedAt!).getTime())
-    .slice(0, 5);
+  const { needsFollowUp, recentSubmitted } = await getDashboardData();
 
   return (
     <div className="space-y-8">

@@ -78,7 +78,11 @@ export default async function SurveyDetailPage({
                   className="px-6 last:border-0"
                   sub={
                     formatted
-                      ? <p className="text-mist text-[14px] leading-relaxed">{formatted}</p>
+                      ? <div className="space-y-1">
+                          {formatted.split('\n').filter(Boolean).map((line, i) => (
+                            <p key={i} className="text-mist text-[14px] leading-relaxed">{line}</p>
+                          ))}
+                        </div>
                       : <NotAnsweredPill skipped={!!a?.skipped} />
                   }
                 />
