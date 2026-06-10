@@ -1,4 +1,4 @@
-import { listCustomers, listTemplates } from "@/app/actions";
+import { listCustomers, listTemplatesWithQuestions, listQuestions } from "@/app/actions";
 import { NewSurveyForm } from "@/components/admin/surveys/NewSurveyForm";
 import Link from "next/link";
 
@@ -9,9 +9,10 @@ export default async function NewSurveyPage({
 }) {
   const { customerId } = await searchParams;
 
-  const [allCustomers, templates] = await Promise.all([
+  const [allCustomers, templates, allQuestions] = await Promise.all([
     listCustomers(),
-    listTemplates(),
+    listTemplatesWithQuestions(),
+    listQuestions(),
   ]);
   const customers = allCustomers
     .map(c => ({ id: c.id, companyName: c.companyName }))
@@ -22,14 +23,16 @@ export default async function NewSurveyPage({
       <div>
         <Link href="/admin" className="text-xs text-mist hover:text-accent transition">← Kunder</Link>
         <h1 className="font-display text-2xl text-cloud mt-1">Ny undersøkelse</h1>
-        <p className="text-sm text-mist mt-1">
-          Undersøkelsen opprettes som utkast — du kan redigere spørsmål før du aktiverer lenken.
-        </p>
       </div>
 
       <NewSurveyForm
         customers={customers}
-        templates={templates.map((t) => ({ id: t.id, name: t.name }))}
+        templates={templates.map((t) => ({
+          id: t.id, name: t.name, shortName: t.shortName,
+          introTitle: t.introTitle, introText: t.introText,
+          questionIds: t.questions.map((q) => q.questionId),
+        }))}
+        questions={allQuestions.map((q) => ({ id: q.id, label: q.label, category: q.category }))}
         preselectedCustomerId={customerId}
       />
     </div>

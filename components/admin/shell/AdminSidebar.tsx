@@ -10,6 +10,7 @@ export interface SurveyItem {
   date: string;
   answeredCount?: number;
   totalQuestions?: number;
+  surveyName?: string | null;
 }
 
 interface Props {
@@ -22,7 +23,7 @@ interface Props {
 export default function AdminSidebar({ active, submitted, draftCount, onCollapse }: Props) {
   return (
     <aside
-      className="w-[222px] shrink-0 sticky top-5 bg-midnight rounded-card shadow-card overflow-hidden"
+      className="w-[278px] shrink-0 sticky top-5 bg-midnight rounded-lg shadow-card overflow-hidden"
       style={{ height: "calc(100vh - 5.5rem)" }}
     >
       <div className="overflow-y-auto h-full">
@@ -93,6 +94,16 @@ function EmptyRow({ text }: { text: string }) {
   return <p className="px-4 py-2 pb-3 text-[12.5px] text-muted italic">{text}</p>;
 }
 
+function PaperIcon() {
+  return (
+    <svg width="9" height="11" viewBox="0 0 10 12" fill="none" className="shrink-0 opacity-60">
+      <path d="M1.5 0.5H6.5L9.5 3.5V11C9.5 11.3 9.3 11.5 9 11.5H1.5C1.2 11.5 1 11.3 1 11V1C1 0.7 1.2 0.5 1.5 0.5Z" stroke="currentColor" strokeWidth="1.2"/>
+      <path d="M6.5 0.5V3.5H9.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+      <path d="M3 5.5H7M3 7.5H7M3 9.5H5.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) {
   const showProgress = survey.status === "active"
     && survey.answeredCount !== undefined
@@ -108,10 +119,16 @@ function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) 
         <p className="text-[13px] font-medium text-cloud truncate leading-snug group-hover:text-accent transition-colors">
           {survey.companyName}
         </p>
+        {survey.surveyName && (
+          <p className="flex items-center gap-1 text-[11px] text-mist mt-0.5 truncate">
+            <PaperIcon />
+            <span className="truncate">{survey.surveyName}</span>
+          </p>
+        )}
         <p className="text-[11.5px] text-muted mt-0.5" suppressHydrationWarning>
           {relativeTime(survey.date)}
           {showProgress && (
-            <span className="ml-1.5 text-muted">
+            <span className="ml-1.5">
               · {survey.answeredCount}/{survey.totalQuestions}
             </span>
           )}

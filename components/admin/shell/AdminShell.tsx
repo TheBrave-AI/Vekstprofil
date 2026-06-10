@@ -24,7 +24,7 @@ export default function AdminShell({ active, submitted, draftCount, children }: 
             <motion.div
               key="sidebar"
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 222, opacity: 1 }}
+              animate={{ width: 278, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="shrink-0"

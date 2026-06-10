@@ -106,6 +106,7 @@ const cachedSidebarData = unstable_cache(
         where:   { status: "active" },
         include: {
           customer: { select: { companyName: true } },
+          template: { select: { name: true } },
           _count:   { select: { answers: { where: { skipped: false, value: { not: null } } }, questions: true } },
         },
         orderBy: { sentAt: "desc" },
@@ -113,7 +114,10 @@ const cachedSidebarData = unstable_cache(
       }),
       db.survey.findMany({
         where:   { status: "submitted" },
-        include: { customer: { select: { companyName: true } } },
+        include: {
+          customer: { select: { companyName: true } },
+          template: { select: { name: true } },
+        },
         orderBy: { submittedAt: "desc" },
         take:    8,
       }),
@@ -276,7 +280,8 @@ export async function getCustomer(id: string) {
 export async function createSurvey(
   customerId: string,
   templateId?: string,
-  introData?: { shortName?: string; name?: string; introTitle?: string; introText?: string }
+  introData?: { shortName?: string; name?: string; introTitle?: string; introText?: string },
+  questionIds?: string[]
 ): Promise<{ token: string; id: string }> {
   await requireAuth();
   const token = nanoid(10);
@@ -297,7 +302,15 @@ export async function createSurvey(
     });
     surveyId = survey.id;
 
-    if (templateId) {
+    if (questionIds && questionIds.length > 0) {
+      await tx.surveyQuestion.createMany({
+        data: questionIds.map((qid, i) => ({
+          surveyId:   survey.id,
+          questionId: qid,
+          order:      i,
+        })),
+      });
+    } else if (templateId) {
       const tqs = await tx.templateQuestion.findMany({
         where:   { templateId },
         orderBy: { order: "asc" },
@@ -432,6 +445,24 @@ const cachedGetTemplate = unstable_cache(
   ["template"],
   { tags: ["templates"] }
 );
+
+export async function listTemplatesWithQuestions() {
+  await requireAuth();
+  return unstable_cache(
+    () => db.template.findMany({
+      where:   { active: true },
+      orderBy: { createdAt: "asc" },
+      include: {
+        questions: {
+          orderBy: { order: "asc" },
+          select:  { questionId: true },
+        },
+      },
+    }),
+    ["templates-with-questions"],
+    { tags: ["templates"] }
+  )();
+}
 
 export async function getTemplate(id: string) {
   await requireAuth();

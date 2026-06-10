@@ -3,38 +3,70 @@
 import { createTemplate } from "@/app/actions";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import FormField from "@/components/form/FormField";
+import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
 import FormSubmitButton from "@/components/form/FormSubmitButton";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
+interface TemplateStarter {
+  id: string; name: string; shortName: string | null;
+  introTitle: string | null; introText: string | null;
+  questionIds: string[];
+}
 
-export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
-  const [selected, setSelected]      = useState<string[]>([]);
-  const [isPending, startTransition] = useTransition();
+export function NewTemplateForm({ questions, templates }: { questions: QuestionRow[]; templates: TemplateStarter[] }) {
+  const [selected,   setSelected]   = useState<string[]>([]);
+  const [name,       setName]       = useState("");
+  const [shortName,  setShortName]  = useState("");
+  const [introTitle, setIntroTitle] = useState("");
+  const [introText,  setIntroText]  = useState("");
+  const [isPending,  startTransition] = useTransition();
   const router = useRouter();
 
   function toggle(id: string) {
     setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
 
-  function handleSubmit(fd: FormData) {
-    const name       = (fd.get("name") as string).trim();
-    const shortName  = (fd.get("shortName") as string).trim();
-    const introTitle = (fd.get("introTitle") as string).trim();
-    const introText  = (fd.get("introText") as string).trim();
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     startTransition(async () => {
-      await createTemplate({ name, shortName: shortName || undefined, introTitle: introTitle || undefined, introText: introText || undefined, questionIds: selected });
+      await createTemplate({ name: name.trim(), shortName: shortName.trim() || undefined, introTitle: introTitle.trim() || undefined, introText: introText.trim() || undefined, questionIds: selected });
       router.push("/admin/templates");
     });
   }
 
+  function applyStarter(t: TemplateStarter) {
+    setName(t.name);
+    setShortName(t.shortName ?? "");
+    setIntroTitle(t.introTitle ?? "");
+    setIntroText(t.introText ?? "");
+    setSelected(t.questionIds);
+  }
+
   return (
-    <form action={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      {templates.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Kopier fra eksisterende mal</p>
+          <div className="flex flex-wrap gap-2">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => applyStarter(t)}
+                className="px-3 py-1.5 text-sm rounded-lg bg-midnight border border-line text-mist hover:text-cloud hover:border-steel transition"
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
-        <FormField name="shortName"  label="Kort navn (intern)"              placeholder="F.eks. START" />
-        <FormField name="name"       label="Navn (synlig for kunde)"         placeholder="f.eks. Brave Nullpunkt" required />
-        <FormField name="introTitle" label="Intro-tittel (synlig for kunde)" placeholder="F.eks. La oss kartlegge der dere står i dag." />
-        <FormField name="introText"  label="Intro-tekst (synlig for kunde)"  placeholder="Valgfri brødtekst på intro-kortet" />
+        <IntroFormFields
+          name={name} shortName={shortName} introTitle={introTitle} introText={introText}
+          onChange={(field, value) => ({ name: setName, shortName: setShortName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        />
       </div>
 
       <div className="space-y-2">
@@ -52,7 +84,7 @@ export function NewTemplateForm({ questions }: { questions: QuestionRow[] }) {
         </div>
       </div>
 
-      <FormSubmitButton label="Opprett mal" isPending={isPending} disabled={selected.length === 0} fullWidth={false} />
+      <FormSubmitButton label="Opprett mal" isPending={isPending} disabled={!name.trim() || selected.length === 0} fullWidth={false} />
     </form>
   );
 }
