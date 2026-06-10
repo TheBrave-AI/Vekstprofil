@@ -168,6 +168,7 @@ export default function Survey({ token, questions, existingAnswers, companyName,
                 answers={answers}
                 onSubmit={handleSubmit}
                 onGoToQuestion={goToQuestion}
+                companyName={companyName}
               />
             )}
             {stage === "submitted" && <Submitted onReset={handleReset} />}

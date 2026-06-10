@@ -34,6 +34,30 @@ async function requireAuth() {
   if (!session) throw new Error("Unauthorized");
 }
 
+async function requireDraftSurvey(surveyId: string): Promise<void> {
+  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
+  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+}
+
+function invalidateSurveys() {
+  revalidateTag("surveys", {});
+  revalidateTag("customers", {});
+  revalidatePath("/admin/customers");
+}
+
+function invalidateCustomers() {
+  revalidateTag("customers", {});
+  revalidatePath("/admin/customers");
+}
+
+function invalidateTemplates() {
+  revalidateTag("templates", {});
+}
+
+function invalidateQuestions() {
+  revalidateTag("questions", {});
+}
+
 // ── Cache: DB queries (auth checked separately in each action) ────────────────
 //
 // Cache strategy:
@@ -83,7 +107,7 @@ const cachedSurveys = unstable_cache(
     include: {
       customer: { select: { id: true, companyName: true } },
       template: { select: { name: true } },
-      _count:   { select: { answers: true, questions: true } },
+      _count:   { select: { answers: { where: { skipped: false, value: { not: null } } }, questions: true } },
     },
   }),
   ["surveys"],
@@ -198,9 +222,7 @@ export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
     data:  { status: "submitted", submittedAt: new Date() },
   });
 
-  revalidateTag("surveys", {});
-  revalidateTag("customers", {});
-  revalidatePath("/admin/customers");
+  invalidateSurveys();
   return { ok: true };
 }
 
@@ -222,8 +244,7 @@ export async function createCustomer(data: {
       contactEmail: data.contactEmail?.trim() || null,
     },
   });
-  revalidateTag("customers", {});
-  revalidatePath("/admin/customers");
+  invalidateCustomers();
   return customer;
 }
 
@@ -238,9 +259,7 @@ export async function deleteCustomer(id: string): Promise<void> {
     await tx.survey.deleteMany({ where: { customerId: id } });
     await tx.customer.deleteMany({ where: { id } });
   });
-  revalidateTag("customers", {});
-  revalidateTag("surveys", {});
-  revalidatePath("/admin/customers");
+  invalidateSurveys();
 }
 
 export async function getSidebarData() {
@@ -306,15 +325,13 @@ export async function createSurvey(
     }
   });
 
-  revalidateTag("surveys", {});
-  revalidateTag("customers", {});
-  revalidatePath("/admin/customers");
+  invalidateSurveys();
   return { token, id: surveyId };
 }
 
 export async function updateSurvey(
   id: string,
-  data: Partial<{ shortName: string | null; name: string | null; introTitle: string | null; introText: string | null }>
+  data: Pick<Prisma.SurveyUpdateInput, "shortName" | "name" | "introTitle" | "introText">
 ): Promise<void> {
   await requireAuth();
   await db.survey.update({ where: { id }, data });
@@ -328,9 +345,7 @@ export async function activateSurvey(surveyId: string): Promise<{ activated: boo
     data:  { status: "active", sentAt: new Date() },
   });
   if (result.count > 0) {
-    revalidateTag("surveys", {});
-    revalidateTag("customers", {});
-    revalidatePath("/admin/customers");
+    invalidateSurveys();
   }
   return { activated: result.count > 0 };
 }
@@ -340,8 +355,7 @@ export async function addQuestionToSurvey(
   questionId: string
 ): Promise<void> {
   await requireAuth();
-  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
-  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+  await requireDraftSurvey(surveyId);
 
   await db.$transaction(async (tx) => {
     const last = await tx.surveyQuestion.findFirst({
@@ -361,8 +375,7 @@ export async function removeQuestionFromSurvey(
   questionId: string
 ): Promise<void> {
   await requireAuth();
-  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
-  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+  await requireDraftSurvey(surveyId);
 
   await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
   revalidateTag("surveys", {});
@@ -373,8 +386,7 @@ export async function setSurveyQuestions(
   orderedQuestionIds: string[]
 ): Promise<void> {
   await requireAuth();
-  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
-  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
+  await requireDraftSurvey(surveyId);
 
   await db.$transaction(async (tx) => {
     await tx.surveyQuestion.deleteMany({ where: { surveyId } });
@@ -390,8 +402,7 @@ export async function reorderSurveyQuestions(
   orderedQuestionIds: string[]
 ): Promise<void> {
   await requireAuth();
-  const survey = await db.survey.findUnique({ where: { id: surveyId }, select: { status: true } });
-  if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to reorder questions");
+  await requireDraftSurvey(surveyId);
 
   await db.$transaction(
     orderedQuestionIds.map((questionId, order) =>
@@ -448,8 +459,8 @@ export async function createTemplate(data: {
   await requireAuth();
   if (!data.name.trim()) throw new Error("Template name is required");
 
-  const t = await db.$transaction(async (tx) => {
-    const template = await tx.template.create({
+  const template = await db.$transaction(async (tx) => {
+    const created = await tx.template.create({
       data: {
         name:       data.name.trim(),
         shortName:  data.shortName?.trim()  ?? null,
@@ -459,14 +470,14 @@ export async function createTemplate(data: {
     });
     await tx.templateQuestion.createMany({
       data: data.questionIds.map((questionId, i) => ({
-        templateId: template.id, questionId, order: i,
+        templateId: created.id, questionId, order: i,
       })),
     });
-    return template;
+    return created;
   });
 
-  revalidateTag("templates", {});
-  return { id: t.id };
+  invalidateTemplates();
+  return { id: template.id };
 }
 
 export async function updateTemplate(
@@ -475,7 +486,7 @@ export async function updateTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.template.update({ where: { id }, data });
-  revalidateTag("templates", {});
+  invalidateTemplates();
 }
 
 export async function removeQuestionFromTemplate(
@@ -484,7 +495,7 @@ export async function removeQuestionFromTemplate(
 ): Promise<void> {
   await requireAuth();
   await db.templateQuestion.deleteMany({ where: { templateId, questionId } });
-  revalidateTag("templates", {});
+  invalidateTemplates();
 }
 
 export async function setTemplateQuestions(
@@ -498,7 +509,7 @@ export async function setTemplateQuestions(
       data: orderedQuestionIds.map((questionId, order) => ({ templateId, questionId, order })),
     });
   });
-  revalidateTag("templates", {});
+  invalidateTemplates();
 }
 
 export async function reorderTemplateQuestions(
@@ -511,7 +522,7 @@ export async function reorderTemplateQuestions(
       db.templateQuestion.updateMany({ where: { templateId, questionId }, data: { order } })
     )
   );
-  revalidateTag("templates", {});
+  invalidateTemplates();
 }
 
 // ── Admin: questions ──────────────────────────────────────────────────────────
@@ -537,7 +548,7 @@ export async function createQuestion(data: {
   const q = await db.question.create({
     data: { ...rest, options: options && options.length > 0 ? options : undefined },
   });
-  revalidateTag("questions", {});
+  invalidateQuestions();
   return { id: q.id };
 }
 
@@ -563,7 +574,7 @@ export async function updateQuestion(
       ...(options !== undefined && { options: options ?? Prisma.JsonNull }),
     },
   });
-  revalidateTag("questions", {});
+  invalidateQuestions();
 }
 
 export async function deleteQuestion(id: string): Promise<void> {
@@ -573,7 +584,7 @@ export async function deleteQuestion(id: string): Promise<void> {
     await tx.surveyQuestion.deleteMany({ where: { questionId: id } });
     await tx.question.delete({ where: { id } });
   });
-  revalidateTag("questions", {});
+  invalidateQuestions();
   revalidatePath("/admin/questions");
 }
 
@@ -585,14 +596,14 @@ export async function listSurveys() {
 export async function deleteSurvey(id: string): Promise<void> {
   await requireAuth();
   await db.survey.delete({ where: { id } });
-  revalidateTag("surveys", {});
+  invalidateSurveys();
   revalidatePath("/admin/surveys");
 }
 
 export async function deleteTemplate (id: string): Promise<void> {
   await requireAuth();
   await db.template.delete({ where: { id } });
-  revalidateTag("templates", {});
+  invalidateTemplates();
   revalidatePath("/admin/templates");
 }
 

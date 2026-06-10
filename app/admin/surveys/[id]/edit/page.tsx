@@ -56,10 +56,10 @@ export default async function EditSurveyPage({
           suffix:      q.suffix,
           options:     q.options,
         }))}
-        initialShortName={survey.shortName ?? survey.template?.shortName}
-        initialName={survey.name ?? survey.template?.name}
-        initialIntroTitle={survey.introTitle ?? survey.template?.introTitle}
-        initialIntroText={survey.introText ?? survey.template?.introText}
+        initialShortName={survey.shortName ?? survey.template?.shortName ?? null}
+        initialName={survey.name ?? survey.template?.name ?? null}
+        initialIntroTitle={survey.introTitle ?? survey.template?.introTitle ?? null}
+        initialIntroText={survey.introText ?? survey.template?.introText ?? null}
       />
     </div>
   );

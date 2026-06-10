@@ -14,9 +14,10 @@ interface Props {
   answers: AnswerMap;
   onSubmit: () => void;
   onGoToQuestion: (index: number) => void;
+  companyName?: string;
 }
 
-export default function Summary({ questions, answers, onSubmit, onGoToQuestion }: Props) {
+export default function Summary({ questions, answers, onSubmit, onGoToQuestion, companyName }: Props) {
   const filledCount = questions.filter((q) => {
     const a = answers[q.id];
     return a !== undefined && a !== SKIPPED && a !== "";
@@ -24,7 +25,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
 
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
-      <BrandBar />
+      <BrandBar label={companyName} />
 
       <Eyebrow label="Ferdig" />
 
@@ -67,7 +68,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion }
         <h3 className="text-[15px]">Vi har lagret svarene dine. Vil du... </h3>  
         <div className="flex gap-4">
         <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
-        <Button size="lg" onClick={onSubmit}>Bekrefte og lukke{<Arrow />}</Button>
+        <Button size="lg" onClick={onSubmit} icon={<Arrow />}>Bekrefte og lukke</Button>
         {/* "Gå gjennom på nytt" sends the user to question 1 (index 0) */}
         </div>
       </div>
