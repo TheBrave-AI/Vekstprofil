@@ -28,11 +28,12 @@ function toAnswerMap(raw: Props["existingAnswers"]): AnswerMap {
 
 type Stage = "intro" | number | "summary" | "submitted";
 
-const EASE = [0.32, 0, 0.18, 1] as const;
+const EASE = [0.4, 0, 0.2, 1] as const;
+const distance = 10;
 const variants = {
-  enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? 24 : -24 }),
-  center: { opacity: 1, y: 0 },
-  exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? -24 : 24 }),
+  enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? distance : -distance }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -distance : distance }),
 };
 const reducedVariants = {
   enter: { opacity: 0 },
@@ -134,8 +135,8 @@ export default function Survey({ token, questions, existingAnswers, name, introT
             exit="exit"
             transition={
               prefersReducedMotion
-                ? { opacity: { duration: 0.2 } }
-                : { opacity: { duration: 0.2, ease: EASE }, y: { duration: 0.25, ease: EASE } }
+                ? { opacity: { duration: 0.15 } }
+                : { opacity: { duration: 0.17, ease: EASE }, x: { duration: 0.17, ease: EASE } }
             }
             style={{ willChange: "transform, opacity" }}
             className="w-full flex justify-center"
