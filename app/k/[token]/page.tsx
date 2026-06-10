@@ -24,13 +24,14 @@ export default async function ClientQuestionnairePage({
     );
   }
 
-  const { questions, answers, name, introTitle, introText } = result.survey!;
+  const { questions, answers, companyName, name, introTitle, introText } = result.survey!;
 
   return (
     <Survey
       token={token}
       questions={questions}
       existingAnswers={answers}
+      companyName={companyName}
       name={name}
       introTitle={introTitle}
       introText={introText}

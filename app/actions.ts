@@ -123,6 +123,7 @@ export async function getSurvey(token: string): Promise<{
   status: "not_found" | "draft" | "submitted" | "ok";
   survey?: {
     id: string;
+    companyName: string;
     name: string | null;
     introTitle: string | null;
     introText: string | null;
@@ -136,6 +137,7 @@ export async function getSurvey(token: string): Promise<{
       questions: { orderBy: { order: "asc" }, include: { question: true } },
       answers:   true,
       template:  { select: { name: true, introTitle: true, introText: true } },
+      customer:  { select: { companyName: true } },
     },
   });
 
@@ -155,10 +157,11 @@ export async function getSurvey(token: string): Promise<{
   return {
     status: "ok",
     survey: {
-      id:         survey.id,
-      name:       survey.name       ?? survey.template?.name       ?? null,
-      introTitle: survey.introTitle ?? survey.template?.introTitle ?? null,
-      introText:  survey.introText  ?? survey.template?.introText  ?? null,
+      id:          survey.id,
+      companyName: survey.customer.companyName,
+      name:        survey.name       ?? survey.template?.name       ?? null,
+      introTitle:  survey.introTitle ?? survey.template?.introTitle ?? null,
+      introText:   survey.introText  ?? survey.template?.introText  ?? null,
       questions,
       answers,
     },

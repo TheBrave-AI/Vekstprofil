@@ -14,6 +14,7 @@ interface Props {
   token: string;
   questions: Question[];
   existingAnswers: Record<string, { value: string | null; skipped: boolean }>;
+  companyName?: string;
   name?: string | null;
   introTitle?: string | null;
   introText?: string | null;
@@ -42,7 +43,7 @@ const reducedVariants = {
 };
 
 
-export default function Survey({ token, questions, existingAnswers, name, introTitle, introText }: Props) {
+export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText }: Props) {
   const [stage, setStage] = useState<Stage>("intro");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
@@ -144,7 +145,7 @@ export default function Survey({ token, questions, existingAnswers, name, introT
               if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);
             }}
           >
-            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} name={name} introTitle={introTitle} introText={introText} />}
+            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} companyName={companyName} name={name} introTitle={introTitle} introText={introText} />}
             {typeof stage === "number" && (
               <QuestionCard
                 question={questions[stage]}
@@ -156,6 +157,7 @@ export default function Survey({ token, questions, existingAnswers, name, introT
                 onSkip={goSkip}
                 onBack={goBack}
                 focusTrigger={focusTrigger}
+                companyName={companyName}
               />
             )}
             {stage === "summary" && (
