@@ -28,7 +28,8 @@ export default async function EditSurveyPage({
         <Link href={`/admin/customers/${survey.customerId}`} className="text-xs text-mist hover:text-accent transition">
           ← {survey.customer.companyName}
         </Link>
-        <h1 className="font-display text-2xl text-cloud mt-1">Rediger survey (utkast)</h1>
+        <h1 className="font-display text-2xl text-cloud mt-1">Rediger undersøkelse · {survey.template?.name ?? survey?.name ?? "Ingen mal"}</h1>
+        
       </div>
 
       <EditSurveyClient
@@ -55,10 +56,10 @@ export default async function EditSurveyPage({
           suffix:      q.suffix,
           options:     q.options,
         }))}
-        initialShortName={survey.shortName}
-        initialName={survey.name}
-        initialIntroTitle={survey.introTitle}
-        initialIntroText={survey.introText}
+        initialShortName={survey.shortName ?? survey.template?.shortName}
+        initialName={survey.name ?? survey.template?.name}
+        initialIntroTitle={survey.introTitle ?? survey.template?.introTitle}
+        initialIntroText={survey.introText ?? survey.template?.introText}
       />
     </div>
   );

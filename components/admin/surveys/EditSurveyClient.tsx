@@ -121,7 +121,7 @@ export function EditSurveyClient({
         <button
           type="button"
           onClick={() => setShowInfo((v) => !v)}
-          className="text-[12px] font-medium text-muted hover:text-cloud transition flex items-center gap-1.5"
+          className="text-[14px] font-medium text-muted hover:text-cloud transition flex items-center gap-1.5"
         >
           <span>{showInfo ? "▾" : "▸"}</span> Intro-innhold
         </button>

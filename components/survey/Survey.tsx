@@ -44,13 +44,8 @@ const reducedVariants = {
 };
 
 
-<<<<<<< Updated upstream
-export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText }: Props) {
-  const [stage, setStage] = useState<Stage>("intro");
-=======
-export default function Survey({ token, questions, existingAnswers, name, introTitle, introText, initiallySubmitted }: Props) {
+export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText, initiallySubmitted }: Props) {
   const [stage, setStage] = useState<Stage>(initiallySubmitted ? "summary" : "intro");
->>>>>>> Stashed changes
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
   const [direction, setDirection] = useState(1);

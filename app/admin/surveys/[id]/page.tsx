@@ -38,12 +38,11 @@ export default async function SurveyDetailPage({
             ← {survey.customer.companyName}
           </Link>
           <h1 className="font-display text-2xl text-cloud">
-            {survey.template?.name ?? "Undersøkelse"} — {survey.createdAt.toLocaleDateString("nb-NO")}
+            {survey.template?.name ?? "Undersøkelse"}
           </h1>
-          <p className="text-[12.5px] text-muted">
-            {survey.template?.name ?? "Ingen mal"} · {statusLabel[survey.status]}
+          <p className="text-[16px] text-muted">
             {survey.submittedAt &&
-              ` · Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
+              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO") ?? statusLabel[survey.status]}`}
           </p>
         </div>
         <div className="flex gap-2 shrink-0 items-end">

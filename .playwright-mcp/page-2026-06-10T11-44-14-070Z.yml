@@ -1,0 +1,261 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Brave" [ref=e5] [cursor=pointer]:
+          - /url: /admin
+          - img "Brave" [ref=e6]
+        - navigation [ref=e65]:
+          - link "Dashboard" [ref=e66] [cursor=pointer]:
+            - /url: /admin
+          - link "Undersøkelser" [ref=e67] [cursor=pointer]:
+            - /url: /admin/surveys
+          - link "Undersøkelses-maler" [ref=e68] [cursor=pointer]:
+            - /url: /admin/templates
+          - link "Kunder 6" [ref=e69] [cursor=pointer]:
+            - /url: /admin/customers
+            - text: Kunder
+            - generic [ref=e70]: "6"
+          - link "Spørsmål" [ref=e71] [cursor=pointer]:
+            - /url: /admin/questions
+      - generic [ref=e72]:
+        - generic [ref=e73]: av@thebrave.no
+        - button "Logg ut" [ref=e75] [cursor=pointer]
+    - generic [ref=e76]:
+      - complementary [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]: Undersøkelser
+            - button "Skjul sidebar" [ref=e82] [cursor=pointer]:
+              - img [ref=e83]
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - paragraph [ref=e87]: Besvarte
+              - generic [ref=e88]: "7"
+            - generic [ref=e89]:
+              - link "[Demo] Fjord Media Group AS 49 min siden" [ref=e90] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzikn6p00014hllms6l0n5c
+                - generic [ref=e92]:
+                  - paragraph [ref=e93]: "[Demo] Fjord Media Group AS"
+                  - paragraph [ref=e94]: 49 min siden
+              - link "[Demo] Nordtek Solutions AS 1t siden" [ref=e95] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia1c7000y4htv8y3cegu2
+                - generic [ref=e97]:
+                  - paragraph [ref=e98]: "[Demo] Nordtek Solutions AS"
+                  - paragraph [ref=e99]: 1t siden
+              - link "[Demo] Nordtek Solutions AS 1t siden" [ref=e100] [cursor=pointer]:
+                - /url: /admin/surveys/cmq5a0rkt0001k0042cj0f9fe
+                - generic [ref=e102]:
+                  - paragraph [ref=e103]: "[Demo] Nordtek Solutions AS"
+                  - paragraph [ref=e104]: 1t siden
+              - link "[Demo] Fjord Media Group AS 1t siden" [ref=e105] [cursor=pointer]:
+                - /url: /admin/surveys/cmq5862d40001js04a35bxk4h
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: "[Demo] Fjord Media Group AS"
+                  - paragraph [ref=e109]: 1t siden
+              - link "[Demo] Fjord Media Group AS 24. mai" [ref=e110] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia56n004r4htvxl2s210l
+                - generic [ref=e112]:
+                  - paragraph [ref=e113]: "[Demo] Fjord Media Group AS"
+                  - paragraph [ref=e114]: 24. mai
+              - link "[Demo] Solberg & Partners AS 8. mai" [ref=e115] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia3df00394htvfqw7ag38
+                - generic [ref=e117]:
+                  - paragraph [ref=e118]: "[Demo] Solberg & Partners AS"
+                  - paragraph [ref=e119]: 8. mai
+              - link "[Demo] Nordtek Solutions AS 23. apr." [ref=e120] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia08c00024htv4qdoug25
+                - generic [ref=e122]:
+                  - paragraph [ref=e123]: "[Demo] Nordtek Solutions AS"
+                  - paragraph [ref=e124]: 23. apr.
+          - generic [ref=e125]:
+            - generic [ref=e126]:
+              - paragraph [ref=e127]: Ubesvarte
+              - generic [ref=e128]: "9"
+            - generic [ref=e129]:
+              - link "[Demo] Solberg & Partners AS 17 min siden· 6/6" [ref=e130] [cursor=pointer]:
+                - /url: /admin/surveys/cmq7zfllm009g4hc8opnm5wnw
+                - generic [ref=e132]:
+                  - paragraph [ref=e133]: "[Demo] Solberg & Partners AS"
+                  - paragraph [ref=e134]:
+                    - text: 17 min siden
+                    - generic [ref=e135]: · 6/6
+              - link "Eksempel AS 20t siden· 0/10" [ref=e136] [cursor=pointer]:
+                - /url: /admin/surveys/cmq6sapxd002wjl04a7vfc8hk
+                - generic [ref=e138]:
+                  - paragraph [ref=e139]: Eksempel AS
+                  - paragraph [ref=e140]:
+                    - text: 20t siden
+                    - generic [ref=e141]: · 0/10
+              - link "[Demo] Vinmonopolets Leverandør AS 1 d siden· 1/3" [ref=e142] [cursor=pointer]:
+                - /url: /admin/surveys/cmq556141000q4hxetgmytckt
+                - generic [ref=e144]:
+                  - paragraph [ref=e145]: "[Demo] Vinmonopolets Leverandør AS"
+                  - paragraph [ref=e146]:
+                    - text: 1 d siden
+                    - generic [ref=e147]: · 1/3
+              - link "[Demo] Kystlogistikk AS 1 d siden· 0/15" [ref=e148] [cursor=pointer]:
+                - /url: /admin/surveys/cmq57od0i0001l4040jcs37f9
+                - generic [ref=e150]:
+                  - paragraph [ref=e151]: "[Demo] Kystlogistikk AS"
+                  - paragraph [ref=e152]:
+                    - text: 1 d siden
+                    - generic [ref=e153]: · 0/15
+              - link "[Demo] Fjord Media Group AS 5 d siden· 0/15" [ref=e154] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia5xt005n4htv6ippjc5j
+                - generic [ref=e156]:
+                  - paragraph [ref=e157]: "[Demo] Fjord Media Group AS"
+                  - paragraph [ref=e158]:
+                    - text: 5 d siden
+                    - generic [ref=e159]: · 0/15
+              - link "Eksempel AS 5 d siden· 0/3" [ref=e160] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzhsc9600014h453yixzdnh
+                - generic [ref=e162]:
+                  - paragraph [ref=e163]: Eksempel AS
+                  - paragraph [ref=e164]:
+                    - text: 5 d siden
+                    - generic [ref=e165]: · 0/3
+              - link "Eksempel AS 6 d siden· 14/15" [ref=e166] [cursor=pointer]:
+                - /url: /admin/surveys/cmpy1jccx000vrevycd5t77qb
+                - generic [ref=e168]:
+                  - paragraph [ref=e169]: Eksempel AS
+                  - paragraph [ref=e170]:
+                    - text: 6 d siden
+                    - generic [ref=e171]: · 14/15
+              - link "[Demo] Kystlogistikk AS 1. juni· 3/15" [ref=e172] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia46j00464htvcwrb9u61
+                - generic [ref=e174]:
+                  - paragraph [ref=e175]: "[Demo] Kystlogistikk AS"
+                  - paragraph [ref=e176]:
+                    - text: 1. juni
+                    - generic [ref=e177]: · 3/15
+              - link "[Demo] Vinmonopolets Leverandør AS 28. mai· 10/15" [ref=e178] [cursor=pointer]:
+                - /url: /admin/surveys/cmpzia6g500654htvpbsaxlji
+                - generic [ref=e180]:
+                  - paragraph [ref=e181]: "[Demo] Vinmonopolets Leverandør AS"
+                  - paragraph [ref=e182]:
+                    - text: 28. mai
+                    - generic [ref=e183]: · 10/15
+      - main [ref=e184]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - link "← Kunder" [ref=e189] [cursor=pointer]:
+                - /url: /admin/customers
+              - heading "[Demo] Fjord Media Group AS" [level=1] [ref=e190]
+              - paragraph [ref=e191]: Silje Dahl · silje.dahl@fjordmedia.no
+            - link "+ Ny undersøkelse" [ref=e192] [cursor=pointer]:
+              - /url: /admin/surveys/new?customerId=cmpzia530004p4htvc9zdyss8
+          - generic [ref=e193]:
+            - paragraph [ref=e194]: Undersøkelser
+            - generic [ref=e195]: (10)
+          - table [ref=e198]:
+            - rowgroup [ref=e199]:
+              - row "Mal Opprettet Status Svar" [ref=e200]:
+                - columnheader "Mal" [ref=e201]
+                - columnheader "Opprettet" [ref=e202]
+                - columnheader "Status" [ref=e203]
+                - columnheader "Svar" [ref=e204]
+                - columnheader [ref=e205]
+            - rowgroup [ref=e206]:
+              - row "Nullpunkt 9. juni, 16:35 Ubesvart 15 Se svar →" [ref=e207]:
+                - cell "Nullpunkt" [ref=e208]
+                - cell "9. juni, 16:35" [ref=e209]
+                - cell "Ubesvart" [ref=e210]:
+                  - generic [ref=e211]: Ubesvart
+                - cell "15" [ref=e212]
+                - cell "Se svar →" [ref=e213]:
+                  - link "Se svar →" [ref=e214] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq6qs2510003jn0456790pvh
+              - row "— 9. juni, 16:29 Utkast 0 Rediger Aktiver →" [ref=e215]:
+                - cell "—" [ref=e216]
+                - cell "9. juni, 16:29" [ref=e217]
+                - cell "Utkast" [ref=e218]:
+                  - generic [ref=e219]: Utkast
+                - cell "0" [ref=e220]
+                - cell "Rediger Aktiver →" [ref=e221]:
+                  - link "Rediger" [ref=e222] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq6qkxi40001jn049ausbi5n/edit
+                  - button "Aktiver →" [ref=e224] [cursor=pointer]
+              - row "— 9. juni, 16:29 Utkast 0 Rediger Aktiver →" [ref=e225]:
+                - cell "—" [ref=e226]
+                - cell "9. juni, 16:29" [ref=e227]
+                - cell "Utkast" [ref=e228]:
+                  - generic [ref=e229]: Utkast
+                - cell "0" [ref=e230]
+                - cell "Rediger Aktiver →" [ref=e231]:
+                  - link "Rediger" [ref=e232] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq6qkhj60001lb04fioxb4c1/edit
+                  - button "Aktiver →" [ref=e234] [cursor=pointer]
+              - row "— 9. juni, 13:04 Utkast 0 Rediger Aktiver →" [ref=e235]:
+                - cell "—" [ref=e236]
+                - cell "9. juni, 13:04" [ref=e237]
+                - cell "Utkast" [ref=e238]:
+                  - generic [ref=e239]: Utkast
+                - cell "0" [ref=e240]
+                - cell "Rediger Aktiver →" [ref=e241]:
+                  - link "Rediger" [ref=e242] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq6j8lpt000q4hzqatkg78ji/edit
+                  - button "Aktiver →" [ref=e244] [cursor=pointer]
+              - row "— 8. juni, 16:13 Utkast 0 Rediger Aktiver →" [ref=e245]:
+                - cell "—" [ref=e246]
+                - cell "8. juni, 16:13" [ref=e247]
+                - cell "Utkast" [ref=e248]:
+                  - generic [ref=e249]: Utkast
+                - cell "0" [ref=e250]
+                - cell "Rediger Aktiver →" [ref=e251]:
+                  - link "Rediger" [ref=e252] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq5ajzm90006k004sustq6cg/edit
+                  - button "Aktiver →" [ref=e254] [cursor=pointer]
+              - row "Nullpunkt 8. juni, 15:06 Besvart 3 Se svar →" [ref=e255]:
+                - cell "Nullpunkt" [ref=e256]
+                - cell "8. juni, 15:06" [ref=e257]
+                - cell "Besvart" [ref=e258]:
+                  - generic [ref=e259]: Besvart
+                - cell "3" [ref=e260]
+                - cell "Se svar →" [ref=e261]:
+                  - link "Se svar →" [ref=e262] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq5862d40001js04a35bxk4h
+              - row "— 8. juni, 13:40 Utkast 0 Rediger Aktiver →" [ref=e263]:
+                - cell "—" [ref=e264]
+                - cell "8. juni, 13:40" [ref=e265]
+                - cell "Utkast" [ref=e266]:
+                  - generic [ref=e267]: Utkast
+                - cell "0" [ref=e268]
+                - cell "Rediger Aktiver →" [ref=e269]:
+                  - link "Rediger" [ref=e270] [cursor=pointer]:
+                    - /url: /admin/surveys/cmq552ziu000m4hxem646f3zo/edit
+                  - button "Aktiver →" [ref=e272] [cursor=pointer]
+              - row "— 4. juni, 15:11 Besvart 4 Se svar →" [ref=e273]:
+                - cell "—" [ref=e274]
+                - cell "4. juni, 15:11" [ref=e275]
+                - cell "Besvart" [ref=e276]:
+                  - generic [ref=e277]: Besvart
+                - cell "4" [ref=e278]
+                - cell "Se svar →" [ref=e279]:
+                  - link "Se svar →" [ref=e280] [cursor=pointer]:
+                    - /url: /admin/surveys/cmpzikn6p00014hllms6l0n5c
+              - row "Nullpunkt 4. juni, 15:03 Ubesvart 1 Se svar →" [ref=e281]:
+                - cell "Nullpunkt" [ref=e282]
+                - cell "4. juni, 15:03" [ref=e283]
+                - cell "Ubesvart" [ref=e284]:
+                  - generic [ref=e285]: Ubesvart
+                - cell "1" [ref=e286]
+                - cell "Se svar →" [ref=e287]:
+                  - link "Se svar →" [ref=e288] [cursor=pointer]:
+                    - /url: /admin/surveys/cmpzia5xt005n4htv6ippjc5j
+              - row "Nullpunkt 4. juni, 15:03 Besvart 15 Se svar →" [ref=e289]:
+                - cell "Nullpunkt" [ref=e290]
+                - cell "4. juni, 15:03" [ref=e291]
+                - cell "Besvart" [ref=e292]:
+                  - generic [ref=e293]: Besvart
+                - cell "15" [ref=e294]
+                - cell "Se svar →" [ref=e295]:
+                  - link "Se svar →" [ref=e296] [cursor=pointer]:
+                    - /url: /admin/surveys/cmpzia56n004r4htvxl2s210l
+          - button "Slett kunde" [ref=e298] [cursor=pointer]:
+            - img [ref=e300]
+            - text: Slett kunde
+  - button "Open Next.js Dev Tools" [ref=e308] [cursor=pointer]:
+    - img [ref=e309]
+  - alert [ref=e312]

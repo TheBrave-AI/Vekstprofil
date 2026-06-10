@@ -13,22 +13,7 @@ export default async function ClientQuestionnairePage({
   if (result.status === "not_found") notFound();
   if (result.status === "draft")     notFound();
 
-<<<<<<< Updated upstream
-  if (result.status === "submitted") {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-ink px-4">
-        <div className="text-center space-y-2">
-          <h1 className="font-display text-2xl text-cloud">Allerede besvart</h1>
-          <p className="text-mist text-sm">Skjemaet er allerede fylt ut. Takk for dine svar!</p>
-        </div>
-      </main>
-    );
-  }
-
   const { questions, answers, companyName, name, introTitle, introText } = result.survey!;
-=======
-  const { questions, answers, name, introTitle, introText } = result.survey!;
->>>>>>> Stashed changes
 
   return (
     <Survey
