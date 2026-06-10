@@ -48,15 +48,18 @@ export function NewSurveyForm({
     setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
 
+  const activeTemplateId = templates.find(t =>
+    t.id === templateId &&
+    t.questionIds.join(",") === selected.join(",") &&
+    t.name === name &&
+    (t.shortName ?? "") === shortName &&
+    (t.introTitle ?? "") === introTitle &&
+    (t.introText ?? "") === introText
+  )?.id ?? null;
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const starter = templates.find(t => t.id === templateId);
-    const matchesTemplate = starter &&
-      starter.questionIds.join(",") === selected.join(",") &&
-      name === starter.name &&
-      shortName === (starter.shortName ?? "") &&
-      introTitle === (starter.introTitle ?? "") &&
-      introText === (starter.introText ?? "");
+    const matchesTemplate = activeTemplateId !== null;
     const introData = {
       shortName:  shortName  || undefined,
       name:       name       || undefined,
@@ -64,7 +67,7 @@ export function NewSurveyForm({
       introText:  introText  || undefined,
     };
     startTransition(async () => {
-      const { id } = await createSurvey(customerId, matchesTemplate ? templateId : undefined, introData, selected);
+      const { id } = await createSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
       router.push(`/admin/surveys/${id}/edit`);
     });
   }
@@ -109,7 +112,7 @@ export function NewSurveyForm({
                 key={t.id}
                 type="button"
                 onClick={() => applyStarter(t)}
-                className={`px-3 py-1.5 text-sm rounded-lg border transition ${templateId === t.id ? "bg-accent/10 border-accent text-cloud" : "bg-midnight border-line text-mist hover:text-cloud hover:border-steel"}`}
+                className={`px-3 py-1.5 text-sm rounded-lg border transition ${activeTemplateId === t.id ? "bg-accent/10 border-accent text-cloud" : "bg-midnight border-line text-mist hover:text-cloud hover:border-steel"}`}
               >
                 {t.name}
               </button>
@@ -117,7 +120,7 @@ export function NewSurveyForm({
             <button
               type="button"
               onClick={() => { setTemplateId(""); setName(""); setShortName(""); setIntroTitle(""); setIntroText(""); setSelected([]); }}
-              className={`px-3 py-1.5 text-sm rounded-lg border border-dashed transition ${templateId === "" ? "border-steel text-cloud" : "border-line text-mist hover:text-cloud hover:border-steel"}`}
+              className={`px-3 py-1.5 text-sm rounded-lg border border-dashed transition ${activeTemplateId === null ? "border-steel text-cloud" : "border-line text-mist hover:text-cloud hover:border-steel"}`}
             >
               Lag uten mal
             </button>
