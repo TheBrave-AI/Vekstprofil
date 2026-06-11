@@ -78,7 +78,7 @@ export function NewSurveyForm({
     setPendingAction("active");
     try {
       const { id } = await createAndActivateSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
-      router.push(`/admin/surveys/${id}?created=true`);
+      router.push(`/admin/surveys/${id}`);
     } finally {
       setPendingAction(null);
     }

@@ -19,7 +19,7 @@ export function CopyLinkButton({ token }: { token: string }) {
 
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted pl-3">Kundes lenke</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted pl-3">Send denne lenken til kunden</p>
       <div className="flex items-center gap-0 rounded-xl border border-line bg-navy overflow-hidden">
         <span className="font-mono text-[12px] text-mist select-all px-4 py-2.5 flex-1 truncate min-w-0">
           {url}
