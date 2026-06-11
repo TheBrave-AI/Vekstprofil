@@ -42,10 +42,6 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
         Dette er nullpunktet deres.
       </h1>
 
-      <p className="text-muted text-[15px] mt-3">
-        {filledCount} av {questions.length} besvart
-      </p>
-
       {/* Answer list */}
       <div className="mt-8">
         <button
@@ -54,7 +50,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
           className="flex w-full items-center justify-between py-3 text-left text-muted hover:text-cloud transition-colors"
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.1em]">
-            Se svar ({filledCount}/{questions.length})
+            Se svar ({filledCount} av {questions.length} besvart)
           </span>
           <motion.span
             animate={{ rotate: showAnswers ? 180 : 0 }}
