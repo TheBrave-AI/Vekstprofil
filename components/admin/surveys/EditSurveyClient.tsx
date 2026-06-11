@@ -164,7 +164,7 @@ export function EditSurveyClient({
           Tilbakestill
         </Button>
         <SaveButton type="button" onClick={handleSave} loading={isPending} disabled={!isDirty} />
-        <Button variant="success" onClick={handleActivate} disabled={isPending || current.length === 0}>
+        <Button variant="solid" onClick={handleActivate} disabled={isPending || current.length === 0}>
           Aktiver skjema
         </Button>
       </div>
