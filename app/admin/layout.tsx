@@ -28,6 +28,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     companyName: s.customer.companyName,
     status: "submitted",
     date: new Date(s.submittedAt ?? s.createdAt).toISOString(),
+    answeredCount: s._count.answers,
+    totalQuestions: s._count.questions,
     surveyName: s.name ?? s.template?.name ?? null,
   }));
 

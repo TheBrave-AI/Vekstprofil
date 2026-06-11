@@ -88,7 +88,7 @@ function formatDate(date: Date | string | null | undefined): string {
   if (days === 0) return "i dag";
   if (days === 1) return "i går";
   if (days < 7)  return `${days} d siden`;
-  return d.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
+  return d.toLocaleDateString("nb-NO", { day: "numeric", month: "short", timeZone: "Europe/Oslo" });
 }
 
 function Section({ title, subtitle, cta, children }: {

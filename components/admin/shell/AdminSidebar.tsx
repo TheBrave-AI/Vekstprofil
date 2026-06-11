@@ -1,5 +1,4 @@
 import Link from "next/link";
-import ActivityFeed from "../shared/ActivityFeed";
 import { relativeTime } from "@/lib/formatTime";
 import { SURVEY_STATUS } from "@/lib/constants";
 
@@ -78,18 +77,6 @@ function Section({ label, count, bordered = false, children }: {
   );
 }
 
-function StatusRow({ label, count, color }: { label: string; count: number; color: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
-        <span className="text-[13px] text-mist">{label}</span>
-      </div>
-      <span className="text-[13px] font-medium text-cloud tabular-nums">{count}</span>
-    </div>
-  );
-}
-
 function EmptyRow({ text }: { text: string }) {
   return <p className="px-4 py-2 pb-3 text-[12.5px] text-muted italic">{text}</p>;
 }
@@ -105,8 +92,7 @@ function PaperIcon() {
 }
 
 function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) {
-  const showProgress = survey.status === "active"
-    && survey.answeredCount !== undefined
+  const showProgress = survey.answeredCount !== undefined
     && survey.totalQuestions !== undefined;
 
   return (

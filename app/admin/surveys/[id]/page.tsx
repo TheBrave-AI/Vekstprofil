@@ -41,7 +41,7 @@ export default async function SurveyDetailPage({
           
           <p className="text-[16px] text-muted">
             {survey.submittedAt &&
-              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO")}`}
+              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO", { timeZone: "Europe/Oslo" })}`}
           </p>
         </div>
         <div className="flex gap-2 shrink-0 items-end">

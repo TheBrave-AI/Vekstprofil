@@ -117,6 +117,7 @@ const cachedSidebarData = unstable_cache(
         include: {
           customer: { select: { companyName: true } },
           template: { select: { name: true } },
+          _count:   { select: { answers: { where: { skipped: false, value: { not: null } } }, questions: true } },
         },
         orderBy: { submittedAt: "desc" },
         take:    8,
