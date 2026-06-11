@@ -166,7 +166,7 @@ export function EditSurveyClient({
         </Button>
         <DeleteSurveyButton surveyId={surveyId} />
         <div className="flex-1" />
-        <Button variant="accent" onClick={handleActivate} disabled={isPending || current.length === 0}>
+        <Button variant="success" onClick={handleActivate} disabled={isPending || current.length === 0}>
           Aktiver skjema
         </Button>
       </div>

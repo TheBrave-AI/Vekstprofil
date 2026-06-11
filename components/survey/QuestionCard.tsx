@@ -251,7 +251,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
         </button>
 
         <Button variant="ghost" size="lg" onClick={onSkip}>Hopp over</Button>
-        <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>{index === 0 ? "Start" : "Lagre og fortsett"}</Button>
+        <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>Lagre og fortsett</Button>
       </div>
     </div>
   );

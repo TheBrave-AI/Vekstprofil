@@ -52,16 +52,31 @@ export default function Survey({ token, questions, existingAnswers, companyName,
   const [focusTrigger, setFocusTrigger] = useState(0);
   const prefersReducedMotion = useReducedMotion();
 
+  function loadDraftForQuestion(index: number) {
+    const existing = answers[questions[index]?.id];
+    setDraft(existing && existing !== SKIPPED ? existing : "");
+  }
+
   function goNext() {
-    if (stage === "intro") { setDirection(1); setStage(0); return; }
+    if (stage === "intro") {
+      setDirection(1);
+      loadDraftForQuestion(0);
+      setStage(0);
+      return;
+    }
     if (typeof stage === "number") {
       const q = questions[stage];
       // Per spec: empty answer on Next counts as SKIPPED
       const value = draft.trim() || SKIPPED;
       setAnswers(prev => ({ ...prev, [q.id]: value }));
-      setDraft("");
       setDirection(1);
-      setStage(stage < questions.length - 1 ? stage + 1 : "summary");
+      if (stage < questions.length - 1) {
+        loadDraftForQuestion(stage + 1);
+        setStage(stage + 1);
+      } else {
+        setDraft("");
+        setStage("summary");
+      }
       void saveAnswer(token, q.id, value);
     }
   }
@@ -70,9 +85,14 @@ export default function Survey({ token, questions, existingAnswers, companyName,
     if (typeof stage !== "number") return;
     const q = questions[stage];
     setAnswers(prev => ({ ...prev, [q.id]: SKIPPED }));
-    setDraft("");
     setDirection(1);
-    setStage(stage < questions.length - 1 ? stage + 1 : "summary");
+    if (stage < questions.length - 1) {
+      loadDraftForQuestion(stage + 1);
+      setStage(stage + 1);
+    } else {
+      setDraft("");
+      setStage("summary");
+    }
     void saveAnswer(token, q.id, SKIPPED);
   }
 
