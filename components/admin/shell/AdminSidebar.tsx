@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { relativeTime } from "@/lib/formatTime";
 import { SURVEY_STATUS } from "@/lib/constants";
+import PaperIcon from "@/components/ui/primitives/PaperIcon";
 
 export interface SurveyItem {
   id: string;
@@ -81,15 +82,6 @@ function EmptyRow({ text }: { text: string }) {
   return <p className="px-4 py-2 pb-3 text-[12.5px] text-muted italic">{text}</p>;
 }
 
-function PaperIcon() {
-  return (
-    <svg width="9" height="11" viewBox="0 0 10 12" fill="none" className="shrink-0 opacity-60">
-      <path d="M1.5 0.5H6.5L9.5 3.5V11C9.5 11.3 9.3 11.5 9 11.5H1.5C1.2 11.5 1 11.3 1 11V1C1 0.7 1.2 0.5 1.5 0.5Z" stroke="currentColor" strokeWidth="1.2"/>
-      <path d="M6.5 0.5V3.5H9.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-      <path d="M3 5.5H7M3 7.5H7M3 9.5H5.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-    </svg>
-  );
-}
 
 function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) {
   const showProgress = survey.answeredCount !== undefined
@@ -107,7 +99,7 @@ function SurveyRow({ survey, isLast }: { survey: SurveyItem; isLast: boolean }) 
         </p>
         {survey.surveyName && (
           <p className="flex items-center gap-1 text-[11px] text-mist mt-0.5 truncate">
-            <PaperIcon />
+            <PaperIcon size={9} className="shrink-0 opacity-60" />
             <span className="truncate">{survey.surveyName}</span>
           </p>
         )}

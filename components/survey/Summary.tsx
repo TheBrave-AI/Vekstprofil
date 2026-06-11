@@ -92,7 +92,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
                               <p key={i} className="text-mist text-[14px] leading-relaxed">{line}</p>
                             ))}
                           </div>
-                        : <NotAnsweredPill skipped={isSkipped} />
+                        : <NotAnsweredPill />
                     }
                     onClick={() => onGoToQuestion(i)}
                   />

@@ -28,7 +28,9 @@ export default async function EditSurveyPage({
       </Link>
 
       <EditSurveyClient
-        title={survey.template?.name ?? survey.name ?? "Ingen mal"}
+        title={`Ny undersøkelse for ${survey.customer.companyName}`}
+        status="draft"
+        templateName={survey.template?.name ?? survey.name ?? null}
         surveyId={id}
         surveyQuestions={survey.questions.map((sq) => ({
           id:          sq.question.id,

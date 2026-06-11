@@ -1,15 +1,7 @@
-interface Props {
-  skipped?: boolean;
-}
-
-export default function NotAnsweredPill({ skipped }: Props) {
-  const label = skipped ? "Ikke svart" : "Ikke svart";
+export default function NotAnsweredPill() {
   return (
-    <span
-      className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"
-      style={{ background: "rgba(191,77,39,0.10)" }}
-    >
-      {label}
+    <span className="text-coral text-[13px] font-medium whitespace-nowrap">
+      Ikke svart
     </span>
   );
 }

@@ -26,6 +26,8 @@ interface QuestionRow extends SortableQuestionItem {}
 export function EditSurveyClient({
   surveyId,
   title,
+  status,
+  templateName,
   surveyQuestions,
   allQuestions,
   initialShortName,
@@ -35,6 +37,8 @@ export function EditSurveyClient({
 }: {
   surveyId:          string;
   title:             string;
+  status:            "draft" | "active" | "submitted";
+  templateName?:     string | null;
   surveyQuestions:   QuestionRow[];
   allQuestions:      QuestionRow[];
   initialShortName:  string | null;
@@ -113,6 +117,8 @@ export function EditSurveyClient({
       <EditEntityHeader
         overline="Rediger undersøkelse"
         title={title}
+        status={status}
+        templateName={templateName}
         showInfo={showInfo}
         onToggleInfo={() => setShowInfo((v) => !v)}
         isPending={isPending}
