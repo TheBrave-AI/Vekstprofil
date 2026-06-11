@@ -28,7 +28,7 @@ export function NewCustomerForm() {
         <h2 className="font-display text-xl text-cloud">Opprett kundeprofil</h2>
       </div>
       <div className="space-y-4">
-        <FormField name="companyName"  label="Bedriftsnavn"     placeholder="Eksempel AS"     required />
+        <FormField name="companyName" label="Bedriftsnavn" hint={<span className="text-coral font-normal">(synlig for kunde)</span>} placeholder="Eksempel AS" required />
         <FormField name="contactName"  label="Kontaktperson"    placeholder="Ola Nordmann"     required />
         <FormField name="contactEmail" label="E-post (valgfri)" placeholder="ola@eksempel.no" type="email" />
       </div>

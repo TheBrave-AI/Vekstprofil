@@ -59,12 +59,12 @@ export default async function SurveysPage() {
 
                     {/* Answers count */}
                     <div className="text-center shrink-0 w-12">
-                      <p className="text-[15px] text-muted tabular-nums">
+                      <p className="text-[12.5px] text-muted tabular-nums">
                         {survey.status === "active"
                           ? <>{survey._count.answers}/{survey._count.questions}</>
                           : survey._count.answers}
                       </p>
-                      <p className="text-[10.5px] text-muted uppercase tracking-wide">svar</p>
+                      <p className="text-[11px] text-muted uppercase tracking-wide">svar</p>
                     </div>
 
                     {/* Date */}
