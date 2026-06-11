@@ -55,7 +55,7 @@ export default async function SurveysPage() {
                       </Link>
                       <p className="flex items-center gap-1 text-[12px] text-muted mt-0.5 truncate">
                         <PaperIcon size={9} className="shrink-0 opacity-50" />
-                        {survey.template?.name ?? "Ingen mal"}
+                        {survey.name ?? survey.template?.name ?? "Ingen mal"}
                       </p>
                     </div>
 
