@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import NotAnsweredPill from "@/components/ui/primitives/NotAnsweredPill";
 import QuestionRow from "@/components/ui/primitives/QuestionRow";
 import PageHeader from "@/components/layout/PageHeader";
+import { fullDate } from "@/lib/formatTime";
 
 export default async function SurveyDetailPage({
   params,
@@ -29,27 +30,21 @@ export default async function SurveyDetailPage({
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-3">
         <div className="space-y-1">
           <Link
             href={`/admin/customers/${survey.customerId}`}
             className="text-xs text-mist hover:text-accent transition"
           >
-            ← {survey.customer.companyName}
+            ← Tilbake til kunde
           </Link>
-          <PageHeader title={survey.template?.name ?? "Undersøkelse"} />
-          
+          <PageHeader title={survey.customer.companyName} />
           <p className="text-[16px] text-muted">
-            {survey.submittedAt &&
-              `Besvart ${survey.submittedAt.toLocaleDateString("nb-NO", { timeZone: "Europe/Oslo" })}`}
+            {survey.template?.name ?? "Undersøkelse"}
+            {survey.submittedAt && <> · Besvart {fullDate(survey.submittedAt)}</>}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0 items-end">
-          {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
-          <Button variant="ghost" href={`/api/export/${survey.token}`}>
-            Last ned CSV
-          </Button>
-        </div>
+        {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
       </div>
 
       {/* Answer list */}
@@ -92,7 +87,12 @@ export default async function SurveyDetailPage({
         </div>
       )}
 
-      <DeleteSurveyButton surveyId={survey.id} />
+      <div className="flex items-center justify-between">
+        <DeleteSurveyButton surveyId={survey.id} />
+        <Button variant="ghost" href={`/api/export/${survey.token}`}>
+          Last ned CSV
+        </Button>
+      </div>
     </div>
   );
 }
