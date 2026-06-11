@@ -250,7 +250,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
           ← {index === 0 ? "Avslutt" : "Tilbake"}
         </button>
         <Button variant="ghost" size="lg" onClick={onSkip}>Hopp over</Button>
-        <Button size="lg" onClick={handleNext} disabled={hasError}>Lagre & fortsett<Arrow /></Button>
+        <Button size="lg" onClick={handleNext} disabled={hasError}>Lagre og fortsett<Arrow /></Button>
       </div>
     </div>
   );
