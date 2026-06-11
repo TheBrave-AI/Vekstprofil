@@ -1,6 +1,6 @@
 "use client";
 
-import { createSurvey, activateSurvey } from "@/app/actions";
+import { createSurvey, createAndActivateSurvey } from "@/app/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
@@ -75,9 +75,8 @@ export function NewSurveyForm({
     if (!customerId || pendingAction) return;
     setPendingAction("active");
     try {
-      const { id } = await createSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
-      await activateSurvey(id);
-      router.push(`/admin/surveys/${id}`);
+      const { id } = await createAndActivateSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
+      router.push(`/admin/surveys/${id}?created=true`);
     } finally {
       setPendingAction(null);
     }
@@ -190,7 +189,7 @@ export function NewSurveyForm({
           Opprett og aktiver
         </Button>
       </div>
-      
+
     </form>
   );
 }

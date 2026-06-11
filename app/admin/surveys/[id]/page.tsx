@@ -11,6 +11,8 @@ import QuestionRow from "@/components/ui/primitives/QuestionRow";
 import PageHeader from "@/components/layout/PageHeader";
 import PaperIcon from "@/components/ui/primitives/PaperIcon";
 import { fullDate } from "@/lib/formatTime";
+import { SurveyCreatedToast } from "@/components/admin/surveys/SurveyCreatedToast";
+import { Suspense } from "react";
 
 export default async function SurveyDetailPage({
   params,
@@ -30,6 +32,7 @@ export default async function SurveyDetailPage({
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
+      <Suspense fallback={null}><SurveyCreatedToast /></Suspense>
       {/* Header */}
       <div className="space-y-3">
         <div className="space-y-1">

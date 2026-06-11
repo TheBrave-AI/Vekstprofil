@@ -29,9 +29,10 @@ function invalidateSurveys() {
   revalidatePath("/admin/surveys");
 }
 
-function invalidateCustomers() {
+function invalidateCustomers(id?: string) {
   revalidateTag("customers", {});
   revalidatePath("/admin/customers");
+  if (id) revalidatePath(`/admin/customers/${id}`);
 }
 
 function invalidateTemplates() {
@@ -250,6 +251,7 @@ export async function deleteCustomer(id: string): Promise<void> {
     await tx.customer.deleteMany({ where: { id } });
   });
   invalidateSurveys();
+  invalidateCustomers(id);
 }
 
 export async function getSidebarData() {
@@ -278,56 +280,74 @@ export async function getCustomer(id: string) {
 
 // ── Admin: surveys ────────────────────────────────────────────────────────────
 
+type SurveyIntroData = { shortName?: string; name?: string; introTitle?: string; introText?: string };
+
+async function _buildSurveyTx(
+  tx: Prisma.TransactionClient,
+  params: {
+    customerId:   string;
+    templateId?:  string;
+    token:        string;
+    status:       "draft" | "active";
+    sentAt?:      Date;
+    introData?:   SurveyIntroData;
+    questionIds?: string[];
+  }
+): Promise<string> {
+  const { customerId, templateId, token, status, sentAt, introData, questionIds } = params;
+
+  const survey = await tx.survey.create({
+    data: {
+      customerId,
+      templateId:  templateId ?? null,
+      token,
+      status,
+      sentAt:      sentAt ?? null,
+      shortName:   introData?.shortName?.trim()  ?? null,
+      name:        introData?.name?.trim()        ?? null,
+      introTitle:  introData?.introTitle?.trim()  ?? null,
+      introText:   introData?.introText?.trim()   ?? null,
+    },
+  });
+
+  if (questionIds && questionIds.length > 0) {
+    await tx.surveyQuestion.createMany({
+      data: questionIds.map((qid, i) => ({
+        surveyId:   survey.id,
+        questionId: qid,
+        order:      i,
+      })),
+    });
+  } else if (templateId) {
+    const tqs = await tx.templateQuestion.findMany({
+      where:   { templateId },
+      orderBy: { order: "asc" },
+    });
+    await tx.surveyQuestion.createMany({
+      data: tqs.map((tq) => ({
+        surveyId:   survey.id,
+        questionId: tq.questionId,
+        order:      tq.order,
+      })),
+    });
+  }
+
+  return survey.id;
+}
+
 export async function createSurvey(
   customerId: string,
   templateId?: string,
-  introData?: { shortName?: string; name?: string; introTitle?: string; introText?: string },
+  introData?: SurveyIntroData,
   questionIds?: string[]
 ): Promise<{ token: string; id: string }> {
   await requireAuth();
   const token = nanoid(10);
-  let surveyId = "";
-
-  await db.$transaction(async (tx) => {
-    const survey = await tx.survey.create({
-      data: {
-        customerId,
-        templateId:  templateId ?? null,
-        token,
-        status:      "draft",
-        shortName:   introData?.shortName?.trim()  ?? null,
-        name:        introData?.name?.trim()        ?? null,
-        introTitle:  introData?.introTitle?.trim()  ?? null,
-        introText:   introData?.introText?.trim()   ?? null,
-      },
-    });
-    surveyId = survey.id;
-
-    if (questionIds && questionIds.length > 0) {
-      await tx.surveyQuestion.createMany({
-        data: questionIds.map((qid, i) => ({
-          surveyId:   survey.id,
-          questionId: qid,
-          order:      i,
-        })),
-      });
-    } else if (templateId) {
-      const tqs = await tx.templateQuestion.findMany({
-        where:   { templateId },
-        orderBy: { order: "asc" },
-      });
-      await tx.surveyQuestion.createMany({
-        data: tqs.map((tq) => ({
-          surveyId:   survey.id,
-          questionId: tq.questionId,
-          order:      tq.order,
-        })),
-      });
-    }
-  });
-
+  const id = await db.$transaction((tx) =>
+    _buildSurveyTx(tx, { customerId, templateId, token, status: "draft", introData, questionIds })
+  );
   invalidateSurveys();
-  return { token, id: surveyId };
+  return { token, id };
 }
 
 export async function updateSurvey(
@@ -349,6 +369,21 @@ export async function activateSurvey(surveyId: string): Promise<{ activated: boo
     invalidateSurveys();
   }
   return { activated: result.count > 0 };
+}
+
+export async function createAndActivateSurvey(
+  customerId: string,
+  templateId?: string,
+  introData?: SurveyIntroData,
+  questionIds?: string[]
+): Promise<{ token: string; id: string }> {
+  await requireAuth();
+  const token = nanoid(10);
+  const id = await db.$transaction((tx) =>
+    _buildSurveyTx(tx, { customerId, templateId, token, status: "active", sentAt: new Date(), introData, questionIds })
+  );
+  invalidateSurveys();
+  return { token, id };
 }
 
 export async function addQuestionToSurvey(
@@ -447,22 +482,24 @@ const cachedGetTemplate = unstable_cache(
   { tags: ["templates"] }
 );
 
+const cachedListTemplatesWithQuestions = unstable_cache(
+  () => db.template.findMany({
+    where:   { active: true },
+    orderBy: { createdAt: "asc" },
+    include: {
+      questions: {
+        orderBy: { order: "asc" },
+        select:  { questionId: true },
+      },
+    },
+  }),
+  ["templates-with-questions"],
+  { tags: ["templates"] }
+);
+
 export async function listTemplatesWithQuestions() {
   await requireAuth();
-  return unstable_cache(
-    () => db.template.findMany({
-      where:   { active: true },
-      orderBy: { createdAt: "asc" },
-      include: {
-        questions: {
-          orderBy: { order: "asc" },
-          select:  { questionId: true },
-        },
-      },
-    }),
-    ["templates-with-questions"],
-    { tags: ["templates"] }
-  )();
+  return cachedListTemplatesWithQuestions();
 }
 
 export async function getTemplate(id: string) {

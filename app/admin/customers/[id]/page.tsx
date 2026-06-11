@@ -18,7 +18,7 @@ export default async function CustomerDetailPage({
 
   const customer = await getCustomer(id);
 
-  if (!customer) notFound();
+  if (!customer) redirect("/admin/customers");
 
 
   return (
@@ -50,7 +50,7 @@ export default async function CustomerDetailPage({
             <tbody>
               {customer.surveys.map((s) => (
                 <tr key={s.id} className="border-b border-line last:border-0">
-                  <td className="px-5 py-4 text-mist">{s.template?.name ?? "—"}</td>
+                  <td className="px-5 py-4 text-mist">{s.name ?? s.template?.name ?? "—"}</td>
                   <td className="px-5 py-4 text-mist">{timeOnly(s.createdAt)} · {fullDate(s.createdAt)}</td>
                   <td className="px-5 py-4">
                     <StatusBadge status={s.status as SurveyStatus} />
