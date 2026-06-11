@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }));
 
   return (
-    <div className="min-h-screen bg-ink flex flex-col">
+    <div className="h-screen overflow-hidden bg-ink flex flex-col">
       {/* Top bar */}
       <header className="h-14 shrink-0 flex items-center justify-between px-5 bg-midnight border-b border-line">
         <div className="flex items-center gap-5">

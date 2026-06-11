@@ -18,7 +18,7 @@ export default function AdminShell({ active, submitted, draftCount, children }: 
 
   return (
     <AdminShellContext.Provider value={{ collapsed, onOpen: () => setCollapsed(false) }}>
-      <div className="flex flex-1 gap-5 p-5 items-start">
+      <div className="flex flex-1 gap-5 p-5 items-start overflow-hidden">
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.div
@@ -38,7 +38,7 @@ export default function AdminShell({ active, submitted, draftCount, children }: 
             </motion.div>
           )}
         </AnimatePresence>
-        <main className="flex-1 min-w-0 relative">
+        <main className="flex-1 min-w-0 relative overflow-y-auto h-full">
           {collapsed && (
             <div className="absolute top-0 left-0">
               <SidebarToggle />
