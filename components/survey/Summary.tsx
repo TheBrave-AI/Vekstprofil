@@ -73,7 +73,6 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
               {questions.map((q, i) => {
                 const raw       = answers[q.id];
                 const formatted = formatAnswer(q, raw);
-                const isSkipped = raw === SKIPPED;
 
                 return (
                   <QuestionRow

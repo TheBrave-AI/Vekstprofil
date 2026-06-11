@@ -52,15 +52,14 @@ function invalidateQuestions() {
 // ── Cache: DB queries (auth checked separately in each action) ────────────────
 //
 // Cache strategy:
-//   questions  — invalidated by createQuestion / updateQuestion
-//   templates  — invalidated by createTemplate / updateTemplate
-//   customers  — invalidated by createCustomer
-//   surveys    — invalidated by createSurvey / activateSurvey / submitSurvey
-//                             / addQuestionToSurvey / removeQuestionFromSurvey
+//   questions  — invalidated by createQuestion / updateQuestion / deleteQuestion
+//   templates  — invalidated by createTemplate / updateTemplate / deleteTemplate / setTemplateQuestions
+//   customers  — invalidated by createCustomer / updateCustomer / deleteCustomer
+//   surveys    — invalidated by createSurvey / createAndActivateSurvey / activateSurvey
+//                             / submitSurvey / deleteSurvey / setSurveyQuestions
+//   sidebar    — invalidated by any survey or customer mutation (via invalidateSurveys / invalidateCustomers)
 //
-// NOT cached: getSurvey (client form needs fresh answers),
-//             getSurveyAdmin (admin detail needs fresh answers),
-//             saveAnswer / submitSurvey (mutations)
+// NOT cached: getSurvey (client form needs fresh answers), getSurveyAdmin (admin detail needs fresh answers)
 
 const cachedQuestions = unstable_cache(
   () => db.question.findMany({ orderBy: { createdAt: "asc" } }),
@@ -220,6 +219,7 @@ export async function submitSurvey(token: string): Promise<{ ok: boolean }> {
   });
 
   invalidateSurveys();
+  revalidatePath(`/admin/customers/${survey.customerId}`);
   return { ok: true };
 }
 
@@ -395,37 +395,6 @@ export async function createAndActivateSurvey(
   return { token, id };
 }
 
-export async function addQuestionToSurvey(
-  surveyId: string,
-  questionId: string
-): Promise<void> {
-  await requireAuth();
-  await requireDraftSurvey(surveyId);
-
-  await db.$transaction(async (tx) => {
-    const last = await tx.surveyQuestion.findFirst({
-      where:   { surveyId },
-      orderBy: { order: "desc" },
-    });
-    await tx.surveyQuestion.create({
-      data: { surveyId, questionId, order: (last?.order ?? -1) + 1 },
-    });
-  });
-
-  revalidateTag("surveys", {});
-}
-
-export async function removeQuestionFromSurvey(
-  surveyId: string,
-  questionId: string
-): Promise<void> {
-  await requireAuth();
-  await requireDraftSurvey(surveyId);
-
-  await db.surveyQuestion.deleteMany({ where: { surveyId, questionId } });
-  revalidateTag("surveys", {});
-}
-
 export async function setSurveyQuestions(
   surveyId: string,
   orderedQuestionIds: string[]
@@ -439,21 +408,6 @@ export async function setSurveyQuestions(
       data: orderedQuestionIds.map((questionId, order) => ({ surveyId, questionId, order })),
     });
   });
-  revalidateTag("surveys", {});
-}
-
-export async function reorderSurveyQuestions(
-  surveyId: string,
-  orderedQuestionIds: string[]
-): Promise<void> {
-  await requireAuth();
-  await requireDraftSurvey(surveyId);
-
-  await db.$transaction(
-    orderedQuestionIds.map((questionId, order) =>
-      db.surveyQuestion.updateMany({ where: { surveyId, questionId }, data: { order } })
-    )
-  );
   revalidateTag("surveys", {});
 }
 
@@ -556,15 +510,6 @@ export async function updateTemplate(
   invalidateTemplates();
 }
 
-export async function removeQuestionFromTemplate(
-  templateId: string,
-  questionId: string
-): Promise<void> {
-  await requireAuth();
-  await db.templateQuestion.deleteMany({ where: { templateId, questionId } });
-  invalidateTemplates();
-}
-
 export async function setTemplateQuestions(
   templateId: string,
   orderedQuestionIds: string[]
@@ -576,19 +521,6 @@ export async function setTemplateQuestions(
       data: orderedQuestionIds.map((questionId, order) => ({ templateId, questionId, order })),
     });
   });
-  invalidateTemplates();
-}
-
-export async function reorderTemplateQuestions(
-  templateId: string,
-  orderedQuestionIds: string[]
-): Promise<void> {
-  await requireAuth();
-  await db.$transaction(
-    orderedQuestionIds.map((questionId, order) =>
-      db.templateQuestion.updateMany({ where: { templateId, questionId }, data: { order } })
-    )
-  );
   invalidateTemplates();
 }
 
@@ -683,7 +615,6 @@ export async function deleteSurvey(id: string): Promise<void> {
   await requireAuth();
   await db.survey.delete({ where: { id } });
   invalidateSurveys();
-  revalidatePath("/admin/surveys");
 }
 
 export async function deleteTemplate (id: string): Promise<void> {

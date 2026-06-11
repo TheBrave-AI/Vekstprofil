@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { DeleteCustomerButton } from "@/components/admin/customers/DeleteCustomerButton";
 import Button from "@/components/ui/primitives/Button";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import StatusBadge from "@/components/ui/primitives/StatusBadge";
 import type { SurveyStatus } from "@/lib/constants";
 import SectionHeader from "@/components/layout/SectionHeader";

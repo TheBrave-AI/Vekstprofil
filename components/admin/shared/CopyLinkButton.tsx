@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { buttonVariants } from "@/components/ui/primitives/Button";
 
 export function CopyLinkButton({ token }: { token: string }) {
@@ -8,6 +8,7 @@ export function CopyLinkButton({ token }: { token: string }) {
   const [url, setUrl] = useState(`/k/${token}`);
   const [displayedUrl, setDisplayedUrl] = useState(`/k/${token}`);
   const [highlight, setHighlight] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const fullUrl = `${window.location.origin}/k/${token}`;
@@ -35,10 +36,12 @@ export function CopyLinkButton({ token }: { token: string }) {
     };
   }, []);
 
+  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
+
   async function handleCopy() {
     await navigator.clipboard.writeText(url);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
   }
 
   return (
