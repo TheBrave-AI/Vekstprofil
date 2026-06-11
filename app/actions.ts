@@ -456,8 +456,8 @@ export async function getSurveyAdmin(surveyId: string) {
   return db.survey.findUnique({
     where:   { id: surveyId },
     include: {
-      customer:  true,
-      template:  true,
+      customer:  { select: { companyName: true } },
+      template:  { select: { name: true, shortName: true, introTitle: true, introText: true } },
       questions: { orderBy: { order: "asc" }, include: { question: true } },
       answers:   true,
     },
