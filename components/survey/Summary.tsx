@@ -33,7 +33,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
       <BrandBar label={companyName} />
 
-      <Eyebrow label="Oppsummering" />
+      <Eyebrow label="Bekreftelse" />
 
       <h1
         className="font-display font-medium text-cloud leading-[1.1] tracking-[-0.015em]"
