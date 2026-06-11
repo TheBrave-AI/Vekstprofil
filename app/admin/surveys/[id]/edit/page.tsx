@@ -15,7 +15,7 @@ export default async function EditSurveyPage({
   if (survey.status !== "draft") {
     return (
       <div className="space-y-4">
-        <Link href={`/admin/surveys/${id}`} className="text-xs text-mist hover:text-accent">← Tilbake</Link>
+        <Link href={`/admin/surveys/${id}?activated=1`} className="text-xs text-mist hover:text-accent">← Tilbake</Link>
         <p className="text-sm text-mist">Kun utkast kan redigeres. Status er nå: <strong>{survey.status}</strong></p>
       </div>
     );
