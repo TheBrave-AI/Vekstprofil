@@ -6,6 +6,7 @@ import { getSidebarData } from "@/app/actions";
 import AdminTopNav from "@/components/admin/shell/AdminTopNav";
 import AdminShell from "@/components/admin/shell/AdminShell";
 import type { SurveyItem } from "@/components/admin/shell/AdminSidebar";
+import { BugReportButton } from "@/components/ui/BugReportButton";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -57,6 +58,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminShell active={active} submitted={submitted} draftCount={draftCount}>
         {children}
       </AdminShell>
+
+      <BugReportButton />
     </div>
   );
 }

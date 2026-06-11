@@ -748,3 +748,19 @@ export async function compareSurveys(
 
   return { survey1: toSnapshot(s1), survey2: toSnapshot(s2) };
 }
+
+// ── Bug reporting ─────────────────────────────────────────────────────────────
+
+export async function reportBug(message: string, url: string): Promise<void> {
+  await requireAuth();
+  const webhookUrl = process.env.SLACK_BUG_WEBHOOK_URL;
+  if (!webhookUrl) throw new Error("SLACK_BUG_WEBHOOK_URL is not set");
+
+  await fetch(webhookUrl, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      text: `🐛 *Bug rapport*\n*Side:* ${url}\n*Melding:* ${message}`,
+    }),
+  });
+}
