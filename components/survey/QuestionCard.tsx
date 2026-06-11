@@ -106,7 +106,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
   const pillInactive = "bg-navy text-mist border-steel hover:border-accent hover:text-cloud";
 
   return (
-    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
+    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
       <BrandBar label={companyName} />
       <ProgressBar current={index} total={total} />
 
@@ -121,7 +121,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
       </h2>
 
       {/* Help text */}
-      <p className="text-mist text-[16.5px] leading-[1.55] max-w-[46ch] mt-4">
+      <p className="text-mist text-[15px] sm:text-[16.5px] leading-[1.55] max-w-[46ch] mt-4">
         {question.help}
       </p>
 
@@ -241,7 +241,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
       ) : null}
 
       {/* Action row */}
-      <div className="flex items-center gap-[14px] flex-wrap mt-7">
+      <div className="mt-7 flex items-center gap-3">
         <button
           type="button"
           onClick={onBack}
@@ -249,9 +249,12 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
         >
           ← {index === 0 ? "Avslutt" : "Tilbake"}
         </button>
-
-        <Button variant="ghost" size="lg" onClick={onSkip}>Hopp over</Button>
-        <Button size="lg" onClick={handleNext} disabled={hasError} icon={<Arrow />}>Lagre og fortsett</Button>
+        <Button variant="ghost" size="lg" onClick={onSkip} className="px-3! sm:px-6!">Hopp over</Button>
+        <Button size="lg" onClick={handleNext} disabled={hasError}>
+          <span className="sm:hidden">Fortsett</span>
+          <span className="hidden sm:inline">Lagre & fortsett</span>
+          <Arrow />
+        </Button>
       </div>
     </div>
   );

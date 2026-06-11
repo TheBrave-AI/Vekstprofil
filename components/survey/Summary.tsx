@@ -30,7 +30,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
   }).length;
 
   return (
-    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
+    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
       <BrandBar label={companyName} />
 
       <Eyebrow label="Ferdig" />
@@ -103,10 +103,10 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
       
       <div className="flex flex-col items-center gap-[14px] mt-8">
         <h3 className="text-[15px]">Vi har lagret svarene dine. Vil du... </h3>
-        <div className="flex gap-4">
-          <Button variant="ghost" size="lg" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
-          <Button size="lg" onClick={onSubmit} icon={<Arrow />} disabled={isAlreadySubmitted}>
-            {isAlreadySubmitted ? "Allerede innsendt" : "Bekrefte og lukke"}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button variant="ghost" size="lg" className="w-full justify-center sm:w-auto" onClick={() => onGoToQuestion(0)}>Endre svarene</Button>
+          <Button size="lg" className="w-full justify-center sm:w-auto" onClick={onSubmit} disabled={isAlreadySubmitted}>
+            {isAlreadySubmitted ? "Allerede innsendt" : "Bekrefte og lukke"}{<Arrow />}
           </Button>
         </div>
       </div>

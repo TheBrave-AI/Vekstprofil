@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import BraveLogo from "@/components/ui/brand/BraveLogo";
 
 interface Props {
   customerCount: number;
@@ -15,6 +16,7 @@ export default function AdminTopNav({ customerCount }: Props) {
   }
 
   const NAV = [
+    
     { href: "/admin",           label: "Dashboard",      badge: null },
     { href: "/admin/surveys",   label: "Undersøkelser",  badge: null },
     { href: "/admin/templates", label: "Undersøkelses-maler",          badge: null },
@@ -24,6 +26,9 @@ export default function AdminTopNav({ customerCount }: Props) {
 
   return (
     <nav className="flex items-center gap-1">
+      <Link href="/admin" className="mr-4">
+        <BraveLogo className="h-7 w-auto text-brand" />
+      </Link>
       {NAV.map(({ href, label, badge }) => {
         const active = isActive(href);
         return (

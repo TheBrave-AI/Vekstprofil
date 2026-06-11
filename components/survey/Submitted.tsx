@@ -8,7 +8,7 @@ interface Props {
 
 export default function Submitted({ onReset, companyName }: Props) {
   return (
-    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
+    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] my-6 sm:my-10">
       <BrandBar label={companyName} />
 
       <h1

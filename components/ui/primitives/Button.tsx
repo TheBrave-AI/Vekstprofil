@@ -15,6 +15,7 @@ export const buttonVariants = cva(
         success:  "border border-transparent bg-[#16a34a] text-white hover:bg-[#15803d]",
       },
       size: {
+        q: "px-4 py-3.5 text-sm",
         sm: "px-5 py-2.5 text-sm",
         md: "px-6 py-3 text-sm",
         lg: "px-6 py-3.5 text-sm",

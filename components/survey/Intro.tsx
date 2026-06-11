@@ -28,7 +28,7 @@ const DEFAULT_TEXT  = "Vi stiller korte spørsmål om salg og marked. Svarene da
 
 export default function Intro({ onStart, questionCount, companyName, name, introTitle, introText }: Props) {
   return (
-    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] m-10">
+    <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
       <BrandBar label={companyName} />
 
       {name && <Eyebrow label={name} />}
@@ -42,20 +42,17 @@ export default function Intro({ onStart, questionCount, companyName, name, intro
       </h1>
 
       {/* Body */}
-      <p className="text-mist text-[18.5px] leading-[1.55] max-w-[52ch] mt-5">
+      <p className="text-mist text-[16px] sm:text-[18.5px] leading-[1.55] max-w-[52ch] mt-5">
         {introText ?? DEFAULT_TEXT}
       </p>
 
       {/* Meta-rad */}
-      <div className="flex gap-8 border-t border-line mt-7 pt-7">
+      <div className="flex items-center gap-8 border-t border-line mt-7 pt-7">
         <MetaItem value={String(questionCount ?? 0)} label="spørsmål" />
-        <MetaItem value={`~${String(Math.round(questionCount ? questionCount * 0.4 : 5))}`} label="minutter" />
+        <MetaItem value={`~${String(Math.ceil(questionCount ? questionCount * 0.3 : 5))}`} label="minutter" />
+        <Button size="lg" onClick={onStart} className="flex-1 justify-center md:flex-none md:w-2/3 md:ml-auto">Sett i gang <Arrow /></Button>
       </div>
 
-      {/* CTA */}
-      <div className="mt-7">
-        <Button size="lg" onClick={onStart} icon={<Arrow />}>Sett i gang</Button>
-      </div>
     </div>
   );
 }

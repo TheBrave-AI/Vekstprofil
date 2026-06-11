@@ -25,7 +25,9 @@ export function NewSurveyForm({
   questions:              QuestionRow[];
   preselectedCustomerId?: string;
 }) {
-  const [customerId,  setCustomerId]  = useState(preselectedCustomerId ?? customers[0]?.id ?? "");
+  const [customerId,  setCustomerId]  = useState(
+    customers.find(c => c.id === preselectedCustomerId)?.id ?? customers[0]?.id ?? ""
+  );
   const [templateId,  setTemplateId]  = useState("");
   const [selected,    setSelected]    = useState<string[]>([]);
   const [name,        setName]        = useState("");

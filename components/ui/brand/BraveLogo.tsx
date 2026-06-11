@@ -6,6 +6,7 @@ export default function BraveLogo({ className = "" }: Props) {
   return (
     <svg
       viewBox="0 0 1097 316"
+      
       fill="none"
       fillRule="evenodd"
       clipRule="evenodd"

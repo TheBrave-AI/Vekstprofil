@@ -342,6 +342,9 @@ export async function createSurvey(
   questionIds?: string[]
 ): Promise<{ token: string; id: string }> {
   await requireAuth();
+  if (!customerId) throw new Error("customerId is required");
+  const customer = await db.customer.findUnique({ where: { id: customerId }, select: { id: true } });
+  if (!customer) throw new Error(`Customer not found: ${customerId}`);
   const token = nanoid(10);
   const id = await db.$transaction((tx) =>
     _buildSurveyTx(tx, { customerId, templateId, token, status: "draft", introData, questionIds })
