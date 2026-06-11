@@ -1,12 +1,13 @@
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label: React.ReactNode;
+  hint?: React.ReactNode;
 }
 
-export default function FormField({ label, required, className, ...rest }: Props) {
+export default function FormField({ label, hint, required, className, ...rest }: Props) {
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-cloud">
-        {label}{required && <span className="text-accent ml-0.5">*</span>}
+        {label}{required && <span className="text-accent ml-0.5">*</span>}{hint && <span className="ml-1.5">{hint}</span>}
       </span>
       <input
         required={required}
