@@ -1,10 +1,10 @@
 "use client";
 
-import { createSurvey } from "@/app/actions";
-import { useState, useTransition } from "react";
+import { createSurvey, activateSurvey } from "@/app/actions";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IntroFormFields } from "@/components/admin/shared/IntroFormFields";
-import FormSubmitButton from "@/components/form/FormSubmitButton";
+import Button from "@/components/ui/primitives/Button";
 
 interface CustomerRow  { id: string; companyName: string; }
 interface QuestionRow  { id: string; label: string; category: string | null; }
@@ -32,7 +32,7 @@ export function NewSurveyForm({
   const [shortName,   setShortName]   = useState("");
   const [introTitle,  setIntroTitle]  = useState("");
   const [introText,   setIntroText]   = useState("");
-  const [isPending,   startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<"draft" | "active" | null>(null);
   const router = useRouter();
 
   function applyStarter(t: TemplateStarter) {
@@ -57,19 +57,34 @@ export function NewSurveyForm({
     (t.introText ?? "") === introText
   )?.id ?? null;
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const matchesTemplate = activeTemplateId !== null;
-    const introData = {
-      shortName:  shortName  || undefined,
-      name:       name       || undefined,
-      introTitle: introTitle || undefined,
-      introText:  introText  || undefined,
-    };
-    startTransition(async () => {
+  const introData = {
+    shortName:  shortName  || undefined,
+    name:       name       || undefined,
+    introTitle: introTitle || undefined,
+    introText:  introText  || undefined,
+  };
+
+  async function handleDraft() {
+    if (!customerId || pendingAction) return;
+    setPendingAction("draft");
+    try {
       const { id } = await createSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
       router.push(`/admin/surveys/${id}/edit`);
-    });
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleActivate() {
+    if (!customerId || pendingAction) return;
+    setPendingAction("active");
+    try {
+      const { id } = await createSurvey(customerId, activeTemplateId ?? undefined, introData, selected);
+      await activateSurvey(id);
+      router.push(`/admin/surveys/${id}`);
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   if (customers.length === 0) {
@@ -82,7 +97,7 @@ export function NewSurveyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="space-y-6">
 
       {/* Kunde */}
       <div className="space-y-2">
@@ -154,9 +169,32 @@ export function NewSurveyForm({
             </label>
           ))}
         </div>
+        {selected.length === 0 && (
+          <p className="text-xs text-mist">Velg minst ett spørsmål for å opprette undersøkelsen.</p>
+        )}
       </div>
-
-      <FormSubmitButton label="Opprett undersøkelse (utkast)" isPending={isPending} disabled={!customerId} fullWidth={false} />
+      
+      <div className="flex justify-end gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleDraft}
+          loading={pendingAction === "draft"}
+          disabled={!customerId || selected.length === 0 || pendingAction !== null}
+        >
+          Lagre som utkast
+        </Button>
+        <Button
+          type="button"
+          variant="solid"
+          onClick={handleActivate}
+          loading={pendingAction === "active"}
+          disabled={!customerId || selected.length === 0 || pendingAction !== null}
+        >
+          Opprett og aktiver
+        </Button>
+      </div>
+      
     </form>
   );
 }

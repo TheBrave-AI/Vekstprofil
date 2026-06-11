@@ -3,7 +3,7 @@ interface Props {
 }
 
 export default function NotAnsweredPill({ skipped }: Props) {
-  const label = skipped ? "Hoppet over" : "Ikke besvart";
+  const label = skipped ? "Ikke svart" : "Ikke svart";
   return (
     <span
       className="text-coral text-[13px] font-medium px-3 py-[5px] rounded-full whitespace-nowrap"

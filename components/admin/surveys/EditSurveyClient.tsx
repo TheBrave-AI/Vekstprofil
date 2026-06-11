@@ -160,12 +160,12 @@ export function EditSurveyClient({
 
       {/* Actions */}
       <div className="flex items-center gap-3 relative z-10">
-        <SaveButton type="button" onClick={handleSave} loading={isPending} disabled={!isDirty} />
+        <DeleteSurveyButton surveyId={surveyId} />
+        <div className="flex-1" />
         <Button variant="ghost" onClick={handleReset} disabled={isPending || !isDirty}>
           Tilbakestill
         </Button>
-        <DeleteSurveyButton surveyId={surveyId} />
-        <div className="flex-1" />
+        <SaveButton type="button" onClick={handleSave} loading={isPending} disabled={!isDirty} />
         <Button variant="accent" onClick={handleActivate} disabled={isPending || current.length === 0}>
           Aktiver skjema
         </Button>

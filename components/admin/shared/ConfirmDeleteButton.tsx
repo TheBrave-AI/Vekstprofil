@@ -37,13 +37,9 @@ export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
               <Button variant="coral" onClick={confirmDelete} disabled={isPending}>
                 {isPending ? "Sletter…" : "Slett"}
               </Button>
-              <button
-                type="button"
-                onClick={() => setConfirming(false)}
-                className="text-sm text-muted hover:text-cloud transition"
-              >
+              <Button variant="ghost" type="button" onClick={() => setConfirming(false)}>
                 Avbryt
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>
