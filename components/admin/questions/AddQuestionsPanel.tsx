@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NewQuestionForm } from "@/components/admin/questions/NewQuestionForm";
+import { Modal } from "@/components/ui/Modal";
 
 interface QuestionRow { id: string; label: string; category: string | null; }
 
@@ -12,13 +13,6 @@ interface Props {
 
 export function AddQuestionsPanel({ available, onAdd }: Props) {
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    if (!showModal) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setShowModal(false); }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [showModal]);
 
   return (
     <div className="space-y-3">
@@ -54,29 +48,14 @@ export function AddQuestionsPanel({ available, onAdd }: Props) {
       )}
 
       {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setShowModal(false)}
-        >
-          <div className="relative w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="absolute -top-3 -right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-midnight border border-line text-muted hover:text-cloud transition-colors"
-              aria-label="Lukk"
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <NewQuestionForm
-              onCreated={(q) => {
-                onAdd(q);
-                setShowModal(false);
-              }}
-            />
-          </div>
-        </div>
+        <Modal onClose={() => setShowModal(false)}>
+          <NewQuestionForm
+            onCreated={(q) => {
+              onAdd(q);
+              setShowModal(false);
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

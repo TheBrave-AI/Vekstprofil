@@ -60,7 +60,7 @@ export default async function SurveysPage() {
                     {/* Answers count */}
                     <div className="text-center shrink-0 w-12">
                       <p className="text-[12.5px] text-muted tabular-nums">
-                        {survey.status === "active"
+                        {survey.status !== "draft"
                           ? <>{survey._count.answers}/{survey._count.questions}</>
                           : survey._count.answers}
                       </p>

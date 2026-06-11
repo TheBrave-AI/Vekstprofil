@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { DeleteButton } from "@/components/ui/buttons/DeleteButton";
 import Button from "@/components/ui/primitives/Button";
+import { Modal } from "@/components/ui/Modal";
 
 interface Props {
   label: string;
@@ -13,15 +14,6 @@ interface Props {
 export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (!confirming) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setConfirming(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [confirming]);
 
   function confirmDelete() {
     startTransition(async () => {
@@ -34,14 +26,8 @@ export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
       <DeleteButton onClick={() => setConfirming(true)}>{label}</DeleteButton>
 
       {confirming && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setConfirming(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-card bg-midnight p-7 shadow-card space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setConfirming(false)} maxWidth="sm" showClose={false}>
+          <div className="rounded-card bg-midnight p-7 shadow-card space-y-4">
             <div className="space-y-1">
               <p className="text-xs font-medium tracking-widest uppercase text-coral">{label}</p>
               <h2 className="font-display text-lg text-cloud">Er du sikker?</h2>
@@ -60,7 +46,7 @@ export function ConfirmDeleteButton({ label, description, onConfirm }: Props) {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

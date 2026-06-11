@@ -45,7 +45,7 @@ const reducedVariants = {
 
 
 export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText, initiallySubmitted }: Props) {
-  const [stage, setStage] = useState<Stage>(initiallySubmitted ? "summary" : "intro");
+  const [stage, setStage] = useState<Stage>(initiallySubmitted ? "submitted" : "intro");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
   const [direction, setDirection] = useState(1);
@@ -171,7 +171,7 @@ export default function Survey({ token, questions, existingAnswers, companyName,
                 isAlreadySubmitted={initiallySubmitted ?? false}
               />
             )}
-            {stage === "submitted" && <Submitted onReset={handleReset} />}
+            {stage === "submitted" && <Submitted onReset={handleReset} companyName={companyName} />}
           </motion.div>
         </AnimatePresence>
         </div>
