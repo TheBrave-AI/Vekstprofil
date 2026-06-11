@@ -22,15 +22,21 @@ async function requireDraftSurvey(surveyId: string): Promise<void> {
   if (!survey || survey.status !== "draft") throw new Error("Survey must be in draft to edit questions");
 }
 
+function invalidateSidebar() {
+  revalidateTag("sidebar", {});
+}
+
 function invalidateSurveys() {
   revalidateTag("surveys", {});
   revalidateTag("customers", {});
+  invalidateSidebar();
   revalidatePath("/admin/customers");
   revalidatePath("/admin/surveys");
 }
 
 function invalidateCustomers(id?: string) {
   revalidateTag("customers", {});
+  invalidateSidebar();
   revalidatePath("/admin/customers");
   if (id) revalidatePath(`/admin/customers/${id}`);
 }
@@ -129,7 +135,7 @@ const cachedSidebarData = unstable_cache(
     return { active, submitted, draftCount, customerCount };
   },
   ["sidebar"],
-  { tags: ["surveys", "customers"] }
+  { tags: ["sidebar"] }
 );
 
 // ── Customer-facing ───────────────────────────────────────────────────────────
