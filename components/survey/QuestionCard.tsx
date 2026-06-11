@@ -132,7 +132,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
           hasError ? "border-coral shadow-[0_0_0_4px_rgba(191,77,39,0.12)]" :
           focused   ? "border-accent shadow-[0_0_0_4px_rgba(12,139,160,0.14)]" : "border-steel"}`}>
           {question.prefix && (
-            <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
+            <span className="text-muted text-[17px] px-3 sm:px-[18px] flex items-center shrink-0">
               {question.prefix}
             </span>
           )}
@@ -147,7 +147,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
               placeholder={question.placeholder}
               rows={3}
               maxLength={2000}
-              className="flex-1 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px] resize-none outline-none min-h-[92px]"
+              className="flex-1 min-w-0 bg-transparent text-cloud text-[18px] leading-[1.5] placeholder:text-muted p-[18px_20px] resize-none outline-none min-h-[92px]"
             />
           ) : (
             <input
@@ -161,11 +161,11 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleNext(); } }}
               placeholder={question.placeholder}
               maxLength={30}
-              className="flex-1 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"
+              className="flex-1 min-w-0 bg-transparent text-cloud text-[19px] font-medium placeholder:text-muted p-5 outline-none"
             />
           )}
           {question.suffix && (
-            <span className="text-muted text-[17px] px-[18px] flex items-center shrink-0">
+            <span className="text-muted text-[17px] px-3 sm:px-[18px] flex items-center shrink-0">
               {question.suffix}
             </span>
           )}

@@ -14,11 +14,12 @@ interface TemplateStarter {
 }
 
 export function NewTemplateForm({ questions, templates }: { questions: QuestionRow[]; templates: TemplateStarter[] }) {
-  const [selected,   setSelected]   = useState<string[]>([]);
-  const [name,       setName]       = useState("");
-  const [introTitle, setIntroTitle] = useState("");
-  const [introText,  setIntroText]  = useState("");
-  const [isPending,  startTransition] = useTransition();
+  const [selected,       setSelected]       = useState<string[]>([]);
+  const [name,           setName]           = useState("");
+  const [introTitle,     setIntroTitle]     = useState("");
+  const [introText,      setIntroText]      = useState("");
+  const [activeStarterId, setActiveStarterId] = useState<string | null>(null);
+  const [isPending,      startTransition]   = useTransition();
   const router = useRouter();
 
   function toggle(id: string) {
@@ -38,6 +39,15 @@ export function NewTemplateForm({ questions, templates }: { questions: QuestionR
     setIntroTitle(t.introTitle ?? "");
     setIntroText(t.introText ?? "");
     setSelected(t.questionIds);
+    setActiveStarterId(t.id);
+  }
+
+  function clearStarter() {
+    setName("");
+    setIntroTitle("");
+    setIntroText("");
+    setSelected([]);
+    setActiveStarterId(null);
   }
 
   return (
@@ -51,11 +61,18 @@ export function NewTemplateForm({ questions, templates }: { questions: QuestionR
                 key={t.id}
                 type="button"
                 onClick={() => applyStarter(t)}
-                className="px-3 py-1.5 text-sm rounded-lg bg-midnight border border-line text-mist hover:text-cloud hover:border-steel transition"
+                className={`px-3 py-1.5 text-sm rounded-lg border transition ${activeStarterId === t.id ? "bg-accent/10 border-accent text-cloud" : "bg-midnight border-line text-mist hover:text-cloud hover:border-steel"}`}
               >
                 {t.name}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={clearStarter}
+              className={`px-3 py-1.5 text-sm rounded-lg border border-dashed transition ${activeStarterId === null ? "border-steel text-cloud" : "border-line text-mist hover:text-cloud hover:border-steel"}`}
+            >
+              Lag uten mal
+            </button>
           </div>
         </div>
       )}
