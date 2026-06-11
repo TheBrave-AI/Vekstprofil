@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { buttonVariants } from "@/components/ui/primitives/Button";
 
-export function CopyLinkButton({ token, animated }: { token: string; animated?: boolean }) {
+export function CopyLinkButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState(`/k/${token}`);
-  const [displayedUrl, setDisplayedUrl] = useState(animated ? "" : `/k/${token}`);
+  const [displayedUrl, setDisplayedUrl] = useState(`/k/${token}`);
   const [highlight, setHighlight] = useState(false);
 
   useEffect(() => {
     const fullUrl = `${window.location.origin}/k/${token}`;
+    const animated = new URLSearchParams(window.location.search).get("activated") === "1";
     setUrl(fullUrl);
 
     if (!animated) {
