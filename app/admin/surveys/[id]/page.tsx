@@ -14,10 +14,13 @@ import { fullDate } from "@/lib/formatTime";
 
 export default async function SurveyDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ activated?: string }>;
 }) {
   const { id } = await params;
+  const { activated } = await searchParams;
   const survey = await getSurveyAdmin(id);
   if (!survey) notFound();
 
@@ -46,7 +49,7 @@ export default async function SurveyDetailPage({
             {survey.submittedAt && <> · Besvart {fullDate(survey.submittedAt)}</>}
           </p>
         </div>
-        {survey.status !== "draft" && <CopyLinkButton token={survey.token} />}
+        {survey.status !== "draft" && <CopyLinkButton token={survey.token} animated={activated === "1"} />}
       </div>
 
       {/* Answer list */}

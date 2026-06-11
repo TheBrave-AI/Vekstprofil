@@ -118,7 +118,11 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **`listTemplatesWithQuestions()`** — cached action in `actions.ts`. Returns templates with `questions: { questionId, order }[]`. Used by new-survey and new-template pages to populate template chips.
 - **`createSurvey` signature:** `(customerId, templateId?, introData?, questionIds?)` — if `questionIds` is provided and non-empty, those are used instead of copying from the template. Pass `templateId` only when the form state exactly matches the template (use `activeTemplateId` derived state).
 - **`unstable_cache` writes to disk** — cache lives in `.next/cache/` and survives dev server restarts. To fully clear it: `rm -rf .next`. Do this when debugging stale data after remote DB changes.
-- **Template chip reactive deselection (`activeTemplateId`):** In `NewSurveyForm` (and `NewTemplateForm`), the selected template chip is driven by derived `activeTemplateId` — computed by comparing all form fields + question order against each template. Editing any field automatically deselects the chip. Never use raw `templateId` state for chip styling.
+- **Template chip active state — two different patterns:** `NewSurveyForm` uses *derived* `activeTemplateId` (computed by comparing form fields + question order against each template — deselects automatically on any field change). `NewTemplateForm` uses *explicit* `activeStarterId: string | null` state — set on chip click, cleared to `null` by "Lag uten mal". Never conflate the two approaches.
+- **`min-w-0` på flex inputs:** `flex-1` alene lar ikke `input`/`textarea` krympe under sin naturlige minimumsbredde i flexbox. Legg alltid til `min-w-0` på disse når de er i en flex-kontainer med `shrink-0`-elementer (prefix/suffix).
+- **CVA override krever `!`-modifier:** For å overstyre klasser satt av CVA (f.eks. `text-sm` fra `size`-varianten) med responsive Tailwind-klasser, bruk `!`: `!text-[13px] sm:!text-sm`.
+- **Survey-kort bruker ingen `mx-*`:** Kortene i survey-flyten (`Intro`, `QuestionCard`, `Summary`, `Submitted`) har kun `my-6 sm:my-10` — horisontal luft kommer fra `main`s `px-4`. Ikke legg til `mx-*` på kortene.
+- **Post-redirect animasjon:** Bruk `?activated=1` (eller lignende URL-param) for å trigge animasjoner etter redirect. Les i `searchParams` (husk: Promise i Next.js 16) og send som prop til klientkomponent.
 
 ## Component Reuse Principle
 
