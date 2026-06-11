@@ -130,7 +130,7 @@ export function NewSurveyForm({
             ))}
             <button
               type="button"
-              onClick={() => { setTemplateId(""); setName(""); setShortName(""); setIntroTitle(""); setIntroText(""); setSelected([]); }}
+              onClick={() => { setTemplateId(""); setName(""); setIntroTitle(""); setIntroText(""); setSelected([]); }}
               className={`px-3 py-1.5 text-sm rounded-lg border border-dashed transition ${activeTemplateId === null ? "border-steel text-cloud" : "border-line text-mist hover:text-cloud hover:border-steel"}`}
             >
               Lag uten mal
