@@ -29,7 +29,6 @@ export function NewSurveyForm({
   const [templateId,  setTemplateId]  = useState("");
   const [selected,    setSelected]    = useState<string[]>([]);
   const [name,        setName]        = useState("");
-  const [shortName,   setShortName]   = useState("");
   const [introTitle,  setIntroTitle]  = useState("");
   const [introText,   setIntroText]   = useState("");
   const [pendingAction, setPendingAction] = useState<"draft" | "active" | null>(null);
@@ -38,7 +37,6 @@ export function NewSurveyForm({
   function applyStarter(t: TemplateStarter) {
     setTemplateId(t.id);
     setName(t.name);
-    setShortName(t.shortName ?? "");
     setIntroTitle(t.introTitle ?? "");
     setIntroText(t.introText ?? "");
     setSelected(t.questionIds);
@@ -52,13 +50,11 @@ export function NewSurveyForm({
     t.id === templateId &&
     t.questionIds.join(",") === selected.join(",") &&
     t.name === name &&
-    (t.shortName ?? "") === shortName &&
     (t.introTitle ?? "") === introTitle &&
     (t.introText ?? "") === introText
   )?.id ?? null;
 
   const introData = {
-    shortName:  shortName  || undefined,
     name:       name       || undefined,
     introTitle: introTitle || undefined,
     introText:  introText  || undefined,
@@ -149,8 +145,8 @@ export function NewSurveyForm({
         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Intro-innhold</p>
         <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
           <IntroFormFields
-            name={name} shortName={shortName} introTitle={introTitle} introText={introText}
-            onChange={(field, value) => ({ name: setName, shortName: setShortName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+            name={name} introTitle={introTitle} introText={introText}
+            onChange={(field, value) => ({ name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
           />
         </div>
       </div>

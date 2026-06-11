@@ -48,7 +48,6 @@ export function EditSurveyClient({
   const [editing,    setEditing]    = useState<QuestionRow | null>(null);
   const [showInfo,   setShowInfo]   = useState(false);
   const [saved,      setSaved]      = useState(false);
-  const [shortName,  setShortName]  = useState(initialShortName  ?? "");
   const [name,       setName]       = useState(initialName       ?? "");
   const [introTitle, setIntroTitle] = useState(initialIntroTitle ?? "");
   const [introText,  setIntroText]  = useState(initialIntroText  ?? "");
@@ -88,7 +87,6 @@ export function EditSurveyClient({
   function saveInfo() {
     startTransition(async () => {
       await updateSurvey(surveyId, {
-        shortName:  shortName  || null,
         name:       name       || null,
         introTitle: introTitle || null,
         introText:  introText  || null,
@@ -119,8 +117,8 @@ export function EditSurveyClient({
         onToggleInfo={() => setShowInfo((v) => !v)}
         isPending={isPending}
         saved={saved}
-        shortName={shortName} name={name} introTitle={introTitle} introText={introText}
-        onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        name={name} introTitle={introTitle} introText={introText}
+        onChange={(field, value) => ({ name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
         onSaveInfo={saveInfo}
       />
 

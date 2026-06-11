@@ -9,18 +9,17 @@ interface Props {
   onToggleInfo: () => void;
   isPending:    boolean;
   saved:        boolean;
-  shortName:    string;
   name:         string;
   introTitle:   string;
   introText:    string;
-  onChange:     (field: "shortName" | "name" | "introTitle" | "introText", value: string) => void;
+  onChange:     (field: "name" | "introTitle" | "introText", value: string) => void;
   onSaveInfo:   () => void;
   children?:    ReactNode;
 }
 
 export function EditEntityHeader({
   overline, title, showInfo, onToggleInfo, isPending, saved,
-  shortName, name, introTitle, introText, onChange, onSaveInfo, children,
+  name, introTitle, introText, onChange, onSaveInfo, children,
 }: Props) {
   return (
     <>
@@ -51,7 +50,7 @@ export function EditEntityHeader({
       {showInfo && (
         <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
           <IntroFormFields
-            shortName={shortName} name={name} introTitle={introTitle} introText={introText}
+            name={name} introTitle={introTitle} introText={introText}
             onChange={onChange}
           />
           <SaveButton type="button" onClick={onSaveInfo} loading={isPending} />

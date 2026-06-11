@@ -66,7 +66,6 @@ export function EditTemplateClient({
   allQuestions:        QuestionRow[];
 }) {
   const [name,        setName]        = useState(initialName);
-  const [shortName,   setShortName]   = useState(initialShortName   ?? "");
   const [introTitle,  setIntroTitle]  = useState(initialIntroTitle  ?? "");
   const [introText,   setIntroText]   = useState(initialIntroText   ?? "");
   const [active,      setActive]      = useState(initialActive);
@@ -96,7 +95,6 @@ export function EditTemplateClient({
     startTransition(async () => {
       await updateTemplate(templateId, {
         name,
-        shortName:  shortName  || null,
         introTitle: introTitle || null,
         introText:  introText  || null,
         active,
@@ -145,8 +143,8 @@ export function EditTemplateClient({
         onToggleInfo={() => setShowInfo((v) => !v)}
         isPending={isPending}
         saved={saved}
-        shortName={shortName} name={name} introTitle={introTitle} introText={introText}
-        onChange={(field, value) => ({ shortName: setShortName, name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+        name={name} introTitle={introTitle} introText={introText}
+        onChange={(field, value) => ({ name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
         onSaveInfo={saveInfo}
       >
         {/* Aktiv-toggle — alltid synlig */}

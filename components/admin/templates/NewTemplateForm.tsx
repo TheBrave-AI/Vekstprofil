@@ -16,7 +16,6 @@ interface TemplateStarter {
 export function NewTemplateForm({ questions, templates }: { questions: QuestionRow[]; templates: TemplateStarter[] }) {
   const [selected,   setSelected]   = useState<string[]>([]);
   const [name,       setName]       = useState("");
-  const [shortName,  setShortName]  = useState("");
   const [introTitle, setIntroTitle] = useState("");
   const [introText,  setIntroText]  = useState("");
   const [isPending,  startTransition] = useTransition();
@@ -29,14 +28,13 @@ export function NewTemplateForm({ questions, templates }: { questions: QuestionR
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      await createTemplate({ name: name.trim(), shortName: shortName.trim() || undefined, introTitle: introTitle.trim() || undefined, introText: introText.trim() || undefined, questionIds: selected });
+      await createTemplate({ name: name.trim(), introTitle: introTitle.trim() || undefined, introText: introText.trim() || undefined, questionIds: selected });
       router.push("/admin/templates");
     });
   }
 
   function applyStarter(t: TemplateStarter) {
     setName(t.name);
-    setShortName(t.shortName ?? "");
     setIntroTitle(t.introTitle ?? "");
     setIntroText(t.introText ?? "");
     setSelected(t.questionIds);
@@ -64,8 +62,8 @@ export function NewTemplateForm({ questions, templates }: { questions: QuestionR
 
       <div className="rounded-card bg-midnight p-6 shadow-card space-y-4">
         <IntroFormFields
-          name={name} shortName={shortName} introTitle={introTitle} introText={introText}
-          onChange={(field, value) => ({ name: setName, shortName: setShortName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
+          name={name} introTitle={introTitle} introText={introText}
+          onChange={(field, value) => ({ name: setName, introTitle: setIntroTitle, introText: setIntroText })[field](value)}
         />
       </div>
 
