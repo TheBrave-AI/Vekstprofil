@@ -115,6 +115,10 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **`revalidateTag` requires TWO arguments in Next.js 16** — always call as `revalidateTag("surveys", {})`. The second argument is `CacheLifeConfig`; passing `{}` means purge immediately with no override.
 - **`getTemplate(id)`** — cached action exists in `actions.ts`. Use it instead of querying `db.template.findUnique` directly.
 - **`getCustomer(id)`** — cached with `unstable_cache` per ID, tagged `customers`. Use it in admin pages.
+- **`listTemplatesWithQuestions()`** — cached action in `actions.ts`. Returns templates with `questions: { questionId, order }[]`. Used by new-survey and new-template pages to populate template chips.
+- **`createSurvey` signature:** `(customerId, templateId?, introData?, questionIds?)` — if `questionIds` is provided and non-empty, those are used instead of copying from the template. Pass `templateId` only when the form state exactly matches the template (use `activeTemplateId` derived state).
+- **`unstable_cache` writes to disk** — cache lives in `.next/cache/` and survives dev server restarts. To fully clear it: `rm -rf .next`. Do this when debugging stale data after remote DB changes.
+- **Template chip reactive deselection (`activeTemplateId`):** In `NewSurveyForm` (and `NewTemplateForm`), the selected template chip is driven by derived `activeTemplateId` — computed by comparing all form fields + question order against each template. Editing any field automatically deselects the chip. Never use raw `templateId` state for chip styling.
 
 ## Component Reuse Principle
 
@@ -170,13 +174,16 @@ components/
     questions/
       AddQuestionsPanel.tsx        — slide-in panel for adding questions to surveys/templates
       EditQuestionForm.tsx         — edit question form (used in modal in QuestionsClient + edit clients)
+      EditQuestionModal.tsx        — fixed overlay modal wrapping EditQuestionForm; accepts EditableQuestion | null + onClose; Escape closes
       NewQuestionForm.tsx          — accepts optional onCreated() callback for modal embedding
       QuestionsClient.tsx          — 'use client', owns create/edit/delete modal states for questions page
-      SortableQuestion.tsx         — drag-and-drop row: item, index, onRemove, optional onEdit (shows pencil)
+      SortableQuestion.tsx         — drag-and-drop row: item, index, onRemove, optional onEdit (shows edit icon)
     shared/
       ActivityFeed.tsx             — (unused, commented out)
       ConfirmDeleteButton.tsx      — confirm-before-delete pattern with inline confirmation step
       CopyLinkButton.tsx           — copies survey link to clipboard
+      EditEntityHeader.tsx         — shared header for edit pages: overline + h1 + edit icon + info card with IntroFormFields; children slot for extras (e.g. active toggle)
+      IntroFormFields.tsx          — four controlled fields: Navn, Kort navn, Intro-tittel, Intro-tekst; used in EditEntityHeader + NewSurveyForm + NewTemplateForm
 
   layout/                          — structural page-level components used across admin
     EmptyState.tsx                 — empty state card
@@ -248,7 +255,7 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 
 **Admin UI:**
 - Layout: topbar (h-14, BraveLogo as /admin link, AdminTopNav with active route highlighting + customer count badge) + collapsible sidebar + main content
-- Sidebar: sticky card w-[222px], lists active + submitted surveys with section counts; rows have border separators; animated collapse/expand (Framer Motion)
+- Sidebar: sticky card w-[278px], lists active + submitted surveys with section counts; rows have border separators; animated collapse/expand (Framer Motion)
 - Sidebar toggle: absolute top-left in `AdminShell` main area — do not add to individual pages
 - Main content centered: `mx-auto max-w-5xl` wrapper in `AdminShell`
 - Dashboard (`/admin`): survey lists only — no stat cards (counts live in nav/sidebar)
@@ -256,8 +263,10 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 - Survey detail (`/admin/surveys/[id]`): two-column grid `"minmax(0,55%) minmax(0,45%)"` — all answer types right-aligned in display font; `NotAnsweredPill` in right column; `max-w-3xl` card
 - Question catalog (`/admin/questions`): create/edit/delete all in modals — no separate pages. `QuestionsClient` owns all three modal states (`creating`, `editing`, `deleting`). `deleteQuestion` action added to `actions.ts`. Question labels are clickable to open edit modal.
 - Active sidebar shows answered/total progress (x/y) per active survey (`SurveyItem.answeredCount` / `.totalQuestions`)
-- Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`. Activating redirects to survey detail.
-- Template edit (`/admin/templates/[id]/edit`): template name shown as h1 with pencil icon — clicking pencil toggles an inline info card (Navn, Beskrivelse, Aktiv toggle). Questions list first, then "Legg til spørsmål" panel below.
+- Survey edit (`/admin/surveys/[id]/edit`): drag-and-drop reorder + add/remove questions, manual save via `setSurveyQuestions`. Activating redirects to survey detail. Uses `EditEntityHeader` + `EditQuestionModal`.
+- Template edit (`/admin/templates/[id]/edit`): template name shown as h1 with edit icon — clicking icon toggles an inline info card (Navn, Beskrivelse, Aktiv toggle). Questions list first, then "Legg til spørsmål" panel below. Uses `EditEntityHeader` + `EditQuestionModal`.
+- New survey (`/admin/surveys/new`): Option A layout — four overline sections (Kunde, Velg mal, Intro-innhold, Spørsmål). Template chips pre-fill all intro fields + pre-select questions. `activeTemplateId` derived state controls chip highlight reactively — deselects automatically when any field diverges from the template.
+- New template (`/admin/templates/new`): same layout as new survey. Template chips copy from existing templates.
 
 **Backend (George):**
 - Full Prisma schema (7 tables)

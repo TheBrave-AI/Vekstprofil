@@ -50,7 +50,6 @@ export default function Intro({ onStart, questionCount, companyName, name, intro
       <div className="flex gap-8 border-t border-line mt-7 pt-7">
         <MetaItem value={String(questionCount ?? 0)} label="spørsmål" />
         <MetaItem value={`~${String(Math.round(questionCount ? questionCount * 0.4 : 5))}`} label="minutter" />
-        <MetaItem value="0" label="krav om tall" />
       </div>
 
       {/* CTA */}
