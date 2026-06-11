@@ -42,8 +42,8 @@ export default async function TemplatesPage() {
 
                   {/* Question count */}
                   <div className="text-center shrink-0 w-16">
-                    <p className="text-[15px] text-muted tabular-nums">{t._count.questions}</p>
-                    <p className="text-[10.5px] text-muted uppercase tracking-wide">spørsmål</p>
+                    <p className="text-[12.5px] text-muted tabular-nums">{t._count.questions}</p>
+                    <p className="text-[11px] text-muted uppercase tracking-wide">spørsmål</p>
                   </div>
 
                   {/* Action */}

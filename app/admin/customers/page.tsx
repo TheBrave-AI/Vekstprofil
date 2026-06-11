@@ -46,8 +46,8 @@ export default async function CustomersPage() {
                   <div className="shrink-0 text-center">
                     {c.surveys.length > 0 ? (
                       <>
-                        <p className="text-[15px] text-muted tabular-nums leading-snug">{submitted}</p>
-                        <p className="text-[10.5px] text-muted uppercase tracking-wide">undersøkelser besvart</p>
+                        <p className="text-[12.5px] text-muted tabular-nums leading-snug">{submitted}</p>
+                        <p className="text-[11px] text-muted uppercase tracking-wide">undersøkelser besvart</p>
                       </>
                     ) : (
                       <span className="text-[13px] text-muted">Ingen undersøkelser</span>
