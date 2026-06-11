@@ -13,13 +13,20 @@ export default function Submitted({ onReset, companyName }: Props) {
 
       <h1
         className="font-display font-medium text-cloud leading-[1.1] tracking-[-0.015em] mt-10 text-center"
-        style={{ fontSize: "clamp(22px, 3.6vw, 32px)" }}
+        style={{ fontSize: "clamp(28px, 3.6vw, 38px)" }}
       >
-        Takk!<br />Kartleggingen er sendt.
+        Takk!
       </h1>
+      <h1
+        className="font-display font-medium text-cloud leading-[1.1] tracking-[-0.015em] mt-2 text-center"
+        style={{ fontSize: "clamp(24px, 3.2vw, 36px)" }}
+      >
+       Kartleggingen er sendt.
+      </h1>
+      
 
       {/* Teal circle badge with checkmark */}
-      <div className="w-[52px] h-[52px] bg-accent rounded-full flex items-center justify-center mt-16 mx-auto mb-6">
+      <div className="w-[52px] h-[52px] bg-accent rounded-full flex items-center justify-center mt-12 mx-auto mb-6">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
           <path
             d="M4 11l5 5 9-9"
