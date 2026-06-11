@@ -11,7 +11,8 @@ export const buttonVariants = cva(
         ghost:  "border border-line text-muted hover:text-cloud hover:bg-black/[0.04]",
         danger: "border border-line text-muted hover:text-coral hover:border-coral/40",
         coral:  "border border-transparent bg-coral/90 text-white hover:bg-coral",
-        accent: "border border-transparent bg-accent/10 text-accent hover:bg-accent/20",
+        accent:   "border border-transparent bg-accent/10 text-accent hover:bg-accent/20",
+        success:  "border border-transparent bg-[#16a34a] text-white hover:bg-[#15803d]",
       },
       size: {
         sm: "px-5 py-2.5 text-sm",
