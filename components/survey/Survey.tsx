@@ -15,6 +15,8 @@ interface Props {
   questions: Question[];
   existingAnswers: Record<string, { value: string | null; skipped: boolean }>;
   companyName?: string;
+  logoUrl?: string | null;
+  showLogoLabel?: boolean;
   name?: string | null;
   introTitle?: string | null;
   introText?: string | null;
@@ -44,7 +46,7 @@ const reducedVariants = {
 };
 
 
-export default function Survey({ token, questions, existingAnswers, companyName, name, introTitle, introText, initiallySubmitted }: Props) {
+export default function Survey({ token, questions, existingAnswers, companyName, logoUrl, showLogoLabel, name, introTitle, introText, initiallySubmitted }: Props) {
   const [stage, setStage] = useState<Stage>(initiallySubmitted ? "submitted" : "intro");
   const [answers, setAnswers] = useState<AnswerMap>(() => toAnswerMap(existingAnswers));
   const [draft, setDraft] = useState("");
@@ -166,7 +168,7 @@ export default function Survey({ token, questions, existingAnswers, companyName,
               if (definition === "center" && typeof stage === "number") setFocusTrigger(n => n + 1);
             }}
           >
-            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} companyName={companyName} name={name} introTitle={introTitle} introText={introText} />}
+            {stage === "intro" && <Intro onStart={goNext} questionCount={questions.length} companyName={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} name={name} introTitle={introTitle} introText={introText} />}
             {typeof stage === "number" && (
               <QuestionCard
                 question={questions[stage]}
@@ -179,6 +181,8 @@ export default function Survey({ token, questions, existingAnswers, companyName,
                 onBack={goBack}
                 focusTrigger={focusTrigger}
                 companyName={companyName}
+                logoUrl={logoUrl}
+                showLogoLabel={showLogoLabel}
               />
             )}
             {stage === "summary" && (
@@ -188,10 +192,12 @@ export default function Survey({ token, questions, existingAnswers, companyName,
                 onSubmit={handleSubmit}
                 onGoToQuestion={goToQuestion}
                 companyName={companyName}
+                logoUrl={logoUrl}
+                showLogoLabel={showLogoLabel}
                 isAlreadySubmitted={initiallySubmitted ?? false}
               />
             )}
-            {stage === "submitted" && <Submitted onReset={handleReset} companyName={companyName} />}
+            {stage === "submitted" && <Submitted onReset={handleReset} companyName={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} />}
           </motion.div>
         </AnimatePresence>
         </div>

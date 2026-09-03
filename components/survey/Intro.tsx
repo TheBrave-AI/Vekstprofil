@@ -7,6 +7,8 @@ interface Props {
   onStart: () => void;
   questionCount?: number;
   companyName?: string;
+  logoUrl?: string | null;
+  showLogoLabel?: boolean;
   name?: string | null;
   introTitle?: string | null;
   introText?: string | null;
@@ -26,10 +28,10 @@ function MetaItem({ value, label }: { value: string; label: string }) {
 const DEFAULT_TITLE = "La oss kartlegge der dere står i dag.";
 const DEFAULT_TEXT  = "Vi stiller korte spørsmål om salg og marked. Svarene danner et utgangspunkt vi kommer tilbake til senere — slik at vi sammen kan se nøyaktig hvor mye dere har vokst. Har dere ikke tallet? Hopp videre, og evt. kom tilbake til det senere.";
 
-export default function Intro({ onStart, questionCount, companyName, name, introTitle, introText }: Props) {
+export default function Intro({ onStart, questionCount, companyName, logoUrl, showLogoLabel, name, introTitle, introText }: Props) {
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
-      <BrandBar label={companyName} />
+      <BrandBar label={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} />
 
       {name && <Eyebrow label={name} />}
 

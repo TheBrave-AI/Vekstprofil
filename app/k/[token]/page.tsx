@@ -13,7 +13,7 @@ export default async function ClientQuestionnairePage({
   if (result.status === "not_found") notFound();
   if (result.status === "draft")     notFound();
 
-  const { questions, answers, companyName, name, introTitle, introText } = result.survey!;
+  const { questions, answers, companyName, logoUrl, showLogoLabel, name, introTitle, introText } = result.survey!;
 
   return (
     <Survey
@@ -21,6 +21,8 @@ export default async function ClientQuestionnairePage({
       questions={questions}
       existingAnswers={answers}
       companyName={companyName}
+      logoUrl={logoUrl}
+      showLogoLabel={showLogoLabel}
       name={name}
       introTitle={introTitle}
       introText={introText}

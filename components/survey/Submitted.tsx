@@ -4,12 +4,14 @@ import Button from "../ui/primitives/Button";
 interface Props {
   onReset: () => void;
   companyName?: string;
+  logoUrl?: string | null;
+  showLogoLabel?: boolean;
 }
 
-export default function Submitted({ onReset, companyName }: Props) {
+export default function Submitted({ onReset, companyName, logoUrl, showLogoLabel }: Props) {
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(28px,4.4vw,52px)] my-6 sm:my-10">
-      <BrandBar label={companyName} />
+      <BrandBar label={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} />
 
       <h1
         className="font-display font-medium text-cloud leading-[1.1] tracking-[-0.015em] mt-10 text-center"

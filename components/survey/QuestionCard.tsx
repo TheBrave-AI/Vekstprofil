@@ -19,9 +19,11 @@ interface Props {
   onBack: () => void;
   focusTrigger: number;
   companyName?: string;
+  logoUrl?: string | null;
+  showLogoLabel?: boolean;
 }
 
-export default function QuestionCard({ question, index, total, draft, onDraftChange, onNext, onSkip, onBack, focusTrigger, companyName }: Props) {
+export default function QuestionCard({ question, index, total, draft, onDraftChange, onNext, onSkip, onBack, focusTrigger, companyName, logoUrl, showLogoLabel }: Props) {
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
 
@@ -107,7 +109,7 @@ export default function QuestionCard({ question, index, total, draft, onDraftCha
 
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
-      <BrandBar label={companyName} />
+      <BrandBar label={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} />
       <ProgressBar current={index} total={total} />
 
       <Eyebrow label={question.category ?? ""} className="mb-5" />

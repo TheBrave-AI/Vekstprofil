@@ -12,12 +12,14 @@ datasource db {
 // ── Business models ───────────────────────────────────────────────────────────
 
 model Customer {
-  id           String   @id @default(cuid())
-  companyName  String
-  contactName  String
-  contactEmail String?
-  createdAt    DateTime @default(now())
-  surveys      Survey[]
+  id            String   @id @default(cuid())
+  companyName   String
+  contactName   String
+  contactEmail  String?
+  logoUrl       String?
+  showLogoLabel Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  surveys       Survey[]
 }
 
 model Template {

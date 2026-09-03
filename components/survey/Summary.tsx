@@ -18,10 +18,12 @@ interface Props {
   onSubmit: () => void;
   onGoToQuestion: (index: number) => void;
   companyName?: string;
+  logoUrl?: string | null;
+  showLogoLabel?: boolean;
   isAlreadySubmitted?: boolean;
 }
 
-export default function Summary({ questions, answers, onSubmit, onGoToQuestion, companyName, isAlreadySubmitted }: Props) {
+export default function Summary({ questions, answers, onSubmit, onGoToQuestion, companyName, logoUrl, showLogoLabel, isAlreadySubmitted }: Props) {
   const [showAnswers, setShowAnswers] = useState(false);
 
   const filledCount = questions.filter((q) => {
@@ -31,7 +33,7 @@ export default function Summary({ questions, answers, onSubmit, onGoToQuestion, 
 
   return (
     <div className="w-full max-w-[720px] bg-midnight rounded-card shadow-card p-[clamp(20px,4.4vw,52px)] my-6 sm:my-10">
-      <BrandBar label={companyName} />
+      <BrandBar label={companyName} logoUrl={logoUrl} showLogoLabel={showLogoLabel} />
 
       <Eyebrow label="Bekreftelse" />
 

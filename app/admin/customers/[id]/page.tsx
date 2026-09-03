@@ -2,6 +2,7 @@ import { getCustomer, activateSurvey } from "@/app/actions";
 import { fullDate, timeOnly } from "@/lib/formatTime";
 import { redirect } from "next/navigation";
 import { DeleteCustomerButton } from "@/components/admin/customers/DeleteCustomerButton";
+import { CustomerLogoUpload } from "@/components/admin/customers/CustomerLogoUpload";
 import Button from "@/components/ui/primitives/Button";
 import Link from "next/link";
 import StatusBadge from "@/components/ui/primitives/StatusBadge";
@@ -31,6 +32,14 @@ export default async function CustomerDetailPage({
 
         <Button href={`/admin/surveys/new?customerId=${id}`}>+ Ny undersøkelse</Button>
       </div>
+
+      <CustomerLogoUpload
+        customerId={customer.id}
+        customerName={customer.companyName}
+        logoUrl={customer.logoUrl}
+        showLogoLabel={customer.showLogoLabel}
+      />
+
       <SectionHeader label="Undersøkelser" count={customer.surveys.length} />
       {customer.surveys.length === 0 ? (
         <p className="text-sm text-mist">Ingen undersøkelser ennå.</p>

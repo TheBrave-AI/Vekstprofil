@@ -1,6 +1,7 @@
 "use server";
 
 import { nanoid } from "nanoid";
+import { put, del } from "@vercel/blob";
 import { unstable_cache, revalidateTag, revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -144,6 +145,8 @@ export async function getSurvey(token: string): Promise<{
   survey?: {
     id: string;
     companyName: string;
+    logoUrl: string | null;
+    showLogoLabel: boolean;
     name: string | null;
     introTitle: string | null;
     introText: string | null;
@@ -157,7 +160,7 @@ export async function getSurvey(token: string): Promise<{
       questions: { orderBy: { order: "asc" }, include: { question: true } },
       answers:   true,
       template:  { select: { name: true, introTitle: true, introText: true } },
-      customer:  { select: { companyName: true } },
+      customer:  { select: { companyName: true, logoUrl: true, showLogoLabel: true } },
     },
   });
 
@@ -178,6 +181,8 @@ export async function getSurvey(token: string): Promise<{
     survey: {
       id:          survey.id,
       companyName: survey.customer.companyName,
+      logoUrl:     survey.customer.logoUrl,
+      showLogoLabel: survey.customer.showLogoLabel,
       name:        survey.name       ?? survey.template?.name       ?? null,
       introTitle:  survey.introTitle ?? survey.template?.introTitle ?? null,
       introText:   survey.introText  ?? survey.template?.introText  ?? null,
@@ -258,6 +263,48 @@ export async function deleteCustomer(id: string): Promise<void> {
   });
   invalidateSurveys();
   invalidateCustomers(id);
+}
+
+const LOGO_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+const LOGO_MAX_SIZE = 2 * 1024 * 1024;
+
+export async function uploadCustomerLogo(customerId: string, formData: FormData): Promise<{ logoUrl: string }> {
+  await requireAuth();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Ingen fil valgt");
+  if (!LOGO_ALLOWED_TYPES.includes(file.type)) throw new Error("Filtypen støttes ikke. Bruk PNG, JPEG, WebP eller SVG.");
+  if (file.size > LOGO_MAX_SIZE) throw new Error("Filen er for stor. Maks 2MB.");
+
+  const customer = await db.customer.findUnique({ where: { id: customerId }, select: { logoUrl: true } });
+  if (!customer) throw new Error("Customer not found");
+
+  const blob = await put(`customer-logos/${customerId}/logo`, file, {
+    access: "public",
+    addRandomSuffix: true,
+  });
+
+  if (customer.logoUrl) await del(customer.logoUrl).catch(() => {});
+
+  await db.customer.update({ where: { id: customerId }, data: { logoUrl: blob.url } });
+  invalidateCustomers(customerId);
+  return { logoUrl: blob.url };
+}
+
+export async function removeCustomerLogo(customerId: string): Promise<void> {
+  await requireAuth();
+  const customer = await db.customer.findUnique({ where: { id: customerId }, select: { logoUrl: true } });
+  if (!customer?.logoUrl) return;
+
+  await del(customer.logoUrl).catch(() => {});
+  await db.customer.update({ where: { id: customerId }, data: { logoUrl: null } });
+  invalidateCustomers(customerId);
+}
+
+export async function setCustomerShowLogoLabel(customerId: string, showLogoLabel: boolean): Promise<void> {
+  await requireAuth();
+  await db.customer.update({ where: { id: customerId }, data: { showLogoLabel } });
+  invalidateCustomers(customerId);
 }
 
 export async function getSidebarData() {
