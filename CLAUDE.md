@@ -55,6 +55,7 @@ Key entities:
 - Auth.js (NextAuth v5) — Google OAuth for admin section
 - Prisma + PostgreSQL
 - **@dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) — drag-and-drop for question reordering in survey/template editors
+- **@vercel/blob** — stores customer logo uploads. The Blob store MUST be created with **Public** access in the Vercel dashboard — the survey page (`/k/[token]`) is unauthenticated, so the logo `<img>` needs a directly-loadable URL. A private-access store throws `Cannot use public access on a private store` from `put()`.
 
 ## Key Files
 
@@ -75,6 +76,7 @@ Key entities:
 | `components/admin/questions/SortableQuestion.tsx` | Drag-and-drop question row — accepts `item`, `index`, `onRemove`, optional `onEdit` |
 | `components/admin/questions/NewQuestionForm.tsx` | Question creation form — accepts optional `onCreated(q: {id, label, category})` callback; when provided, calls back instead of navigating to `/admin/questions` (used for modal embedding in survey editor) |
 | `components/ui/primitives/Button.tsx` | CVA primitive — all variants, `buttonVariants` helper exported for class-only usage |
+| `components/admin/customers/CustomerLogoUpload.tsx` | Logo upload + "Vis navn under logo" checkbox on customer detail page. Uploads via `uploadCustomerLogo` server action to Vercel Blob. |
 
 ## Design System
 
@@ -117,7 +119,10 @@ Always refer to `design_handoff_onboarding/README.md` for exact spacing, copy, a
 - **`getCustomer(id)`** — cached with `unstable_cache` per ID, tagged `customers`. Use it in admin pages.
 - **`listTemplatesWithQuestions()`** — cached action in `actions.ts`. Returns templates with `questions: { questionId, order }[]`. Used by new-survey and new-template pages to populate template chips.
 - **`createSurvey` signature:** `(customerId, templateId?, introData?, questionIds?)` — if `questionIds` is provided and non-empty, those are used instead of copying from the template. Pass `templateId` only when the form state exactly matches the template (use `activeTemplateId` derived state).
-- **`unstable_cache` writes to disk** — cache lives in `.next/cache/` and survives dev server restarts. To fully clear it: `rm -rf .next`. Do this when debugging stale data after remote DB changes.
+- **`unstable_cache` writes to disk** — cache lives in `.next/cache/` and survives dev server restarts. To fully clear it: `rm -rf .next`. Do this when debugging stale data after remote DB changes — including after adding a new Prisma field: a cached row from before the field existed comes back with that field `undefined`, which throws React's "uncontrolled to controlled input" warning if it's bound to a `checked`/`value` prop. `rm -rf .next` + restart the dev server fixes it.
+- **`Customer.logoUrl` / `Customer.showLogoLabel`:** logo shown in `BrandBar` across the whole survey flow (fetched via `getSurvey`, threaded through `Survey.tsx` as props, same pattern as `companyName`). `showLogoLabel` defaults to `false` (DB + component) — logo-only by default; the customer detail page checkbox opts a customer into showing the name label under the logo too.
+- **`BrandBar` logo/label alignment:** the row must use `items-start`, not `items-center` — centering the whole logo+label column shifts the logo's vertical position depending on whether the label renders below it. `items-start` keeps the logo's position fixed regardless.
+- **CSP `img-src`** includes `https://*.public.blob.vercel-storage.com` (`next.config.ts`) so uploaded customer logos can load.
 - **Template chip active state — two different patterns:** `NewSurveyForm` uses *derived* `activeTemplateId` (computed by comparing form fields + question order against each template — deselects automatically on any field change). `NewTemplateForm` uses *explicit* `activeStarterId: string | null` state — set on chip click, cleared to `null` by "Lag uten mal". Never conflate the two approaches.
 - **`min-w-0` på flex inputs:** `flex-1` alene lar ikke `input`/`textarea` krympe under sin naturlige minimumsbredde i flexbox. Legg alltid til `min-w-0` på disse når de er i en flex-kontainer med `shrink-0`-elementer (prefix/suffix).
 - **CVA override krever `!`-modifier:** For å overstyre klasser satt av CVA (f.eks. `text-sm` fra `size`-varianten) med responsive Tailwind-klasser, bruk `!`: `!text-[13px] sm:!text-sm`.
@@ -168,6 +173,7 @@ components/
     customers/
       DeleteCustomerButton.tsx
       NewCustomerForm.tsx
+      CustomerLogoUpload.tsx      — logo upload + "vis navn under logo" checkbox; uploads to Vercel Blob
     surveys/
       DeleteSurveyButton.tsx
       EditSurveyClient.tsx         — 'use client' wrapper for survey edit page; owns editing modal state
@@ -264,6 +270,7 @@ The product is called **Vekstprofil** externally. Target URL: `https://vekstprof
 - Main content centered: `mx-auto max-w-5xl` wrapper in `AdminShell`
 - Dashboard (`/admin`): survey lists only — no stat cards (counts live in nav/sidebar)
 - Customer list at `/admin/customers`
+- Customer logo upload (`/admin/customers/[id]`): `CustomerLogoUpload` — upload/replace/remove logo (Vercel Blob, public access required), "vis navn under logo" checkbox (defaults off). Logo + label render in `BrandBar` across the whole survey flow.
 - Survey detail (`/admin/surveys/[id]`): two-column grid `"minmax(0,55%) minmax(0,45%)"` — all answer types right-aligned in display font; `NotAnsweredPill` in right column; `max-w-3xl` card
 - Question catalog (`/admin/questions`): create/edit/delete all in modals — no separate pages. `QuestionsClient` owns all three modal states (`creating`, `editing`, `deleting`). `deleteQuestion` action added to `actions.ts`. Question labels are clickable to open edit modal.
 - Active sidebar shows answered/total progress (x/y) per active survey (`SurveyItem.answeredCount` / `.totalQuestions`)
